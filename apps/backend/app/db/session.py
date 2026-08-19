@@ -69,3 +69,11 @@ async def check_db_health() -> bool:
     except Exception as e:
         logger.warning(f"Database health check failed: {e}")
         return False
+
+
+async def dispose_db_engine() -> None:
+    """
+    Dispose of the database engine and close underlying connection pools gracefully.
+    """
+    await engine.dispose()
+

@@ -100,3 +100,7 @@ def get_logger(name: str) -> logging.Logger:
     """
     setup_root_logger()
     return logging.getLogger(name)
+
+
+# Alias for backward and forward compatibility
+setup_logging = setup_root_logger
