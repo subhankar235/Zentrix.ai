@@ -66,23 +66,33 @@ class DevelopmentFormatter(logging.Formatter):
         return msg
 
 
-def setup_root_logger() -> None:
+def setup_root_logger(
+    environment: Optional[str] = None,
+    log_level: Optional[int | str] = None,
+) -> None:
     """
     Configure the root logger with the appropriate formatter and log level
     based on application settings.
     """
     settings = get_settings()
-    log_level = logging.DEBUG if settings.is_development or settings.is_test else logging.INFO
+    env = (environment or settings.ENVIRONMENT).lower()
+
+    if log_level is None:
+        level = logging.DEBUG if env in ("development", "test", "dev") else logging.INFO
+    elif isinstance(log_level, str):
+        level = getattr(logging, log_level.upper(), logging.INFO)
+    else:
+        level = log_level
 
     root_logger = logging.getLogger()
-    root_logger.setLevel(log_level)
+    root_logger.setLevel(level)
 
     # Avoid adding duplicate handlers if setup is called multiple times
     if not any(getattr(h, "_zentrix_handler", False) for h in root_logger.handlers):
         handler = logging.StreamHandler(sys.stdout)
         handler._zentrix_handler = True  # type: ignore
 
-        if settings.is_production:
+        if env in ("production", "prod"):
             handler.setFormatter(StructuredJSONFormatter())
         else:
             handler.setFormatter(DevelopmentFormatter())
@@ -104,3 +114,4 @@ def get_logger(name: str) -> logging.Logger:
 
 # Alias for backward and forward compatibility
 setup_logging = setup_root_logger
+
