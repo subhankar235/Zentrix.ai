@@ -27,9 +27,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     setup_logging(environment=settings.ENVIRONMENT)
     logger.info(
         f"Starting Zentrix.ai API in {settings.ENVIRONMENT} mode",
-        environment=settings.ENVIRONMENT,
-        api_prefix=settings.API_V1_PREFIX,
+        extra={"environment": settings.ENVIRONMENT, "api_prefix": settings.API_V1_PREFIX},
     )
+
 
     # Verify database connection
     db_healthy = await check_db_health()
