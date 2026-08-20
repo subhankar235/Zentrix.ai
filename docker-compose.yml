@@ -18,6 +18,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # Isolated database used only by the Database Fault Laboratory.
+  fault-lab-db:
+    build:
+      context: .
+      dockerfile: infra/docker/fault-lab.Dockerfile
+    environment:
+      POSTGRES_DB: fault_lab
+      POSTGRES_USER: fault_lab
+      POSTGRES_PASSWORD: fault_lab_dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - fault-lab-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fault_lab -d fault_lab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   # ─── Backend API ─────────────────────────────────────────────────────────
   backend:
     build:
@@ -100,4 +119,5 @@ services:
 
 volumes:
   app-db-data:
+  fault-lab-data:
   mlflow-artifacts:
