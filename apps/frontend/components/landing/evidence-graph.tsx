@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 type Node = { id: string; x: number; y: number; label: string; sub: string; kind: "src" | "mid" | "out" };
 
 const nodes: Node[] = [
-  { id: "stmts", x: 14, y: 18, label: "pg_stat_statements", sub: "+412% mean_exec", kind: "src" },
-  { id: "stats", x: 12, y: 52, label: "pg_stats", sub: "stale 19d", kind: "src" },
-  { id: "locks", x: 16, y: 84, label: "pg_locks", sub: "no chain", kind: "src" },
+  { id: "stmts", x: 20, y: 18, label: "pg_stat_statements", sub: "+412% mean_exec", kind: "src" },
+  { id: "stats", x: 18, y: 52, label: "pg_stats", sub: "stale 19d", kind: "src" },
+  { id: "locks", x: 20, y: 84, label: "pg_locks", sub: "no chain", kind: "src" },
   { id: "plan", x: 50, y: 32, label: "plan flip", sub: "index → seq scan", kind: "mid" },
   { id: "card", x: 52, y: 68, label: "cardinality err", sub: "est 1.2k / act 940k", kind: "mid" },
   { id: "root", x: 86, y: 50, label: "root cause", sub: "stale statistics", kind: "out" },
@@ -62,24 +62,28 @@ export function EvidenceGraph() {
         </svg>
 
         {nodes.map((n, i) => (
-          <motion.div
+          <div
             key={n.id}
-            initial={{ opacity: 0, scale: 0.85 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.35 + i * 0.09, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-md border px-2.5 py-1.5 backdrop-blur-sm ${
-              n.kind === "out"
-                ? "border-signal/60 bg-signal/12 shadow-glow"
-                : n.kind === "mid"
-                  ? "border-warn/45 bg-warn/8"
-                  : "border-border bg-surface"
-            }`}
-            style={{ left: `${n.x}%`, top: `${n.y}%` }}
+            className="absolute z-10"
+            style={{ left: `${n.x}%`, top: `${n.y}%`, transform: "translate(-50%, -50%)" }}
           >
-            <div className="font-mono text-[10.5px] leading-tight font-medium">{n.label}</div>
-            <div className="font-mono text-[9.5px] leading-tight text-muted-foreground">{n.sub}</div>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.35 + i * 0.09, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className={`whitespace-nowrap rounded-md border px-2.5 py-1.5 backdrop-blur-sm ${
+                n.kind === "out"
+                  ? "border-signal/60 bg-signal/12 shadow-glow"
+                  : n.kind === "mid"
+                    ? "border-warn/45 bg-warn/8"
+                    : "border-border bg-surface"
+              }`}
+            >
+              <div className="font-mono text-[10.5px] leading-tight font-medium">{n.label}</div>
+              <div className="font-mono text-[9.5px] leading-tight text-muted-foreground">{n.sub}</div>
+            </motion.div>
+          </div>
         ))}
       </div>
 
