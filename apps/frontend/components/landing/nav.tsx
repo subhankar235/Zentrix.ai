@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme } from "next-themes";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const links = [
   { href: "#evidence", label: "Evidence" },
@@ -12,6 +13,8 @@ const links = [
 ];
 
 export function Nav() {
+  const { resolvedTheme, setTheme } = useTheme();
+
   return (
     <motion.header
       initial={{ y: -24, opacity: 0 }}
@@ -42,7 +45,11 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <AnimatedThemeToggler
+            className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            theme={resolvedTheme === "dark" ? "dark" : "light"}
+            onThemeChange={setTheme}
+          />
           <a
             href="#cta"
             className="inline-flex h-9 items-center rounded-md bg-primary px-4 font-mono text-xs font-medium tracking-wide text-primary-foreground transition-transform hover:-translate-y-px"
