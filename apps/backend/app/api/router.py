@@ -1,10 +1,10 @@
-"""
-Central API Router aggregation for Zentrix.ai Backend.
+"""Central API Router aggregation for Zentrix.ai Backend.
+
 Reference: PRD.md §12 & ARCHITECTURE.md §4
 """
 
 from fastapi import APIRouter
-from app.api.routes import auth, connections, diagnostics, experiments, forecasts, roi
+from app.api.routes import audit, auth, connections, diagnostics, experiments, forecasts, roi
 
 api_router = APIRouter()
 
@@ -14,3 +14,4 @@ api_router.include_router(diagnostics.router)
 api_router.include_router(experiments.router)
 api_router.include_router(forecasts.router)
 api_router.include_router(roi.router)
+api_router.include_router(audit.router)
