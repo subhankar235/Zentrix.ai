@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useThemeStore } from "@/stores/theme-store";
+
+const emptySubscribe = () => () => {};
 
 export function ThemeToggle() {
   const dark = useThemeStore((s) => s.dark);
   const toggle = useThemeStore((s) => s.toggle);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
     const isDark = stored ? stored === "dark" : true;
     useThemeStore.getState().setDark(isDark);
-    setMounted(true);
   }, []);
 
   useEffect(() => {
