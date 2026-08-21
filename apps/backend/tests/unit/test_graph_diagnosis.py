@@ -21,7 +21,7 @@ def test_graph_runs_all_specialists_and_scopes_tools():
 
     assert {item["agent"] for item in specialists} == set(DOMAINS)
     assert all(item["hypothesis"] and 0 <= item["confidence"] <= 1 for item in specialists)
-    assert {item["agent"]: item["tools"] for item in specialists} == TOOL_SUBSETS
+    assert {item["agent"]: tuple(item["tools"]) for item in specialists} == TOOL_SUBSETS
 
 
 def test_supervisor_report_has_prd_shape_and_picks_strongest_direct_evidence():
