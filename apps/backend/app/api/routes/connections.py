@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user, get_db_session
 from app.models.user import User
+from app.models.connection import DatabaseConnection
 from app.schemas.connection import (
     ConnectionCreate,
     ConnectionOut,
@@ -143,11 +144,16 @@ async def list_connection_diagnoses(
     """
     List detected root-cause diagnoses for a given database connection.
     """
-    stmt = (
-        select(Diagnosis)
-        .where(Diagnosis.connection_id == id)
-        .order_by(Diagnosis.created_at.desc())
-    )
+    stmt = select(Diagnosis).join(DatabaseConnection, DatabaseConnection.id == Diagnosis.connection_id).where(Diagnosis.connection_id == id)
+    if not current_user.is_superuser:
+        stmt = stmt.where(DatabaseConnection.user_id == current_user.id)
+    stmt = stmt.order_by(Diagnosis.created_at.desc())
     res = await db.execute(stmt)
-    return res.scalars().all()
-
+    diagnoses = res.scalars().all()
+    if not diagnoses:
+        connection_stmt = select(DatabaseConnection.id).where(DatabaseConnection.id == id)
+        if not current_user.is_superuser:
+            connection_stmt = connection_stmt.where(DatabaseConnection.user_id == current_user.id)
+        if await db.scalar(connection_stmt) is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
+    return diagnoses
