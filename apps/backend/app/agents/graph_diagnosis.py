@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import inspect
 import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Mapping, Sequence
 from operator import add
 from typing import Annotated, Any, TypedDict
@@ -99,10 +101,20 @@ def _ml_context(evidence: Mapping[str, Any]) -> dict[str, Any]:
     return dict(metrics) if isinstance(metrics, Mapping) else {}
 
 
+def _await_sync(awaitable: Any) -> Any:
+    """Bridge async introspection tools for LangGraph's sync invoke API."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(awaitable)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        return executor.submit(asyncio.run, awaitable).result()
+
+
 def _specialist_node(domain: str):
-    async def node(state: DiagnosisState) -> dict[str, Any]:
+    def node(state: DiagnosisState) -> dict[str, Any]:
         evidence = dict(state.get("evidence", {}))
-        evidence["tool_results"] = await _call_tools(domain, state)
+        evidence["tool_results"] = _await_sync(_call_tools(domain, state))
         cause, confidence, items = _domain_signal(domain, evidence)
         context = _ml_context(evidence)
         model_outputs: dict[str, Any] = {}
@@ -124,7 +136,7 @@ def _specialist_node(domain: str):
 def _supervisor(state: DiagnosisState) -> dict[str, Any]:
     specialists = state.get("specialists", [])
     candidates = [item for item in specialists if item.get("hypothesis") not in (None, "UNKNOWN")]
-    candidates.sort(key=lambda item: (-float(item.get("confidence", 0)), _earliest(item)))
+    candidates.sort(key=lambda item: (-_directness(item), _earliest(item) or "9999", -float(item.get("confidence", 0))))
     primary = candidates[0] if candidates else None
     if primary and len(candidates) > 1:
         direct = sum(float(item.get("evidence", [{}])[0].get("directness", 0)) for item in candidates if item.get("evidence"))
@@ -158,6 +170,14 @@ def _supervisor(state: DiagnosisState) -> dict[str, Any]:
 def _earliest(item: Mapping[str, Any]) -> str:
     evidence = item.get("evidence", [])
     return str(evidence[0].get("timestamp", "")) if evidence and isinstance(evidence[0], Mapping) else ""
+
+
+def _directness(item: Mapping[str, Any]) -> float:
+    evidence = item.get("evidence", [])
+    if not evidence:
+        return 0.0
+    values = [float(entry.get("directness", 0.0)) for entry in evidence if isinstance(entry, Mapping)]
+    return max(values, default=0.0)
 
 
 def _recommendation(cause: str) -> str:
