@@ -186,6 +186,35 @@ async def run_diagnosis(
         )
         _persist_graph(diagnosis, report)
         db.add(diagnosis)
+
+        # Audit log the diagnosis creation event per PRD.md §14, §15
+        from app.models.audit import AuditLog
+        from app.core.logging import log_agent_execution
+        
+        audit_entry = AuditLog(
+            connection_id=connection_id,
+            action_type="DIAGNOSIS_GENERATED",
+            target_entity="diagnosis",
+            target_id=str(diagnosis.id),
+            details={
+                "title": diagnosis.title,
+                "primary_root_cause": diagnosis.primary_root_cause,
+                "severity": diagnosis.severity,
+                "confidence": diagnosis.confidence,
+                "node_count": len(diagnosis.nodes),
+            },
+            timestamp=datetime.now(timezone.utc),
+        )
+        db.add(audit_entry)
+
+        log_agent_execution(
+            agent_name="SupervisorAgent",
+            action="DIAGNOSIS_GENERATED",
+            evidence={"root_cause": diagnosis.primary_root_cause, "nodes": len(diagnosis.nodes)},
+            confidence=diagnosis.confidence,
+            connection_id=str(connection_id),
+        )
+
         await db.commit()
         persisted = await db.scalar(
             select(Diagnosis)
