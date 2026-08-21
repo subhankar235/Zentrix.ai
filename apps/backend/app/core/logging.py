@@ -1,14 +1,42 @@
 """
-Structured logging configuration and logger factory.
-Reference: ARCHITECTURE.md §4 & BACKEND_STEPS.md Step 4
+Structured logging configuration, correlation tracing, and logger factory.
+Reference: ARCHITECTURE.md §4, §15 & BACKEND_STEPS.md Step 4, Step 31
 """
 
+import contextvars
 import json
 import logging
 import sys
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+
 from app.core.config import get_settings
+
+# ContextVar storing active request/agent/experiment correlation attributes
+_correlation_context: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(
+    "zentrix_correlation_context", default={}
+)
+
+
+def set_correlation_context(**kwargs: Any) -> None:
+    """Set or update the active correlation context for the current async task."""
+    current = dict(_correlation_context.get())
+    for k, v in kwargs.items():
+        if v is not None:
+            current[k] = str(v) if not isinstance(v, (int, float, bool, dict, list)) else v
+        elif k in current:
+            del current[k]
+    _correlation_context.set(current)
+
+
+def get_correlation_context() -> Dict[str, Any]:
+    """Retrieve the active correlation context dictionary."""
+    return dict(_correlation_context.get())
+
+
+def clear_correlation_context() -> None:
+    """Clear all correlation context for the current async task."""
+    _correlation_context.set({})
 
 
 class StructuredJSONFormatter(logging.Formatter):
@@ -19,6 +47,7 @@ class StructuredJSONFormatter(logging.Formatter):
     """
 
     def format(self, record: logging.LogRecord) -> str:
+        ctx = get_correlation_context()
         log_entry: Dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
@@ -29,8 +58,12 @@ class StructuredJSONFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
 
+        # Merge ContextVar correlation attributes
+        for field, val in ctx.items():
+            log_entry[field] = val
+
         # Include standard contextual tracing fields if present in extra
-        for field in ("request_id", "agent_id", "experiment_id", "connection_id", "user_id"):
+        for field in ("request_id", "agent_id", "experiment_id", "connection_id", "user_id", "trace_id", "action"):
             val = getattr(record, field, None)
             if val is not None:
                 log_entry[field] = val
@@ -51,12 +84,19 @@ class DevelopmentFormatter(logging.Formatter):
     """
 
     def format(self, record: logging.LogRecord) -> str:
+        ctx = get_correlation_context()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         context_parts = []
-        for field in ("request_id", "agent_id", "experiment_id", "connection_id"):
+
+        # Merge ContextVar and record extras
+        merged_context = dict(ctx)
+        for field in ("request_id", "agent_id", "experiment_id", "connection_id", "action"):
             val = getattr(record, field, None)
             if val is not None:
-                context_parts.append(f"{field}={val}")
+                merged_context[field] = val
+
+        for field, val in merged_context.items():
+            context_parts.append(f"{field}={val}")
 
         context_str = f" [{', '.join(context_parts)}]" if context_parts else ""
         msg = f"{timestamp} | {record.levelname:<8} | {record.name}:{record.lineno} | {record.getMessage()}{context_str}"
@@ -112,6 +152,33 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
+def log_agent_execution(
+    agent_name: str,
+    action: str,
+    evidence: Optional[Dict[str, Any]] = None,
+    confidence: Optional[float] = None,
+    connection_id: Optional[str] = None,
+    experiment_id: Optional[str] = None,
+) -> None:
+    """Structured logging helper for multi-agent graph execution per PRD.md §15."""
+    logger = get_logger(f"agent.{agent_name}")
+    extra: Dict[str, Any] = {
+        "agent_id": agent_name,
+        "action": action,
+    }
+    if connection_id:
+        extra["connection_id"] = connection_id
+    if experiment_id:
+        extra["experiment_id"] = experiment_id
+    if confidence is not None:
+        extra["confidence"] = confidence
+
+    details_str = f" [evidence_keys={list(evidence.keys())}]" if evidence else ""
+    conf_str = f" [confidence={confidence:.2f}]" if confidence is not None else ""
+    logger.info(f"Agent '{agent_name}' executed '{action}'{details_str}{conf_str}", extra=extra)
+
+
 # Alias for backward and forward compatibility
 setup_logging = setup_root_logger
+
 
