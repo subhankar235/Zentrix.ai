@@ -159,6 +159,36 @@ class SimulationService:
             created_at=now,
         )
         db.add(prediction_rec)
+
+        # Audit log the simulation execution event per PRD.md §14, §15
+        from app.models.audit import AuditLog
+        from app.core.logging import log_agent_execution
+
+        audit_entry = AuditLog(
+            connection_id=connection_id,
+            action_type="SIMULATION_EXECUTED",
+            target_entity="optimization_experiment",
+            target_id=str(experiment.id),
+            details={
+                "strategy": strategy,
+                "candidate_sql": sql,
+                "policy_verdict": policy_status,
+                "p95_improvement_ratio": (base_p95 - cand_p95) / max(base_p95, 1e-6),
+                "is_verified": is_verified,
+            },
+            timestamp=now,
+        )
+        db.add(audit_entry)
+
+        log_agent_execution(
+            agent_name="PolicyAgent",
+            action="SIMULATION_POLICY_EVALUATION",
+            evidence={"verdict": policy_status, "is_verified": is_verified},
+            confidence=float(report.get("ml_confidence", 0.85)),
+            connection_id=str(connection_id),
+            experiment_id=str(experiment.id),
+        )
+
         await db.commit()
         await db.refresh(experiment)
 
