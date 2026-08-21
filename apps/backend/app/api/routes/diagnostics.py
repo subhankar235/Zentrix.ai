@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user, get_db_session
 from app.models.diagnosis import Diagnosis, EvidenceGraphEdge, EvidenceGraphNode
+from app.models.connection import DatabaseConnection
 from app.models.experiment import OptimizationExperiment
 from app.models.user import User
 from app.schemas.diagnosis import (
@@ -22,8 +23,23 @@ from app.schemas.diagnosis import (
     InvestigationTriggerRequest,
 )
 from app.schemas.experiment import OptimizationExperimentOut
+from app.services.diagnosis_service import diagnosis_service
 
 router = APIRouter(prefix="/diagnoses", tags=["Diagnostics & Root Cause Analysis"])
+
+
+def _owned_diagnosis_stmt(diagnosis_id: uuid.UUID, current_user: User):
+    stmt = select(Diagnosis).join(DatabaseConnection, DatabaseConnection.id == Diagnosis.connection_id).where(Diagnosis.id == diagnosis_id)
+    if not current_user.is_superuser:
+        stmt = stmt.where(DatabaseConnection.user_id == current_user.id)
+    return stmt.options(selectinload(Diagnosis.nodes), selectinload(Diagnosis.edges))
+
+
+def _detail(diag: Diagnosis) -> DiagnosisDetailOut:
+    nodes_out = [EvidenceGraphNodeOut.model_validate(node) for node in diag.nodes]
+    edges_out = [EvidenceGraphEdgeOut.model_validate(edge) for edge in diag.edges]
+    diag_dict = DiagnosisOut.model_validate(diag).model_dump()
+    return DiagnosisDetailOut(**diag_dict, evidence_graph=EvidenceGraphOut(nodes=nodes_out, edges=edges_out))
 
 
 @router.get("/{id}", response_model=DiagnosisDetailOut)
@@ -35,27 +51,13 @@ async def get_diagnosis_report(
     """
     Get full multi-agent root-cause report including deterministic evidence graph.
     """
-    stmt = (
-        select(Diagnosis)
-        .where(Diagnosis.id == id)
-        .options(
-            selectinload(Diagnosis.nodes),
-            selectinload(Diagnosis.edges),
-        )
-    )
+    stmt = _owned_diagnosis_stmt(id, current_user)
     res = await db.execute(stmt)
     diag = res.scalar_one_or_none()
     if not diag:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Diagnosis not found")
 
-    nodes_out = [EvidenceGraphNodeOut.model_validate(n) for n in diag.nodes]
-    edges_out = [EvidenceGraphEdgeOut.model_validate(e) for e in diag.edges]
-
-    diag_dict = DiagnosisOut.model_validate(diag).model_dump()
-    return DiagnosisDetailOut(
-        **diag_dict,
-        evidence_graph=EvidenceGraphOut(nodes=nodes_out, edges=edges_out),
-    )
+    return _detail(diag)
 
 
 @router.get("/{id}/recommendations", response_model=List[OptimizationExperimentOut])
@@ -69,9 +71,13 @@ async def get_diagnosis_recommendations(
     """
     stmt = (
         select(OptimizationExperiment)
+        .join(Diagnosis, Diagnosis.id == OptimizationExperiment.diagnosis_id)
+        .join(DatabaseConnection, DatabaseConnection.id == Diagnosis.connection_id)
         .where(OptimizationExperiment.diagnosis_id == id)
         .order_by(OptimizationExperiment.created_at.desc())
     )
+    if not current_user.is_superuser:
+        stmt = stmt.where(DatabaseConnection.user_id == current_user.id)
     res = await db.execute(stmt)
     return res.scalars().all()
 
@@ -86,8 +92,15 @@ async def trigger_investigation(
     """
     Trigger an on-demand multi-agent causal investigation run.
     """
-    return {
-        "status": "ACCEPTED",
-        "diagnosis_id": str(id),
-        "message": "Multi-agent causal investigation task dispatched",
-    }
+    if request.connection_id != id:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="connection_id must match the path connection")
+    try:
+        diagnosis = await diagnosis_service.run_diagnosis(
+            connection_id=id,
+            db=db,
+            time_window_minutes=request.time_window_minutes,
+            query_id=request.query_id,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return _detail(diagnosis)

@@ -41,6 +41,11 @@ def _query_hash(query: str) -> str:
 
 
 def _validate_read_query(query: str) -> str:
+    """Validate the only caller-supplied SQL accepted by this module.
+
+    Introspection queries are otherwise fixed below.  EXPLAIN is executed in
+    a PostgreSQL read-only transaction as a second, database-enforced guard.
+    """
     statement = query.strip()
     if not statement or ";" in statement:
         raise ValueError("Only one read-only SQL statement is allowed")
