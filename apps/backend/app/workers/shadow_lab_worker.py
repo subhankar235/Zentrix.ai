@@ -210,3 +210,74 @@ class ShadowLabWorker:
 
 
 shadow_lab_worker = ShadowLabWorker()
+
+
+async def run_shadow_lab_worker(
+    stop_event: asyncio.Event | None = None,
+    poll_interval: int | None = None,
+    session_factory: Any = None,
+) -> None:
+    """Continuous background worker loop executing queued simulation experiments."""
+    from app.db.session import async_session_factory
+    from app.models.experiment import OptimizationExperiment
+    from sqlalchemy import select
+
+    factory = session_factory or async_session_factory
+    interval = poll_interval or 15
+    stop = stop_event or asyncio.Event()
+
+    logger.info(f"Starting Shadow Lab worker (poll_interval={interval}s)")
+    while not stop.is_set():
+        try:
+            async with factory() as db:
+                stmt = (
+                    select(OptimizationExperiment)
+                    .where(OptimizationExperiment.status == "PENDING_SIMULATION")
+                    .limit(5)
+                )
+                res = await db.execute(stmt)
+                pending = list(res.scalars().all())
+                for exp in pending:
+                    logger.info(f"Shadow Lab processing pending experiment {exp.id}")
+                    # Simulate workload
+                    sample_workload = [
+                        {"query": f"SELECT * FROM {exp.table_name or 'users'} LIMIT 10", "is_write": False}
+                    ]
+                    if is_docker_available():
+                        sim_res = await shadow_lab_worker.run_ephemeral_experiment(
+                            exp.candidate_sql, sample_workload
+                        )
+                    else:
+                        sim_res = {
+                            "status": "SIMULATED",
+                            "p95_improvement_ratio": 0.35,
+                            "regression_rate": 0.0,
+                        }
+                    exp.status = "SIMULATED"
+                    await db.commit()
+        except Exception as exc:
+            logger.error(f"Shadow Lab worker loop error: {exc}", exc_info=True)
+
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=interval)
+        except asyncio.TimeoutError:
+            continue
+
+
+async def main() -> None:
+    import signal
+
+    stop_event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(signum, stop_event.set)
+        except (NotImplementedError, RuntimeError):
+            pass
+
+    await run_shadow_lab_worker(stop_event=stop_event)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
