@@ -89,13 +89,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <ShieldCheck className="h-4 w-4" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">Aegis</p>
+            <p className="text-sm font-semibold">Zentrix</p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
               AI DBA
             </p>
           </div>
         </div>
-        <nav className="flex-1 space-y-0.5 p-2">
+        <nav className="flex-1 space-y-2 p-2">
           {nav.map((item) => {
             const active = item.match(pathname)
             const Icon = item.icon
@@ -133,7 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
           <div className="flex items-center gap-2 lg:hidden">
             <ShieldCheck className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold">Aegis</span>
+            <span className="text-sm font-semibold">Zentrix</span>
           </div>
           <div className="hidden sm:block">
             <DatabaseSelector />

@@ -30,7 +30,7 @@ export default function ConnectionsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Connections"
-        description="Databases Aegis monitors. Each connection uses a read-only role and requires pg_stat_statements."
+        description="Databases Zentrix monitors. Each connection uses a read-only role and requires pg_stat_statements."
         actions={
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" /> Add connection
