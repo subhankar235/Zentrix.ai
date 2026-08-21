@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../components";
 @source "../app";
 @import "tw-animate-css";
@@ -7,9 +7,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system: "CryptGen & Playful"
- * Dark Theme: Sleek charcoal surfaces with glowing ambient accents.
- * Light Theme: Clean off-white with vibrant emerald/cyan accents.
+ * Design system: "Instrument" — a diagnostic console aesthetic.
+ * Deep ink surfaces, phosphor-teal signal, amber warning, all oklch tokens.
  */
 
 @theme inline {
@@ -19,7 +18,6 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -39,85 +37,124 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
   --color-signal: var(--signal);
   --color-signal-foreground: var(--signal-foreground);
   --color-warn: var(--warn);
   --color-verified: var(--verified);
-  
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-grid: var(--grid);
-
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-
-  --shadow-instrument: 0 1px 0 0 color-mix(in srgb, var(--color-foreground) 6%, transparent),
-    0 24px 60px -30px color-mix(in srgb, var(--color-foreground) 40%, transparent);
-  --shadow-glow: 0 0 0 1px color-mix(in srgb, var(--color-signal) 30%, transparent),
-    0 0 60px -12px color-mix(in srgb, var(--color-signal) 55%, transparent);
 }
 
-@layer base {
-  :root {
-    --background: hsl(210 33% 99%);
-    --foreground: hsl(222 47% 11%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(222 47% 11%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(222 47% 11%);
-    --primary: hsl(160 84% 39%);
-    --primary-foreground: hsl(0 0% 100%);
-    --secondary: hsl(199 89% 48%);
-    --secondary-foreground: hsl(0 0% 100%);
-    --muted: hsl(210 40% 96%);
-    --muted-foreground: hsl(215 16% 47%);
-    --accent: hsl(210 40% 96%);
-    --accent-foreground: hsl(222 47% 11%);
-    --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(210 40% 98%);
-    --border: hsl(220 13% 91%);
-    --input: hsl(220 13% 91%);
-    --ring: hsl(160 84% 39%);
-    --radius: 0.5rem;
-    --signal: hsl(199 89% 48%);
-    --signal-foreground: hsl(0 0% 100%);
-    --warn: hsl(38 92% 50%);
-    --verified: hsl(160 84% 39%);
-    --surface: hsl(0 0% 100%);
-    --surface-2: hsl(210 40% 96%);
-    --grid: hsl(222 47% 11% / 5%);
-  }
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.977 0.007 95);
+  --foreground: oklch(0.21 0.02 250);
+  --surface: oklch(0.995 0.004 95);
+  --surface-2: oklch(0.945 0.009 95);
+  --card: oklch(0.995 0.004 95);
+  --card-foreground: oklch(0.21 0.02 250);
+  --popover: oklch(0.995 0.004 95);
+  --popover-foreground: oklch(0.21 0.02 250);
+  --primary: oklch(0.24 0.032 235);
+  --primary-foreground: oklch(0.98 0.01 180);
+  --secondary: oklch(0.94 0.01 95);
+  --secondary-foreground: oklch(0.24 0.032 235);
+  --muted: oklch(0.945 0.008 95);
+  --muted-foreground: oklch(0.5 0.018 250);
+  --accent: oklch(0.93 0.04 190);
+  --accent-foreground: oklch(0.24 0.032 235);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0.01 95);
+  --border: oklch(0.885 0.012 250);
+  --input: oklch(0.885 0.012 250);
+  --ring: oklch(0.62 0.13 190);
+  --signal: oklch(0.62 0.13 190);
+  --signal-foreground: oklch(0.99 0.01 190);
+  --warn: oklch(0.72 0.15 72);
+  --verified: oklch(0.6 0.14 155);
+  --grid: oklch(0.21 0.02 250 / 7%);
+  --success: oklch(0.6 0.14 155);
+  --warning: oklch(0.72 0.15 72);
+  --danger: oklch(0.55 0.2 27);
+  --info: oklch(0.55 0.13 250);
+  --chart-1: oklch(0.62 0.13 190);
+  --chart-2: oklch(0.6 0.14 155);
+  --chart-3: oklch(0.68 0.15 72);
+  --chart-4: oklch(0.55 0.15 250);
+  --chart-5: oklch(0.55 0.2 27);
+  --sidebar: oklch(0.968 0.008 95);
+  --sidebar-foreground: oklch(0.35 0.02 250);
+  --sidebar-border: oklch(0.885 0.012 250);
+  --sidebar-accent: oklch(0.93 0.04 190);
+  --sidebar-accent-foreground: oklch(0.24 0.032 235);
+}
 
-  .dark {
-    --background: hsl(0 0% 2%);
-    --foreground: hsl(0 0% 100%);
-    --card: hsl(225 12% 6%);
-    --card-foreground: hsl(0 0% 100%);
-    --popover: hsl(225 12% 6%);
-    --popover-foreground: hsl(0 0% 100%);
-    --primary: hsl(0 0% 100%);
-    --primary-foreground: hsl(0 0% 0%);
-    --secondary: hsl(225 9% 9%);
-    --secondary-foreground: hsl(0 0% 100%);
-    --muted: hsl(225 12% 12%);
-    --muted-foreground: hsl(215 20% 65%);
-    --accent: hsl(225 12% 12%);
-    --accent-foreground: hsl(0 0% 100%);
-    --destructive: hsl(0 63% 31%);
-    --destructive-foreground: hsl(0 0% 100%);
-    --border: hsl(225 11% 15%);
-    --input: hsl(225 11% 15%);
-    --ring: hsl(0 0% 100%);
-    --signal: hsl(199 89% 48%);
-    --signal-foreground: hsl(0 0% 100%);
-    --warn: hsl(38 92% 50%);
-    --verified: hsl(160 84% 39%);
-    --surface: hsl(225 12% 6%);
-    --surface-2: hsl(225 12% 12%);
-    --grid: hsl(0 0% 100% / 5%);
-  }
+.dark {
+  --background: oklch(0.17 0.018 250);
+  --foreground: oklch(0.95 0.008 220);
+  --surface: oklch(0.21 0.021 250);
+  --surface-2: oklch(0.25 0.024 250);
+  --card: oklch(0.21 0.021 250);
+  --card-foreground: oklch(0.95 0.008 220);
+  --popover: oklch(0.21 0.021 250);
+  --popover-foreground: oklch(0.95 0.008 220);
+  --primary: oklch(0.82 0.13 190);
+  --primary-foreground: oklch(0.17 0.03 235);
+  --secondary: oklch(0.26 0.024 250);
+  --secondary-foreground: oklch(0.95 0.008 220);
+  --muted: oklch(0.25 0.022 250);
+  --muted-foreground: oklch(0.7 0.018 230);
+  --accent: oklch(0.3 0.05 200);
+  --accent-foreground: oklch(0.95 0.02 190);
+  --destructive: oklch(0.66 0.19 25);
+  --destructive-foreground: oklch(0.98 0.01 95);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.78 0.14 190);
+  --signal: oklch(0.8 0.14 190);
+  --signal-foreground: oklch(0.17 0.03 235);
+  --warn: oklch(0.8 0.15 78);
+  --verified: oklch(0.75 0.15 158);
+  --grid: oklch(0.95 0.02 190 / 8%);
+  --success: oklch(0.75 0.15 158);
+  --warning: oklch(0.8 0.15 78);
+  --danger: oklch(0.66 0.19 25);
+  --info: oklch(0.7 0.13 245);
+  --chart-1: oklch(0.8 0.14 190);
+  --chart-2: oklch(0.75 0.15 158);
+  --chart-3: oklch(0.8 0.15 78);
+  --chart-4: oklch(0.72 0.13 245);
+  --chart-5: oklch(0.66 0.19 25);
+  --sidebar: oklch(0.19 0.02 250);
+  --sidebar-foreground: oklch(0.85 0.01 220);
+  --sidebar-border: oklch(1 0 0 / 11%);
+  --sidebar-accent: oklch(0.26 0.03 210);
+  --sidebar-accent-foreground: oklch(0.95 0.02 190);
+}
+
+@theme inline {
+  --shadow-instrument: 0 1px 0 0 color-mix(in oklab, var(--foreground) 6%, transparent),
+    0 24px 60px -30px color-mix(in oklab, var(--foreground) 40%, transparent);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--signal) 30%, transparent),
+    0 0 60px -12px color-mix(in oklab, var(--signal) 55%, transparent);
 }
 
 @layer base {
@@ -137,23 +174,23 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--color-signal) 35%, transparent);
+    background: color-mix(in oklab, var(--signal) 35%, transparent);
   }
 }
 
 @utility grid-field {
   background-image:
-    linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
   background-size: 56px 56px;
 }
 
 @utility text-gradient-signal {
   background-image: linear-gradient(
     100deg,
-    var(--color-foreground) 0%,
-    color-mix(in srgb, var(--color-signal) 85%, var(--color-foreground)) 55%,
-    var(--color-foreground) 100%
+    var(--foreground) 0%,
+    color-mix(in oklab, var(--signal) 85%, var(--foreground)) 55%,
+    var(--foreground) 100%
   );
   background-clip: text;
   color: transparent;
@@ -164,40 +201,6 @@
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-/* User Requested Utilities */
-@utility ambient-glow {
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -20px;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 70%);
-    filter: blur(24px);
-    z-index: -1;
-    pointer-events: none;
-  }
-}
-
-@utility glassmorphic-card {
-  background: color-mix(in srgb, var(--color-card) 60%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-}
-
-@utility glowing-pill {
-  position: relative;
-  transition: all 0.3s ease;
-  overflow: hidden;
-  box-shadow: 0 0 15px color-mix(in srgb, var(--color-primary) 30%, transparent);
-  
-  &:hover {
-    box-shadow: 0 0 25px color-mix(in srgb, var(--color-primary) 60%, transparent);
-    transform: translateY(-1px);
-  }
 }
 
 @keyframes trace-dash {
@@ -226,6 +229,7 @@
     transform: translateY(400%);
   }
 }
+
 
 ::view-transition-old(root),
 ::view-transition-new(root) {

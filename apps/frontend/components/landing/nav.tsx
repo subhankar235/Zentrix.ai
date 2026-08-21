@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
@@ -50,12 +51,12 @@ export function Nav() {
             theme={resolvedTheme === "dark" ? "dark" : "light"}
             onThemeChange={setTheme}
           />
-          <a
-            href="#cta"
+          <Link
+            href="/dashboard"
             className="inline-flex h-9 items-center rounded-md bg-primary px-4 font-mono text-xs font-medium tracking-wide text-primary-foreground transition-transform hover:-translate-y-px"
           >
             Connect database
-          </a>
+          </Link>
         </div>
       </div>
     </motion.header>
