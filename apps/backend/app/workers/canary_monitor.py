@@ -230,3 +230,63 @@ async def monitor_canary_tick(
         "canary_run_id": str(canary_run.id),
         "metrics": metrics,
     }
+
+
+async def monitor_active_canaries_once(session_factory: Any = None) -> list[dict[str, Any]]:
+    """Poll and evaluate all active running canary deployments once."""
+    from app.db.session import async_session_factory
+
+    factory = session_factory or async_session_factory
+    results: list[dict[str, Any]] = []
+
+    async with factory() as db:
+        stmt = select(CanaryRun).where(CanaryRun.status == "RUNNING")
+        res = await db.execute(stmt)
+        active_runs = list(res.scalars().all())
+
+        for run in active_runs:
+            try:
+                tick_res = await monitor_canary_tick(run, db)
+                results.append(tick_res)
+            except Exception as exc:
+                logger.error(f"Canary tick error for run {run.id}: {exc}", exc_info=True)
+                results.append({"status": "ERROR", "canary_run_id": str(run.id), "error": str(exc)})
+
+    return results
+
+
+async def run_canary_worker(
+    stop_event: asyncio.Event | None = None,
+    poll_interval: int | None = None,
+    session_factory: Any = None,
+) -> None:
+    """Continuous background worker loop evaluating live canary deployments."""
+    interval = poll_interval or get_settings().CANARY_POLL_INTERVAL_SECONDS if hasattr(get_settings(), "CANARY_POLL_INTERVAL_SECONDS") else 10
+    stop = stop_event or asyncio.Event()
+
+    logger.info(f"Starting Canary Monitor worker (poll_interval={interval}s)")
+    while not stop.is_set():
+        await monitor_active_canaries_once(session_factory=session_factory)
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=interval)
+        except asyncio.TimeoutError:
+            continue
+
+
+async def main() -> None:
+    import signal
+
+    stop_event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(signum, stop_event.set)
+        except (NotImplementedError, RuntimeError):
+            pass
+
+    await run_canary_worker(stop_event=stop_event)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
