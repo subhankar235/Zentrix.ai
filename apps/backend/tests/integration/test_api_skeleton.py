@@ -1,4 +1,4 @@
-﻿"""
+"""
 Integration tests for Step 10: Core API Skeleton and Route Registration.
 Verifies FastAPI app startup, OpenAPI schema generation, route wiring, and 401 guard behavior.
 """
@@ -78,7 +78,10 @@ async def test_unauthenticated_protected_routes_return_401():
         # 1. /api/v1/auth/me
         res_me = await client.get("/api/v1/auth/me")
         assert res_me.status_code == 401
-        assert "Authentication required" in res_me.json()["detail"]
+        data = res_me.json()
+        assert "error" in data or "detail" in data
+        msg = data.get("error", {}).get("message") or data.get("detail", "")
+        assert "Authentication required" in msg
 
         # 2. /api/v1/connections
         res_conn = await client.get("/api/v1/connections")

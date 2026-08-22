@@ -4,7 +4,7 @@ Reference: PRD.md §5 Feature 1, §12 & ARCHITECTURE.md §4
 """
 
 import uuid
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -85,21 +85,25 @@ async def get_diagnosis_recommendations(
 @router.post("/{id}/investigate", status_code=status.HTTP_202_ACCEPTED)
 async def trigger_investigation(
     id: uuid.UUID,
-    request: InvestigationTriggerRequest,
+    request: Optional[InvestigationTriggerRequest] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
     Trigger an on-demand multi-agent causal investigation run.
     """
-    if request.connection_id != id:
+    if request and request.connection_id != id:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="connection_id must match the path connection")
+    
+    time_window = request.time_window_minutes if request else 60
+    query_id = request.query_id if request else None
+
     try:
         diagnosis = await diagnosis_service.run_diagnosis(
             connection_id=id,
             db=db,
-            time_window_minutes=request.time_window_minutes,
-            query_id=request.query_id,
+            time_window_minutes=time_window,
+            query_id=query_id,
         )
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

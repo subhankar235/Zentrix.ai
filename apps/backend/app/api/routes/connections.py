@@ -14,6 +14,7 @@ from app.schemas.connection import (
     ConnectionCreate,
     ConnectionOut,
     ConnectionTestResponse,
+    ConnectionUpdate,
 )
 from app.schemas.diagnosis import DiagnosisOut
 from app.schemas.telemetry import TelemetrySummaryResponse
@@ -69,6 +70,28 @@ async def get_connection(
         connection_id=id,
         user_id=current_user.id,
         is_superuser=current_user.is_superuser,
+        db=db,
+    )
+    if not conn:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
+    return conn
+
+
+@router.patch("/{id}", response_model=ConnectionOut)
+async def update_connection(
+    id: uuid.UUID,
+    conn_in: ConnectionUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Any:
+    """
+    Update monitored connection configuration.
+    """
+    conn = await connection_service.update_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        conn_in=conn_in,
         db=db,
     )
     if not conn:

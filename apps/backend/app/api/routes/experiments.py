@@ -67,8 +67,10 @@ async def get_experiment(
 # ─── Simulation & Verification Workflow ───────────────────────────────────────
 
 @router.post("/recommendations/{id}/simulate", response_model=OptimizationExperimentOut, status_code=status.HTTP_202_ACCEPTED)
+@router.post("/experiments/simulate", response_model=OptimizationExperimentOut, status_code=status.HTTP_202_ACCEPTED)
 async def simulate_recommendation(
-    id: uuid.UUID,
+    id: Optional[uuid.UUID] = None,
+    connection_id: Optional[uuid.UUID] = None,
     request: Optional[SimulationTriggerRequest] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
@@ -77,9 +79,12 @@ async def simulate_recommendation(
     Dispatch shadow DB simulation and replay workload against candidate optimization.
     """
     # Verify connection exists
-    stmt = select(DatabaseConnection).where(DatabaseConnection.user_id == current_user.id)
+    if connection_id:
+        stmt = select(DatabaseConnection).where(DatabaseConnection.id == connection_id)
+    else:
+        stmt = select(DatabaseConnection).where(DatabaseConnection.user_id == current_user.id)
     conn = await db.scalar(stmt)
-    conn_id = conn.id if conn else id
+    conn_id = conn.id if conn else (connection_id or id)
 
     candidate_data = {
         "candidate_sql": request.candidate_sql if request else "CREATE INDEX idx_orders_sample ON orders(user_id)",

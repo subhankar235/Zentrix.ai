@@ -322,7 +322,9 @@ async def test_human_approval_rbac_blocks_unauthorized_roles(simulation_db):
                 json={"action": "APPROVE", "reason": "Viewer attempting approval"},
             )
             assert appr_res.status_code == 403
-            assert "not authorized" in appr_res.json()["detail"]
+            appr_data = appr_res.json()
+            appr_msg = appr_data.get("error", {}).get("message") or appr_data.get("detail", "")
+            assert "not authorized" in appr_msg.lower()
 
             # 2. Viewer attempts to reject -> 403 Forbidden
             rej_res = await client.post(
@@ -330,7 +332,9 @@ async def test_human_approval_rbac_blocks_unauthorized_roles(simulation_db):
                 json={"action": "REJECT", "reason": "Viewer attempting rejection"},
             )
             assert rej_res.status_code == 403
-            assert "not authorized" in rej_res.json()["detail"]
+            rej_data = rej_res.json()
+            rej_msg = rej_data.get("error", {}).get("message") or rej_data.get("detail", "")
+            assert "not authorized" in rej_msg.lower()
     finally:
         app.dependency_overrides.clear()
 

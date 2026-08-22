@@ -242,6 +242,28 @@ class ConnectionService:
         res = await db.execute(stmt)
         return res.scalar_one_or_none()
 
+    async def update_connection(
+        self,
+        connection_id: uuid.UUID,
+        user_id: uuid.UUID,
+        is_superuser: bool,
+        conn_in: Any,
+        db: AsyncSession,
+    ) -> Optional[DatabaseConnection]:
+        """Update monitored database connection details."""
+        conn_record = await self.get_connection(connection_id, user_id, is_superuser, db)
+        if not conn_record:
+            return None
+
+        update_data = conn_in.model_dump(exclude_unset=True) if hasattr(conn_in, "model_dump") else dict(conn_in)
+        for key, val in update_data.items():
+            if hasattr(conn_record, key) and val is not None:
+                setattr(conn_record, key, val)
+
+        await db.commit()
+        await db.refresh(conn_record)
+        return conn_record
+
     async def delete_connection(
         self,
         connection_id: uuid.UUID,

@@ -39,6 +39,33 @@ def clear_correlation_context() -> None:
     _correlation_context.set({})
 
 
+import re
+
+# Sensitive credential redaction patterns
+_PASSWORD_DSN_REGEX = re.compile(
+    r"(postgres(?:ql)?://[^:]+:)(?:.+?)(@[^/:\s]+(?::\d+)?(?:/[^\s]*)?)",
+    re.IGNORECASE,
+)
+_BEARER_TOKEN_REGEX = re.compile(
+    r"(Bearer\s+)[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.?[A-Za-z0-9\-_.+/=]*",
+    re.IGNORECASE,
+)
+
+
+def mask_sensitive_data(text: Any) -> Any:
+    """Mask credentials, passwords, and tokens in string records."""
+    if not isinstance(text, str):
+        return text
+    masked = re.sub(
+        r"(postgres(?:ql)?://[^:\s]+:)(.+?)(@[A-Za-z0-9_.-]+(?::\d+)?/[^\s]*)",
+        r"\1***\3",
+        text,
+        flags=re.IGNORECASE,
+    )
+    masked = _BEARER_TOKEN_REGEX.sub(r"\1***", masked)
+    return masked
+
+
 class StructuredJSONFormatter(logging.Formatter):
     """
     JSON formatter emitting machine-readable structured log records
@@ -48,6 +75,9 @@ class StructuredJSONFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         ctx = get_correlation_context()
+        raw_msg = record.getMessage()
+        masked_msg = mask_sensitive_data(raw_msg)
+
         log_entry: Dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
@@ -55,7 +85,7 @@ class StructuredJSONFormatter(logging.Formatter):
             "module": record.module,
             "function": record.funcName,
             "line": record.lineno,
-            "message": record.getMessage(),
+            "message": masked_msg,
         }
 
         # Merge ContextVar correlation attributes
@@ -99,7 +129,8 @@ class DevelopmentFormatter(logging.Formatter):
             context_parts.append(f"{field}={val}")
 
         context_str = f" [{', '.join(context_parts)}]" if context_parts else ""
-        msg = f"{timestamp} | {record.levelname:<8} | {record.name}:{record.lineno} | {record.getMessage()}{context_str}"
+        masked_msg = mask_sensitive_data(record.getMessage())
+        msg = f"{timestamp} | {record.levelname:<8} | {record.name}:{record.lineno} | {masked_msg}{context_str}"
 
         if record.exc_info:
             msg += f"\n{self.formatException(record.exc_info)}"
