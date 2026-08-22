@@ -70,7 +70,6 @@ class DatabaseConnection(Base, TimestampMixin):
             func.lower(host),
             "port",
             func.lower(database_name),
-            func.lower(username),
             unique=True,
         ),
     )

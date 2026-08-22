@@ -18,7 +18,11 @@ from app.schemas.connection import (
 )
 from app.schemas.diagnosis import DiagnosisOut
 from app.schemas.telemetry import TelemetrySummaryResponse
-from app.services.connection_service import connection_service, verify_raw_dsn
+from app.services.connection_service import (
+    _provision_monitoring_dsn,
+    connection_service,
+    verify_raw_dsn,
+)
 from sqlalchemy import select
 from app.models.diagnosis import Diagnosis
 
@@ -32,7 +36,36 @@ async def test_connection_payload(
 ) -> ConnectionTestResponse:
     """Test a target database before persisting its credentials."""
     raw_conn_str = connection_service._build_connection_string(conn_in)
-    return await verify_raw_dsn(raw_conn_str)
+    result = await verify_raw_dsn(raw_conn_str)
+    if not result.success:
+        return result
+    if result.permissions.get("pg_stat_statements") and result.permissions.get("read_only_role"):
+        return result
+
+    try:
+        provisioned_dsn, _ = await _provision_monitoring_dsn(raw_conn_str)
+        provisioned_result = await verify_raw_dsn(provisioned_dsn)
+        if provisioned_result.success and provisioned_result.permissions.get("read_only_role"):
+            return provisioned_result
+        return ConnectionTestResponse(
+            success=False,
+            postgres_version=provisioned_result.postgres_version,
+            permissions=provisioned_result.permissions,
+            latency_ms=provisioned_result.latency_ms,
+            error="The dedicated monitoring role was created but failed read-only validation.",
+        )
+    except Exception:
+        return ConnectionTestResponse(
+            success=False,
+            postgres_version=result.postgres_version,
+            permissions=result.permissions,
+            latency_ms=result.latency_ms,
+            error=(
+                "The supplied role is not read-only and Zentrix could not provision a dedicated "
+                "monitoring role. Grant CREATEROLE to the setup role or provide a dedicated "
+                "read-only PostgreSQL connection string."
+            ),
+        )
 
 
 @router.post("", response_model=ConnectionOut, status_code=status.HTTP_201_CREATED)

@@ -153,7 +153,11 @@ async def get_query_metrics(connection: asyncpg.Connection, limit: int = 500) ->
         FROM pg_stat_statements s
         LEFT JOIN pg_database d ON d.oid = s.dbid
         WHERE s.query IS NOT NULL
-          AND s.query NOT ILIKE '%pg_stat_statements%'
+           AND s.query NOT ILIKE '%pg_stat_statements%'
+           AND s.query NOT ILIKE '%CREATE ROLE%'
+           AND s.query NOT ILIKE '%ALTER ROLE%'
+           AND s.query NOT ILIKE '%PASSWORD%'
+           AND s.query NOT ILIKE '%monitoring_password%'
         ORDER BY s.total_exec_time DESC
         LIMIT $1
     """, max(1, min(limit, 5000))))

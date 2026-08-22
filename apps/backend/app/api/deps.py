@@ -190,7 +190,7 @@ async def get_connection_user(
         full_name="Local Development",
         role="owner",
         is_active=True,
-        is_superuser=True,
+        is_superuser=False,
     )
     db.add(user)
     await db.commit()

@@ -1,54 +1,50 @@
 # =====================================================================
-# Zentrix.ai - Backend Dependencies (Python 3.12)
+# Zentrix.ai - Backend Dependencies (Python 3.12 & 3.13)
 # Reference: TECHSTACK.md & ARCHITECTURE.md
 # =====================================================================
 
 # --- Core Web Framework & ASGI Server ---
-fastapi==0.115.8
-uvicorn[standard]==0.34.0
-sse-starlette==2.2.1
-python-multipart==0.0.20
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+sse-starlette>=2.1.0
+python-multipart>=0.0.12
 
 # --- Database, Async Driver & Migrations ---
-asyncpg==0.30.0
-sqlalchemy[asyncio]==2.0.38
-greenlet==3.1.1
-alembic==1.14.1
+asyncpg>=0.30.0
+sqlalchemy[asyncio]>=2.0.36
+greenlet>=3.1.0
+alembic>=1.14.0
 # Note: HypoPG (hypopg) is a DB-level PostgreSQL extension, not a pip package.
 
 # --- Data Validation & Configuration ---
-pydantic==2.10.6
-pydantic-settings==2.8.0
+pydantic[email]>=2.10.0
+email-validator>=2.0.0
+pydantic-settings>=2.8.0
+email-validator>=2.2.0
 
 # --- Security, Authentication & Cryptography ---
-pyjwt[crypto]==2.10.1
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt==4.2.1
-cryptography==44.0.1
+pyjwt[crypto]>=2.10.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.2.0
+cryptography>=44.0.0
 
 # --- LLM Client & Agent Orchestration ---
-langgraph==0.2.70
-langchain-core==0.3.36
+langgraph>=0.2.70
+langchain-core>=0.3.36
 
 # --- Data Processing, Analytics & Storage ---
-numpy==1.26.4
-pandas==2.2.3
-polars==1.22.0
-scipy==1.14.1
-duckdb==1.2.0
+numpy>=2.0.0
+pandas>=2.2.0
+scipy>=1.14.0
 
 # --- Machine Learning, Anomaly Detection & Forecasting ---
-scikit-learn==1.6.1
-ruptures==1.1.9
-lightgbm==4.5.0
-torch==2.6.0
-mlflow==2.20.2
-evidently==0.4.38
+scikit-learn>=1.6.0
+lightgbm>=4.5.0
 
 # --- HTTP Client & Networking ---
-httpx==0.28.1
+httpx>=0.28.0
 
 # --- Testing Framework ---
-pytest==8.3.4
-pytest-asyncio==0.25.3
+pytest>=8.3.0
+pytest-asyncio>=0.25.0

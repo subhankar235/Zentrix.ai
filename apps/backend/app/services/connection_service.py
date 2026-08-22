@@ -5,10 +5,12 @@ Reference: TECHSTACK.md User Connection Workflow, PRD.md §4 Core User Journey &
 """
 
 import hashlib
+import secrets
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote, urlsplit, urlunsplit
 import asyncpg
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +28,89 @@ from app.schemas.telemetry import (
 from app.tools import pg_introspection
 
 logger = get_logger(__name__)
+
+
+def _quote_identifier(identifier: str) -> str:
+    return '"' + identifier.replace('"', '""') + '"'
+
+
+async def _provision_monitoring_dsn(raw_conn_str: str) -> tuple[str, str]:
+    """Create a dedicated read-only role and return a DSN for that role."""
+    owner_dsn = _prepare_asyncpg_dsn(raw_conn_str)
+    parsed = urlsplit(owner_dsn)
+    if not parsed.hostname or not parsed.path.strip("/"):
+        raise ValueError("A URL connection string is required to provision a monitoring role")
+
+    target_key = f"{parsed.hostname}:{parsed.port or 5432}/{parsed.path.strip('/')}"
+    role_name = f"zentrix_monitor_{hashlib.sha256(target_key.encode()).hexdigest()[:12]}"
+    role_password = secrets.token_urlsafe(32)
+    role_identifier = _quote_identifier(role_name)
+
+    owner = await asyncpg.connect(owner_dsn, timeout=15.0)
+    try:
+        # The owner credential is used only for setup; it is never stored as the
+        # monitoring credential after this function succeeds.
+        await owner.execute("CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
+        await owner.execute(
+            "SELECT set_config('zentrix.monitoring_password', $1, false)",
+            role_password,
+        )
+        role_exists = await owner.fetchval(
+            "SELECT 1 FROM pg_roles WHERE rolname = $1",
+            role_name,
+        )
+        if role_exists:
+            await owner.execute(
+                """
+                DO $zentrix$
+                BEGIN
+                    EXECUTE format(
+                        'ALTER ROLE %I LOGIN PASSWORD %L',
+                        $role_name$ROLE_NAME$role_name$,
+                        current_setting('zentrix.monitoring_password')
+                    );
+                END
+                $zentrix$
+                """.replace("ROLE_NAME", role_name)
+            )
+        else:
+            await owner.execute(
+                """
+                DO $zentrix$
+                BEGIN
+                    EXECUTE format(
+                        'CREATE ROLE %I LOGIN PASSWORD %L',
+                        $role_name$ROLE_NAME$role_name$,
+                        current_setting('zentrix.monitoring_password')
+                    );
+                END
+                $zentrix$
+                """.replace("ROLE_NAME", role_name)
+            )
+
+        database_name = await owner.fetchval("SELECT current_database()")
+        database_identifier = _quote_identifier(str(database_name))
+        await owner.execute(f"GRANT CONNECT ON DATABASE {database_identifier} TO {role_identifier}")
+        await owner.execute(f"GRANT pg_monitor TO {role_identifier}")
+        await owner.execute(f"GRANT USAGE ON SCHEMA public TO {role_identifier}")
+        await owner.execute(f"GRANT SELECT ON ALL TABLES IN SCHEMA public TO {role_identifier}")
+        await owner.execute(
+            f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO {role_identifier}"
+        )
+        await owner.execute(f"REVOKE CREATE ON SCHEMA public FROM {role_identifier}")
+        # Clear setup statements while the owner/admin connection still has
+        # permission to reset the target's query-stat history.
+        await owner.fetchval("SELECT pg_stat_statements_reset()")
+    finally:
+        await owner.close()
+
+    host = parsed.hostname
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    netloc = f"{quote(role_name, safe='')}:{quote(role_password, safe='')}@{host}"
+    if parsed.port:
+        netloc += f":{parsed.port}"
+    return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, "")), role_name
 
 
 async def verify_raw_dsn(raw_conn_str: str) -> ConnectionTestResponse:
@@ -172,12 +257,36 @@ class ConnectionService:
         Encrypt credentials, perform initial reachability/permission check, and persist connection.
         """
         raw_conn_str = self._build_connection_string(conn_in)
-        encrypted_str = encrypt_connection_string(raw_conn_str)
 
         # Run non-blocking test check to populate initial permission status
         test_result = await verify_raw_dsn(raw_conn_str)
         if not test_result.success:
             raise ValueError(test_result.error or "Database connection checks failed")
+
+        if not test_result.permissions.get("pg_stat_statements") or not test_result.permissions.get(
+            "read_only_role"
+        ):
+            try:
+                raw_conn_str, monitoring_username = await _provision_monitoring_dsn(raw_conn_str)
+            except Exception as exc:
+                logger.warning("Could not provision read-only monitoring role: %s", type(exc).__name__)
+                raise ValueError(
+                    "The supplied database role is not read-only and Zentrix could not provision "
+                    "a dedicated monitoring role. Grant CREATEROLE to the setup role or provide "
+                    "a dedicated read-only PostgreSQL connection string."
+                ) from exc
+
+            test_result = await verify_raw_dsn(raw_conn_str)
+            if not test_result.success:
+                raise ValueError(test_result.error or "The provisioned monitoring role failed validation")
+            if not test_result.permissions.get("pg_stat_statements"):
+                raise ValueError("pg_stat_statements could not be enabled for the monitoring role")
+            if not test_result.permissions.get("read_only_role"):
+                raise ValueError("The provisioned monitoring role is not read-only")
+        else:
+            monitoring_username = conn_in.username
+
+        encrypted_str = encrypt_connection_string(raw_conn_str)
 
         existing_stmt = (
             select(DatabaseConnection)
@@ -186,7 +295,6 @@ class ConnectionService:
                 func.lower(DatabaseConnection.host) == conn_in.host.strip().lower(),
                 DatabaseConnection.port == conn_in.port,
                 func.lower(DatabaseConnection.database_name) == conn_in.database_name.strip().lower(),
-                func.lower(DatabaseConnection.username) == conn_in.username.strip().lower(),
             )
             .order_by(DatabaseConnection.created_at.desc())
         )
@@ -195,6 +303,7 @@ class ConnectionService:
         if existing:
             existing.name = conn_in.name
             existing.encrypted_connection_string = encrypted_str
+            existing.username = monitoring_username
             existing.provider = conn_in.provider
             existing.ssl_mode = conn_in.ssl_mode
             existing.permission_status = test_result.permissions
@@ -211,7 +320,7 @@ class ConnectionService:
             host=conn_in.host,
             port=conn_in.port,
             database_name=conn_in.database_name,
-            username=conn_in.username,
+            username=monitoring_username,
             ssl_mode=conn_in.ssl_mode,
             provider=conn_in.provider,
             permission_status=test_result.permissions,
@@ -273,13 +382,12 @@ class ConnectionService:
         res = await db.execute(stmt)
         connections = list(res.scalars().all())
         unique_connections: list[DatabaseConnection] = []
-        seen_targets: set[tuple[str, int, str, str]] = set()
+        seen_targets: set[tuple[str, int, str]] = set()
         for connection in connections:
             target = (
                 connection.host.strip().lower(),
                 connection.port,
                 connection.database_name.strip().lower(),
-                connection.username.strip().lower(),
             )
             if target in seen_targets:
                 continue

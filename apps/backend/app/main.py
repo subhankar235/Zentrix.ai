@@ -3,6 +3,23 @@
 Reference: ARCHITECTURE.md §4 (app/main.py), §10 & PRD.md §12
 """
 
+import site
+import sys
+from pathlib import Path
+
+# ── Bootstrap Paths & Site Packages for Subprocesses / Windows Reloader ──────
+_backend_root = Path(__file__).resolve().parent.parent
+if str(_backend_root) not in sys.path:
+    sys.path.insert(0, str(_backend_root))
+
+_venv_site = _backend_root / ".venv" / "Lib" / "site-packages"
+if _venv_site.exists() and str(_venv_site) not in sys.path:
+    site.addsitedir(str(_venv_site))
+
+_user_site = site.getusersitepackages()
+if _user_site and _user_site not in sys.path and Path(_user_site).exists():
+    site.addsitedir(_user_site)
+
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 from fastapi import FastAPI, HTTPException, Request, status
