@@ -1,2236 +1,541 @@
-# DB Agent — Autonomous PostgreSQL Intelligence & Optimization Platform
+<div align="center">
 
-> **An AI-native Database Reliability & Optimization Agent that continuously observes PostgreSQL, investigates root causes, safely verifies optimization strategies, predicts future performance problems, and learns from the results.**
+# Zentrix.ai
 
-DB Agent is an autonomous database intelligence platform designed to go beyond traditional database monitoring dashboards and static query advisors.
+**Autonomous Agentic Database Intelligence & Optimization Platform**
 
-Instead of simply telling an engineer:
+An AI-native system that continuously observes PostgreSQL databases, investigates root causes of performance issues, safely verifies optimization strategies, predicts future degradation, and learns from outcomes.
 
-> “This query is slow.”
+![Zentrix Hero](apps/frontend/Hero.png)
 
-the system attempts to determine:
+[![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB.svg)](https://www.python.org/downloads/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.8-009688.svg)](https://fastapi.tiangolo.com/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-0.2.70-purple.svg)](https://langchain-ai.github.io/langgraph/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Why is it slow? What evidence supports that diagnosis? What optimization should be applied? Can we safely test it before production? Did it actually improve the database? And can the system learn from that outcome?**
-
-The platform combines **PostgreSQL internals, observability, machine learning, multi-agent reasoning, safe experimentation, causal verification, and closed-loop learning** into a single system.
+</div>
 
 ---
 
 ## Table of Contents
 
-* [Vision](#vision)
-* [Problem](#problem)
-* [Core Capabilities](#core-capabilities)
-* [How It Is Different](#how-it-is-different)
-* [System Workflow](#system-workflow)
-* [Feature 1 — Multi-Agent Root Cause Investigation](#feature-1--multi-agent-root-cause-investigation)
-* [Feature 2 — Safe Simulation & Verification Sandbox](#feature-2--safe-simulation--verification-sandbox)
-* [Feature 3 — Predictive ML Optimization & Closed-Loop Learning](#feature-3--predictive-ml-optimization--closed-loop-learning)
-* [Architecture](#architecture)
-* [Technology Stack](#technology-stack)
-* [Data Collection](#data-collection)
-* [AI / ML Architecture](#ai--ml-architecture)
-* [Agent Architecture](#agent-architecture)
-* [Optimization Lifecycle](#optimization-lifecycle)
-* [Safety Model](#safety-model)
-* [Database Connectivity](#database-connectivity)
-* [PostgreSQL Intelligence](#postgresql-intelligence)
-* [Observability](#observability)
-* [Project Structure](#project-structure)
-* [Development Setup](#development-setup)
-* [Environment Variables](#environment-variables)
-* [Running the System](#running-the-system)
-* [Development Phases](#development-phases)
-* [Example Investigation](#example-investigation)
-* [Example Optimization](#example-optimization)
-* [Security](#security)
-* [Production Architecture](#production-architecture)
-* [Roadmap](#roadmap)
-* [Contributing](#contributing)
-* [License](#license)
+- [What is Zentrix](#what-is-zentrix)
+- [How It Works](#how-it-works)
+- [Core Capabilities](#core-capabilities)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Development](#development)
+- [Docker](#docker)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-# Vision
+## What is Zentrix
 
-DB Agent aims to become an **autonomous DBA intelligence layer for PostgreSQL**.
+Traditional database monitoring tells you:
 
-Traditional database tooling is generally divided into separate categories:
+> "This query is slow."
 
-```text
-Monitoring
-    ↓
-Alerting
-    ↓
-Manual Investigation
-    ↓
-Manual Optimization
-    ↓
-Manual Verification
+Zentrix determines:
+
+> **Why is it slow? What evidence supports that diagnosis? What optimization should be applied? Can we safely test it before production? Did it actually improve the database? And can the system learn from that outcome?**
+
+The system combines **PostgreSQL internals, observability, machine learning, multi-agent reasoning, safe experimentation, causal verification, and closed-loop learning** into a single autonomous platform.
+
+### Design Philosophy
+
+```
+Deterministic evidence pipeline first, ML second, LLM/agents last.
 ```
 
-DB Agent turns this into a continuous feedback system:
-
-```text
-                ┌──────────────────────┐
-                │      PostgreSQL      │
-                └──────────┬───────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Telemetry Engine  │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Feature / ML      │
-                 │ Intelligence      │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-              ┌──────────────────────────┐
-              │ Root Cause Investigation │
-              │     Multi-Agent System   │
-              └────────────┬─────────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Optimization      │
-                 │ Strategy Engine   │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Safe Verification │
-                 │ Sandbox           │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Production Change │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Outcome Analysis  │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │ Learning System   │
-                 └─────────┬─────────┘
-                           │
-                           └──────────────► Future Decisions
-```
-
-The important concept is that **the system does not stop at recommendation**.
-
-It measures whether the recommendation worked.
+The LLM never invents facts or executes SQL directly. It reasons over structured evidence produced by collectors, statistical engines, and trained models.
 
 ---
 
-# Problem
+## How It Works
 
-Modern PostgreSQL systems can degrade for many different reasons:
-
-* inefficient query plans
-* missing indexes
-* unused or poorly designed indexes
-* stale statistics
-* incorrect cardinality estimates
-* plan regressions
-* lock contention
-* transaction contention
-* connection saturation
-* buffer-cache pressure
-* disk I/O
-* high WAL generation
-* autovacuum delays
-* table/index bloat
-* dead tuples
-* checkpoint pressure
-* memory pressure
-* workload pattern changes
-* sudden traffic growth
-* parameter-sensitive queries
-* schema changes
-* changing data distributions
-
-A traditional monitoring system may detect:
-
-```text
-Query latency increased from 200ms → 4.8s
+```mermaid
+flowchart TD
+    A["1. Connect PostgreSQL"] --> B["2. Collect Telemetry"]
+    B --> C["3. Detect Anomalies"]
+    C --> D["4. Investigate Root Cause"]
+    D --> E["5. Generate Optimization"]
+    E --> F["6. Simulate on Shadow DB"]
+    F --> G["7. Verify Statistically"]
+    G --> H{"8. Safe?"}
+    H -->|Yes| I["9. Human Approval"]
+    H -->|No| J["9. Reject / Revise"]
+    I --> K["10. Canary Deployment"]
+    K --> L["11. Monitor Outcome"]
+    L --> M["12. Feed Back to ML"]
+    M --> B
+    J --> E
 ```
 
-But that does not answer:
+### User Flow
 
-```text
-Why?
-```
+1. **Sign up** and connect your PostgreSQL database (Neon, RDS, Supabase, or self-hosted)
+2. **Telemetry Collector** polls `pg_stat_statements`, `pg_stat_activity`, and system views
+3. **Deterministic Evidence Engine** computes cardinality error, plan diffs, lock chains, vacuum lag
+4. **ML Layer** scores anomalies (Isolation Forest) and classifies root causes (LightGBM)
+5. **Specialized Agents** (LangGraph) investigate plan regressions, I/O, locks, vacuum, schema
+6. **Supervisor Agent** reconciles evidence into a ranked root-cause diagnosis
+7. **Simulation Sandbox** tests optimizations on shadow databases with production workload replay
+8. **Statistical Verification** validates results with p-values, confidence intervals, skeptic review
+9. **Human Approval** gate before any production change
+10. **Canary Deployment** with observation window and auto-rollback on regression
+11. **Closed-Loop Learning** feeds outcomes back into ML models
 
-DB Agent attempts to build an evidence-backed explanation.
+---
 
-For example:
+## Core Capabilities
 
-```text
-Latency regression detected.
+### 1. Multi-Agent Root Cause Investigation
 
-Evidence:
+Six specialized LangGraph agents independently investigate database problems:
 
-Query latency:
-+680%
+| Agent | Domain | Investigates |
+|-------|--------|-------------|
+| Planner Agent | Query Plans | Plan regression, cardinality error, statistics freshness |
+| I/O Buffer Agent | Storage | Disk reads, buffer cache, WAL pressure, temp spill |
+| Concurrency Agent | Locking | Blocking chains, lock waits, deadlocks, idle transactions |
+| Vacuum Agent | Maintenance | Dead tuples, autovacuum lag, table bloat |
+| Schema Index Agent | Schema | Missing indexes, unused indexes, wrong column order |
+| Supervisor Agent | Reconciliation | Evidence weighting, contradiction resolution, causal ranking |
 
-Rows returned:
-+4%
+### 2. Safe Simulation & Verification Sandbox
 
-Rows estimated:
-1,200
+- Shadow DB cloning via `pg_dump`/`pg_restore`
+- HypoPG virtual index simulation
+- Production workload replay
+- Statistical significance testing (p-values, confidence intervals)
+- Adversarial Skeptic agent challenges
+- Deterministic Policy engine safety gates
 
-Rows actually scanned:
-1,840,000
+### 3. Predictive ML & Closed-Loop Learning
 
-Plan:
-Index Scan → Sequential Scan
+- **Isolation Forest** — multivariate anomaly detection over ~17 features
+- **LSTM Autoencoder** — temporal anomaly probability over 30-60 min windows
+- **LightGBM** — root cause classification and degradation forecasting
+- **Thompson Sampling** — contextual bandit for optimization strategy selection
+- **Evidently** — data and prediction drift monitoring
+- **MLflow** — experiment tracking and model registry
 
-Statistics freshness:
-Low
+### 4. Cost-to-Dollar ROI Translation
 
-Table modification rate:
-High
+Deterministic calculation converting verified performance deltas into estimated dollar savings using cloud provider pricing lookup tables.
 
-Autovacuum:
-Delayed
+---
 
-Conclusion:
-High-confidence stale-statistics-induced plan regression.
+## Architecture
 
-Recommended action:
-ANALYZE orders;
+```mermaid
+graph TD
+    subgraph "Frontend"
+        FE["Next.js 16 Dashboard"]
+    end
 
-Expected impact:
-Reduced cardinality estimation error and restoration
-of index-based execution plan.
+    subgraph "Backend - FastAPI"
+        API["REST API + SSE Streams"]
+        AUTH["JWT Auth + RBAC"]
+    end
+
+    subgraph "Agent Layer - LangGraph"
+        DIAG["Diagnosis Graph"]
+        SIM["Simulation Graph"]
+        FORECAST["Forecast Graph"]
+        SUP["Supervisor"]
+    end
+
+    subgraph "ML Pipeline"
+        ISO["Isolation Forest"]
+        LG["LightGBM"]
+        LSTM_M["LSTM Autoencoder"]
+        TS["Thompson Sampling"]
+        EV["Evidently Drift"]
+    end
+
+    subgraph "Tools"
+        PG["PG Introspection"]
+        PL["Policy Engine"]
+        HP["HypoPG"]
+        SD["Shadow DB"]
+    end
+
+    subgraph "Data"
+        ADB[("App DB")]
+        CDB[("Customer DB")]
+        MF["MLflow"]
+    end
+
+    subgraph "Workers"
+        TC["Telemetry Collector"]
+        SLW["Shadow Lab"]
+        RW["Retrain Worker"]
+        CM["Canary Monitor"]
+    end
+
+    FE --> API
+    API --> AUTH
+    API --> DIAG
+    API --> SIM
+    API --> FORECAST
+    DIAG --> SUP
+    SIM --> SUP
+    FORECAST --> SUP
+    DIAG --> ISO
+    DIAG --> LG
+    FORECAST --> LG
+    SIM --> TS
+    SIM --> PL
+    SIM --> HP
+    SIM --> SD
+    API --> ADB
+    TC --> CDB
+    CM --> CDB
+    LG --> MF
+    EV --> RW
 ```
 
 ---
 
-# Core Capabilities
+## Technology Stack
 
-DB Agent is centered around three major capabilities.
+### Backend
 
-## 1. Multi-Agent Root Cause Investigation
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Language | Python 3.12 | Core backend and ML |
+| Framework | FastAPI 0.115.8 | Async REST API |
+| ORM | SQLAlchemy 2.0 (async) | Database access |
+| Driver | asyncpg | PostgreSQL async driver |
+| Migrations | Alembic | Schema management |
+| Validation | Pydantic v2 | Request/response schemas |
+| Auth | PyJWT + bcrypt | JWT tokens + password hashing |
+| Encryption | Fernet (AES) | Credential encryption at rest |
+| Agents | LangGraph 0.2.70 | Multi-agent orchestration |
+| ML | LightGBM, scikit-learn, PyTorch | Anomaly detection, classification, forecasting |
+| Tracking | MLflow | Experiment and model registry |
+| Drift | Evidently | Data/prediction drift monitoring |
+| Data | NumPy, Pandas, Polars, DuckDB | Processing and analytics |
 
-Investigates **why** a database problem happened.
+### Frontend
 
-The investigation engine combines multiple independent evidence sources:
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Framework | Next.js 16.3.1 | React App Router |
+| UI Library | React 19.2.8 | Component rendering |
+| Language | TypeScript 5 | Type safety |
+| Styling | Tailwind CSS v4 | Utility-first CSS |
+| Components | shadcn/ui + Radix UI | Headless UI primitives |
+| Charts | Recharts 3.10 | Data visualization |
+| Animation | Framer Motion | Landing page animations |
+| State | Zustand | Global state (theme) |
+| Icons | Lucide React | Icon library |
 
-* query statistics
-* execution plans
-* planner estimates
-* buffer/cache behavior
-* disk I/O
-* locks
-* transactions
-* vacuum/autovacuum
-* table/index statistics
-* workload patterns
+### Infrastructure
 
-Multiple specialized agents independently investigate the problem before a supervisor reconciles their conclusions.
-
----
-
-## 2. Safe Simulation & Verification Sandbox
-
-Before changing production, DB Agent attempts to answer:
-
-> “What happens if we apply this optimization?”
-
-Potential strategies can include:
-
-* index creation
-* index removal
-* query rewrite
-* statistics refresh
-* configuration changes
-* vacuum/analyze recommendations
-* partitioning recommendations
-* connection/resource tuning
-
-The system evaluates the proposed change in a controlled environment before production execution whenever possible.
-
-The goal is:
-
-```text
-Recommendation
-      ↓
-Simulation
-      ↓
-Benchmark
-      ↓
-Verification
-      ↓
-Risk Assessment
-      ↓
-Production Approval
-```
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Database | PostgreSQL 16 | Application + target DB |
+| Containerization | Docker + Compose | Local development |
+| CI/CD | GitHub Actions | Automated pipelines |
+| Monitoring | Prometheus + Grafana | Observability |
+| Tracing | OpenTelemetry | Distributed tracing |
 
 ---
 
-## 3. Predictive ML Optimization & Closed-Loop Learning
+## Project Structure
 
-Instead of waiting for a database problem to occur, the system learns workload patterns and attempts to predict future degradation.
-
-For example:
-
-```text
-Current workload:
-Healthy
-
-Trend:
-CPU +8% / week
-Query volume +13% / week
-Table size +11% / week
-
-Prediction:
-orders table likely to cross
-performance degradation threshold
-within approximately 9–14 days.
-
-Suggested preventive action:
-Review index strategy + statistics + query plan.
 ```
-
-After an optimization is executed, the system measures the result.
-
-```text
-Prediction
-    ↓
-Recommendation
-    ↓
-Optimization
-    ↓
-Observed Outcome
-    ↓
-Reward / Error
-    ↓
-Model Update
-    ↓
-Better Future Prediction
-```
-
-This creates a **closed-loop optimization flywheel**.
-
----
-
-# How It Is Different
-
-DB Agent is not intended to be another:
-
-* SQL dashboard
-* query viewer
-* generic chatbot
-* static index advisor
-* simple alerting system
-* LLM wrapper around PostgreSQL
-
-The differentiator is the combination of:
-
-```text
-PostgreSQL Internals
-        +
-Observability
-        +
-Machine Learning
-        +
-Multi-Agent Investigation
-        +
-Safe Experimentation
-        +
-Outcome Verification
-        +
-Continuous Learning
-```
-
-The system should be able to distinguish between:
-
-```text
-Detection
-    ≠
-Diagnosis
-    ≠
-Recommendation
-    ≠
-Verification
-    ≠
-Learning
+zentrix.ai/
+|
+|-- apps/
+|   |-- backend/                        # Python FastAPI backend
+|   |   |-- app/
+|   |   |   |-- main.py                 # FastAPI entry point
+|   |   |   |-- core/                   # Config, security, logging
+|   |   |   |-- db/                     # Database sessions, customer pools
+|   |   |   |-- models/                 # SQLAlchemy ORM (18 tables)
+|   |   |   |-- schemas/                # Pydantic validation schemas
+|   |   |   |-- api/                    # Routes and dependencies
+|   |   |   |-- services/               # Business logic
+|   |   |   |-- agents/                 # LangGraph multi-agent system
+|   |   |   |-- tools/                  # Database tools (PG, HypoPG, Shadow)
+|   |   |   |-- ml/                     # ML models (temporal, RCA, bandit)
+|   |   |   +-- workers/                # Background async workers
+|   |   |-- migrations/                 # Alembic migrations
+|   |   |-- tests/                      # Unit + integration tests
+|   |   |-- requirements.txt            # Python dependencies
+|   |   +-- README.md                   # Backend documentation
+|   |
+|   +-- frontend/                       # Next.js React frontend
+|       |-- app/                        # App Router pages (11 routes)
+|       |-- components/                 # 45+ React components
+|       |-- lib/                        # Utilities, mock data, formatters
+|       |-- types/                      # TypeScript interfaces
+|       |-- stores/                     # Zustand stores
+|       |-- styles/                     # Design system (oklch tokens)
+|       |-- hooks/                      # Custom React hooks
+|       |-- Hero.png                    # Hero image
+|       |-- package.json                # Node dependencies
+|       +-- README.md                   # Frontend documentation
+|
+|-- infra/
+|   |-- docker/                         # Dockerfiles
+|   +-- monitoring/                     # MLflow config
+|
+|-- DOCS/                               # Architecture, PRD, tech stack docs
+|-- docker-compose.yml                  # Full stack orchestration
+|-- Makefile                            # Dev commands (dev, up, down, lint, test)
+|-- .env.example                        # Environment variable template
++-- LICENSE                             # MIT License
 ```
 
 ---
 
-# System Workflow
+## Quick Start
 
-A typical lifecycle looks like this:
+### Prerequisites
 
-```text
-1. Connect PostgreSQL
-        ↓
-2. Collect telemetry
-        ↓
-3. Normalize metrics
-        ↓
-4. Detect anomalies
-        ↓
-5. Extract relevant evidence
-        ↓
-6. Start investigation
-        ↓
-7. Run specialized agents
-        ↓
-8. Supervisor reconciles evidence
-        ↓
-9. Generate root-cause hypothesis
-        ↓
-10. Generate optimization candidates
-        ↓
-11. Estimate risk / expected benefit
-        ↓
-12. Simulate or benchmark
-        ↓
-13. Verify expected improvement
-        ↓
-14. Request approval if required
-        ↓
-15. Apply optimization
-        ↓
-16. Monitor post-change behavior
-        ↓
-17. Compare before vs after
-        ↓
-18. Record outcome
-        ↓
-19. Update ML / decision models
-        ↓
-20. Improve future recommendations
-```
+- Python 3.12+
+- Node.js 20+
+- PostgreSQL 16+ (or use Neon/Supabase)
+- Docker (optional, for full stack)
 
----
-
-# Feature 1 — Multi-Agent Root Cause Investigation
-
-## Objective
-
-Determine the **actual cause** of database performance degradation rather than simply identifying the slow query.
-
----
-
-## Investigation Agents
-
-### Planner / Statistics Agent
-
-Investigates:
-
-* query plans
-* cardinality estimates
-* estimated vs actual rows
-* statistics freshness
-* selectivity
-* planner behavior
-* plan changes
-* sequential scans
-* index scans
-* join strategy
-
-Example hypothesis:
-
-```text
-Planner estimates 1,500 rows
-but execution observes 1,800,000 rows.
-
-Estimated/actual ratio ≈ 1:1200.
-
-Likely cause:
-statistics / distribution mismatch.
-```
-
----
-
-### I/O Agent
-
-Investigates:
-
-* disk reads
-* buffer reads
-* cache hit ratio
-* read amplification
-* sequential I/O
-* random I/O
-* WAL activity
-* checkpoint behavior
-
-Example:
-
-```text
-Query latency increased
-+
-shared buffer hits decreased
-+
-disk reads increased dramatically
-
-Possible cause:
-cache pressure / working-set expansion.
-```
-
----
-
-### Locking Agent
-
-Investigates:
-
-* blocked queries
-* blocking sessions
-* lock waits
-* transaction duration
-* deadlocks
-* contention patterns
-* idle transactions
-
-Example:
-
-```text
-Query execution time:
-180ms
-
-Lock wait:
-4.3s
-
-Conclusion:
-Database compute is not the primary bottleneck.
-Transaction contention is.
-```
-
----
-
-### Vacuum Agent
-
-Investigates:
-
-* dead tuples
-* autovacuum activity
-* table growth
-* vacuum lag
-* analyze frequency
-* transaction ID pressure
-* bloat indicators
-
-Example:
-
-```text
-Dead tuples:
-+340%
-
-Autovacuum:
-falling behind
-
-Table:
-rapidly growing
-
-Potential consequence:
-larger scans + stale statistics + increased I/O.
-```
-
----
-
-### Workload Agent
-
-Investigates workload-level behavior:
-
-* query frequency
-* traffic spikes
-* new query patterns
-* query distribution
-* concurrency
-* seasonal behavior
-* workload drift
-
-This agent is particularly important for predictive optimization.
-
----
-
-## Supervisor Agent
-
-The supervisor does not blindly trust a single agent.
-
-It receives evidence from all investigators:
-
-```text
-Planner Agent
-      │
-I/O Agent
-      │
-Lock Agent
-      ├──────► Supervisor
-Vacuum Agent
-      │
-Workload Agent
-```
-
-The supervisor:
-
-1. compares hypotheses
-2. checks conflicting evidence
-3. assigns confidence
-4. removes unsupported explanations
-5. identifies the strongest root cause
-6. produces a structured diagnosis
-
-Example:
-
-```json
-{
-  "root_cause": "stale_statistics",
-  "confidence": 0.91,
-  "severity": "high",
-  "evidence": [
-    "large estimated-vs-actual row mismatch",
-    "recent high table modification rate",
-    "plan regression",
-    "statistics not recently refreshed"
-  ],
-  "recommended_action": "ANALYZE orders"
-}
-```
-
----
-
-# Feature 2 — Safe Simulation & Verification Sandbox
-
-## Objective
-
-Never allow an AI model to casually modify production.
-
-The system separates:
-
-```text
-Recommendation
-```
-
-from:
-
-```text
-Execution
-```
-
----
-
-## Optimization Candidate Generation
-
-The optimization engine can generate candidates such as:
-
-```text
-CREATE INDEX
-DROP INDEX
-ANALYZE
-VACUUM
-Query rewrite
-Configuration adjustment
-Partitioning strategy
-Connection/resource tuning
-```
-
-Each candidate should contain:
-
-```json
-{
-  "action": "...",
-  "reason": "...",
-  "expected_benefit": "...",
-  "risk": "...",
-  "rollback": "...",
-  "verification_metric": "..."
-}
-```
-
----
-
-## Simulation
-
-Where feasible, the system tests the candidate against:
-
-* representative workload
-* query plans
-* execution time
-* buffer consumption
-* I/O
-* CPU
-* row estimates
-* concurrency behavior
-
-For query-plan experiments, PostgreSQL capabilities such as `EXPLAIN`, `EXPLAIN ANALYZE`, planner settings, and isolated test environments can be used.
-
----
-
-## Before / After Verification
-
-The system stores a baseline:
-
-```text
-Before
-
-p50 latency: 320ms
-p95 latency: 1.8s
-p99 latency: 4.7s
-CPU: 71%
-buffer hit ratio: 93%
-```
-
-After optimization:
-
-```text
-After
-
-p50 latency: 140ms
-p95 latency: 720ms
-p99 latency: 1.4s
-CPU: 54%
-buffer hit ratio: 97%
-```
-
-The verifier calculates whether the improvement is statistically meaningful rather than assuming:
-
-> “The query became faster once, therefore the optimization worked.”
-
----
-
-## Verification Model
-
-A change can be classified as:
-
-```text
-IMPROVED
-NO_SIGNIFICANT_CHANGE
-REGRESSED
-INCONCLUSIVE
-UNSAFE
-```
-
-The result becomes training/feedback data for the learning system.
-
----
-
-# Feature 3 — Predictive ML Optimization & Closed-Loop Learning
-
-## Objective
-
-Predict database degradation before it becomes a production incident.
-
----
-
-## Time-Series Signals
-
-Potential features include:
-
-* query latency
-* query frequency
-* CPU utilization
-* memory pressure
-* cache hit ratio
-* disk throughput
-* IOPS
-* WAL volume
-* table growth
-* index growth
-* dead tuples
-* autovacuum delay
-* lock wait time
-* connection utilization
-* rows scanned
-* rows returned
-* query-plan changes
-
----
-
-## Anomaly Detection
-
-The ML layer can detect unusual behavior using techniques such as:
-
-* Isolation Forest
-* robust statistical baselines
-* rolling-window analysis
-* clustering
-* change-point detection
-* time-series forecasting
-* autoencoder-based anomaly detection where justified
-
-The goal is not to use deep learning everywhere.
-
-A simpler model should be preferred when it provides better reliability and explainability.
-
----
-
-## Predictive Modeling
-
-The system can estimate:
-
-```text
-P(performance_degradation | current workload trajectory)
-```
-
-or:
-
-```text
-Expected latency in next N hours/days
-```
-
-or:
-
-```text
-Probability that optimization X will improve workload Y
-```
-
----
-
-## Closed-Loop Learning
-
-Every optimization produces an outcome.
-
-```text
-              ┌───────────────┐
-              │ Prediction    │
-              └───────┬───────┘
-                      ↓
-              ┌───────────────┐
-              │ Recommendation│
-              └───────┬───────┘
-                      ↓
-              ┌───────────────┐
-              │ Experiment    │
-              └───────┬───────┘
-                      ↓
-              ┌───────────────┐
-              │ Execute       │
-              └───────┬───────┘
-                      ↓
-              ┌───────────────┐
-              │ Measure       │
-              └───────┬───────┘
-                      ↓
-              ┌───────────────┐
-              │ Outcome       │
-              └───────┬───────┘
-                      ↓
-              ┌───────────────┐
-              │ Model Update  │
-              └───────┬───────┘
-                      │
-                      └──────────► Future Predictions
-```
-
-This allows the system to learn:
-
-```text
-Which recommendations work?
-For which workload?
-Under which database conditions?
-With what confidence?
-At what cost?
-```
-
----
-
-# Architecture
-
-The high-level architecture is:
-
-```text
-                         ┌──────────────────────┐
-                         │      Web Console     │
-                         │   Next.js / React    │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │      API Gateway     │
-                         │       FastAPI        │
-                         └──────────┬───────────┘
-                                    │
-                  ┌─────────────────┼─────────────────┐
-                  │                 │                 │
-                  ▼                 ▼                 ▼
-          ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-          │ Investigation│  │ Optimization │  │ Prediction   │
-          │ Engine       │  │ Engine       │  │ Engine       │
-          └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
-                 │                 │                 │
-                 └─────────────────┼─────────────────┘
-                                   ▼
-                         ┌──────────────────────┐
-                         │ Agent Orchestrator   │
-                         │ LangGraph             │
-                         └──────────┬───────────┘
-                                    │
-                ┌───────────────────┼───────────────────┐
-                ▼                   ▼                   ▼
-        ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-        │ Planner     │     │ I/O Agent   │     │ Lock Agent  │
-        └─────────────┘     └─────────────┘     └─────────────┘
-                │                   │                   │
-        ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-        │ Vacuum      │     │ Workload    │     │ Supervisor  │
-        │ Agent       │     │ Agent       │     │ Agent       │
-        └─────────────┘     └─────────────┘     └─────────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │ PostgreSQL Collector │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │ Target PostgreSQL    │
-                         │ Local / Neon / Cloud │
-                         └──────────────────────┘
-```
-
----
-
-# Technology Stack
-
-## Frontend
-
-| Technology         | Purpose                         |
-| ------------------ | ------------------------------- |
-| Next.js            | Web application                 |
-| React              | UI                              |
-| TypeScript         | Type safety                     |
-| Tailwind CSS       | Styling                         |
-| Recharts / ECharts | Metrics visualization           |
-| TanStack Query     | Server state                    |
-| WebSocket / SSE    | Real-time investigation updates |
-
----
-
-## Backend
-
-| Technology | Purpose                     |
-| ---------- | --------------------------- |
-| Python     | Core backend and ML         |
-| FastAPI    | API layer                   |
-| Pydantic   | Validation                  |
-| SQLAlchemy | Application database access |
-| Alembic    | Database migrations         |
-| AsyncIO    | Concurrent workloads        |
-
----
-
-## Agentic Layer
-
-| Technology              | Purpose                       |
-| ----------------------- | ----------------------------- |
-| LangGraph               | Stateful agent orchestration  |
-| LLM                     | Reasoning and explanation     |
-| Structured Outputs      | Deterministic agent responses |
-| Tool Calling            | Database inspection           |
-| Supervisor architecture | Multi-agent reconciliation    |
-
-The LLM is **not** given unrestricted database access.
-
-Agents interact through controlled tools.
-
----
-
-## Machine Learning
-
-Potential stack:
-
-| Technology         | Purpose                        |
-| ------------------ | ------------------------------ |
-| Python             | ML development                 |
-| scikit-learn       | Classical ML                   |
-| XGBoost / LightGBM | Predictive models              |
-| PyTorch            | Advanced models when justified |
-| pandas             | Dataset processing             |
-| NumPy              | Numerical computation          |
-| MLflow             | Experiment/model tracking      |
-| SHAP               | Explainability                 |
-
-The initial system should prioritize classical ML and statistical methods before introducing more complex models.
-
----
-
-## Database
-
-### Target Database
-
-**PostgreSQL**
-
-Supported deployment patterns can include:
-
-```text
-Local PostgreSQL
-Docker PostgreSQL
-Neon PostgreSQL
-Managed PostgreSQL
-Cloud PostgreSQL
-```
-
-### DB Agent Metadata Store
-
-A separate PostgreSQL database can store:
-
-* database connections
-* collected metrics
-* investigations
-* hypotheses
-* recommendations
-* experiments
-* optimization results
-* model versions
-* audit events
-
-This prevents the target database from becoming the application's control-plane database.
-
----
-
-## Vector Database
-
-Optional:
-
-```text
-Qdrant
-```
-
-Useful for storing:
-
-* historical investigation summaries
-* database incidents
-* optimization experiences
-* runbooks
-* schema context
-* learned operational knowledge
-
-Vector search should support the agent rather than replace deterministic database analysis.
-
----
-
-## Infrastructure
-
-| Technology     | Purpose                  |
-| -------------- | ------------------------ |
-| Docker         | Containerization         |
-| Docker Compose | Local development        |
-| Kubernetes     | Production orchestration |
-| Terraform      | Infrastructure as Code   |
-| GitHub Actions | CI/CD                    |
-| Prometheus     | Metrics                  |
-| Grafana        | Observability            |
-| OpenTelemetry  | Distributed tracing      |
-
----
-
-# Data Collection
-
-The collector is one of the most important parts of the platform.
-
-It should obtain information directly from PostgreSQL rather than relying exclusively on application APIs.
-
-Potential PostgreSQL sources include:
-
-```text
-pg_stat_activity
-pg_stat_statements
-pg_locks
-pg_stat_user_tables
-pg_stat_user_indexes
-pg_statio_user_tables
-pg_statio_user_indexes
-pg_database
-pg_settings
-pg_class
-pg_index
-pg_indexes
-pg_stat_progress_vacuum
-```
-
-The collector converts raw PostgreSQL information into normalized observations.
-
-Example:
-
-```json
-{
-  "timestamp": "...",
-  "database_id": "...",
-  "query_id": "...",
-  "latency_ms": 4820,
-  "calls": 812,
-  "rows": 1902,
-  "shared_blks_hit": 12903,
-  "shared_blks_read": 84211,
-  "temp_blks_written": 9122
-}
-```
-
----
-
-# AI / ML Architecture
-
-The system intentionally separates deterministic computation from probabilistic reasoning.
-
-```text
-PostgreSQL
-     ↓
-Deterministic Collector
-     ↓
-Feature Engineering
-     ↓
-ML / Anomaly Detection
-     ↓
-Evidence Package
-     ↓
-LLM / Agent Reasoning
-     ↓
-Structured Diagnosis
-```
-
-The LLM should not calculate basic PostgreSQL metrics itself.
-
-For example:
-
-Bad:
-
-```text
-LLM:
-"I think CPU is high."
-```
-
-Better:
-
-```text
-Collector:
-CPU = 87%
-
-Baseline:
-CPU = 52%
-
-Deviation:
-+35 percentage points
-
-Anomaly score:
-0.94
-```
-
-Then the agent reasons over that evidence.
-
----
-
-# Agent Architecture
-
-Each agent should have a narrow responsibility.
-
-```text
-                     Supervisor
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-        ▼                ▼                ▼
-     Planner            I/O            Locking
-        │                │                │
-        └────────────────┼────────────────┘
-                         │
-                ┌────────┴────────┐
-                ▼                 ▼
-             Vacuum            Workload
-                │                 │
-                └────────┬────────┘
-                         ▼
-                  Final Diagnosis
-```
-
-Each agent should return structured information:
-
-```json
-{
-  "agent": "planner",
-  "hypotheses": [
-    {
-      "cause": "cardinality_misestimation",
-      "confidence": 0.87,
-      "evidence": [
-        "estimated rows differ significantly from actual rows"
-      ]
-    }
-  ]
-}
-```
-
-This makes agent outputs machine-readable and auditable.
-
----
-
-# Optimization Lifecycle
-
-Every optimization should follow a controlled lifecycle.
-
-```text
-DISCOVER
-   ↓
-DIAGNOSE
-   ↓
-PROPOSE
-   ↓
-SIMULATE
-   ↓
-VERIFY
-   ↓
-APPROVE
-   ↓
-EXECUTE
-   ↓
-OBSERVE
-   ↓
-COMPARE
-   ↓
-LEARN
-```
-
-An optimization should never jump directly from:
-
-```text
-LLM recommendation
-        ↓
-production SQL
-```
-
----
-
-# Safety Model
-
-Safety is a first-class architectural component.
-
-## Read-Only by Default
-
-The database collector should initially operate using read-only credentials.
-
-The agent can inspect:
-
-* queries
-* plans
-* statistics
-* locks
-* indexes
-* table metadata
-
-without modifying production.
-
----
-
-## Explicit Write Permissions
-
-Write operations should require a separate capability.
-
-For example:
-
-```text
-READ
-ANALYZE
-SIMULATE
-PROPOSE
-APPROVE
-EXECUTE
-ROLLBACK
-```
-
-These permissions can be represented as separate capabilities.
-
----
-
-## Human Approval
-
-High-risk operations should require explicit approval.
-
-Example:
-
-```text
-Optimization:
-DROP INDEX idx_orders_customer
-
-Expected benefit:
-Low
-
-Risk:
-High
-
-Reason:
-Index is used by 3 important queries.
-
-Recommendation:
-DO NOT EXECUTE
-```
-
----
-
-## Rollback
-
-Every mutation should have:
-
-```text
-Forward action
-+
-Rollback strategy
-+
-Verification criteria
-+
-Maximum risk
-```
-
----
-
-# Database Connectivity
-
-The user experience should be simple.
-
-```text
-1. Open DB Agent
-        ↓
-2. Click "Connect Database"
-        ↓
-3. Select PostgreSQL
-        ↓
-4. Provide connection details
-        ↓
-5. DB Agent tests connection
-        ↓
-6. Verify permissions
-        ↓
-7. Discover PostgreSQL capabilities
-        ↓
-8. Start telemetry collection
-        ↓
-9. Dashboard becomes active
-```
-
-A connection can be represented as:
-
-```text
-PostgreSQL
-├── Host
-├── Port
-├── Database
-├── Username
-└── Password / Secret
-```
-
-For Neon, the PostgreSQL connection string can be used directly.
-
-The application should never expose database credentials to the frontend.
-
----
-
-# PostgreSQL Intelligence
-
-The system should understand PostgreSQL-specific behavior rather than treating PostgreSQL as a generic SQL database.
-
-Important concepts include:
-
-### Query Planning
-
-```text
-Seq Scan
-Index Scan
-Index Only Scan
-Bitmap Heap Scan
-Nested Loop
-Hash Join
-Merge Join
-Sort
-Aggregate
-```
-
-### Statistics
-
-```text
-pg_stat_statements
-pg_stats
-ANALYZE
-cardinality estimates
-selectivity
-```
-
-### Concurrency
-
-```text
-locks
-blocking
-deadlocks
-transactions
-idle transactions
-```
-
-### Maintenance
-
-```text
-VACUUM
-AUTOVACUUM
-ANALYZE
-dead tuples
-table bloat
-index bloat
-```
-
-### Storage / I/O
-
-```text
-shared buffers
-cache hits
-disk reads
-temporary files
-WAL
-checkpoints
-```
-
-This PostgreSQL-specific intelligence is a core part of the product.
-
----
-
-# Observability
-
-The DB Agent itself should be observable.
-
-Important system metrics:
-
-```text
-agent investigation latency
-agent success rate
-ML prediction accuracy
-recommendation acceptance rate
-optimization success rate
-false-positive rate
-false-negative rate
-sandbox execution time
-database collector latency
-API latency
-LLM token usage
-LLM cost
-```
-
-Most importantly:
-
-```text
-Recommendation → Outcome
-```
-
-should be measurable.
-
----
-
-# Project Structure
-
-A recommended monorepo structure:
-
-```text
-db-agent/
-│
-├── apps/
-│   │
-│   ├── web/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── services/
-│   │   ├── types/
-│   │   └── package.json
-│   │
-│   └── api/
-│       ├── app/
-│       │   ├── api/
-│       │   ├── core/
-│       │   ├── models/
-│       │   ├── schemas/
-│       │   ├── services/
-│       │   ├── repositories/
-│       │   └── main.py
-│       │
-│       ├── agents/
-│       │   ├── planner/
-│       │   ├── io/
-│       │   ├── locking/
-│       │   ├── vacuum/
-│       │   ├── workload/
-│       │   └── supervisor/
-│       │
-│       ├── collectors/
-│       │   ├── postgres/
-│       │   ├── activity.py
-│       │   ├── queries.py
-│       │   ├── locks.py
-│       │   ├── vacuum.py
-│       │   └── indexes.py
-│       │
-│       ├── optimization/
-│       │   ├── planner.py
-│       │   ├── candidates.py
-│       │   ├── simulator.py
-│       │   ├── verifier.py
-│       │   └── rollback.py
-│       │
-│       ├── ml/
-│       │   ├── features/
-│       │   ├── anomaly/
-│       │   ├── forecasting/
-│       │   ├── prediction/
-│       │   ├── training/
-│       │   └── evaluation/
-│       │
-│       └── tests/
-│
-├── packages/
-│   ├── shared/
-│   ├── schemas/
-│   └── config/
-│
-├── ml/
-│   ├── datasets/
-│   ├── experiments/
-│   ├── models/
-│   └── notebooks/
-│
-├── infra/
-│   ├── docker/
-│   ├── kubernetes/
-│   ├── terraform/
-│   ├── prometheus/
-│   └── grafana/
-│
-├── db/
-│   └── migrations/
-│
-├── scripts/
-│
-├── tests/
-│
-├── docker-compose.yml
-├── .env.example
-├── package.json
-├── turbo.json
-└── README.md
-```
-
----
-
-# Development Setup
-
-## Prerequisites
-
-Install:
-
-* Node.js
-* Python 3.12+
-* PostgreSQL
-* Docker
-* Git
-* npm / pnpm
-* optional Kubernetes tooling
-
-Verify:
+### 1. Clone & Install
 
 ```bash
-node --version
-python --version
-docker --version
-git --version
+git clone https://github.com/your-org/zentrix.ai.git
+cd zentrix.ai
+
+# Backend
+cd apps/backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Frontend
+cd ../frontend
+npm install
 ```
 
----
+### 2. Configure Environment
 
-# Environment Variables
+```bash
+cp .env.example .env
+# Edit .env with your values
+```
 
-Example:
+Required variables:
 
 ```env
-# Application
-APP_ENV=development
-API_PORT=8000
-WEB_PORT=3000
-
-# Application PostgreSQL
-DATABASE_URL=postgresql+asyncpg://...
-
-# Target PostgreSQL
-TARGET_DATABASE_URL=postgresql://...
-
-# LLM
-OPENAI_API_KEY=...
-
-# Agent framework
-LANGCHAIN_API_KEY=...
-LANGCHAIN_TRACING_V2=true
-
-# Vector database
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=...
-
-# ML tracking
-MLFLOW_TRACKING_URI=http://localhost:5000
-
-# Observability
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+APP_DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/zentrix
+JWT_SECRET_KEY=your-secret-key
+CONNECTION_ENCRYPTION_KEY=your-fernet-key
 ```
 
-Secrets should never be committed to Git.
+### 3. Run Database Migrations
 
-Use:
-
-```text
-.env
+```bash
+cd apps/backend
+alembic upgrade head
 ```
 
-locally and provide:
+### 4. Start Development Servers
 
-```text
-.env.example
+```bash
+# From project root
+make dev
+
+# Or individually
+cd apps/backend && uvicorn app.main:app --reload --port 8000 &
+cd apps/frontend && npm run dev &
 ```
 
-for configuration documentation.
+### 5. Open
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
 
 ---
 
-# Running the System
+## Development
 
-## Backend
+### Available Commands
 
-```bash
-cd apps/api
-```
+| Command | Description |
+|---------|-------------|
+| `make dev` | Start backend + frontend dev servers |
+| `make up` | `docker-compose up -d` |
+| `make down` | `docker-compose down` |
+| `make build` | `docker-compose build` |
+| `make lint` | Run linters (ruff + eslint) |
+| `make format` | Format code (ruff + prettier) |
+| `make test` | Run tests (pytest + npm test) |
+| `make clean` | Remove caches and build artifacts |
 
-Create a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-Activate it on Windows:
-
-```powershell
-.venv\Scripts\activate
-```
-
-Install dependencies:
+### Backend Commands
 
 ```bash
-pip install -r requirements.txt
-```
+cd apps/backend
 
-Run the API:
-
-```bash
+# Run server
 uvicorn app.main:app --reload --port 8000
+
+# Lint
+python -m ruff check .
+
+# Format
+python -m ruff format .
+
+# Test
+python -m pytest
+
+# Migrations
+alembic upgrade head
+alembic revision --autogenerate -m "description"
 ```
 
----
-
-## Frontend
+### Frontend Commands
 
 ```bash
-cd apps/web
-npm install
+cd apps/frontend
+
+# Dev server
 npm run dev
-```
 
-The frontend will normally run at:
+# Build
+npm run build
 
-```text
-http://localhost:3000
-```
+# Start production
+npm run start
 
-The backend will normally run at:
-
-```text
-http://localhost:8000
+# Lint
+npm run lint
 ```
 
 ---
 
-# Development Phases
+## Docker
 
-## Phase 1 — PostgreSQL Connection
+### Full Stack
 
-Build:
+```bash
+docker-compose up -d
+```
 
-* database connection manager
-* connection testing
-* permission detection
-* PostgreSQL version detection
-* extension detection
+### Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `app-db` | 5432 | PostgreSQL 16 application database |
+| `backend` | 8000 | FastAPI backend API |
+| `frontend` | 3000 | Next.js dashboard |
+| `mlflow` | 5000 | MLflow tracking server |
+| `telemetry-collector` | — | Polls customer databases |
+| `retrain-worker` | — | Scheduled ML retraining |
+| `canary-monitor` | — | Observes canary deployments |
+| `shadow-lab-worker` | — | Manages shadow DB containers |
 
 ---
 
-## Phase 2 — Telemetry Collector
+## Documentation
 
-Implement:
-
-* `pg_stat_activity`
-* `pg_stat_statements`
-* `pg_locks`
-* table statistics
-* index statistics
-* vacuum statistics
-* I/O statistics
-
----
-
-## Phase 3 — Observability Layer
-
-Build:
-
-* metric normalization
-* historical storage
-* baseline calculation
-* anomaly detection
-* time-series queries
+| Document | Location | Description |
+|----------|----------|-------------|
+| [Backend README](apps/backend/README.md) | `apps/backend/` | Backend architecture, API endpoints, database schema, security |
+| [Frontend README](apps/frontend/README.md) | `apps/frontend/` | Frontend architecture, components, design system, routes |
+| [Architecture](DOCS/architecture.md) | `DOCS/` | System architecture document |
+| [PRD](DOCS/prd.md) | `DOCS/` | Product requirements document |
+| [Tech Stack](DOCS/techstack.md) | `DOCS/` | Technology stack decisions |
+| [Backend Steps](DOCS/Backend steps.md) | `DOCS/` | Backend implementation steps |
+| [Frontend Steps](DOCS/frontend_steps.md) | `DOCS/` | Frontend implementation steps |
 
 ---
 
-## Phase 4 — Root Cause Engine
+## Roadmap
 
-Build:
+### Phase 1 — Foundation ✅
+- [x] Project scaffolding (monorepo, Docker, CI)
+- [x] Database schema (18 tables, Alembic migrations)
+- [x] Authentication (JWT, bcrypt, httpOnly cookies)
+- [x] API routes (6 groups, 25+ endpoints)
+- [x] Frontend UI (11 routes, 45+ components)
 
-* planner agent
-* I/O agent
-* lock agent
-* vacuum agent
-* workload agent
-* supervisor agent
+### Phase 2 — Intelligence Engine
+- [ ] Telemetry collector worker
+- [ ] PG introspection tools
+- [ ] Deterministic evidence engine
+- [ ] Isolation Forest anomaly detection
+- [ ] LightGBM root cause classifier
 
----
+### Phase 3 — Agent Orchestration
+- [ ] LangGraph diagnosis graph (6 agents)
+- [ ] LangGraph simulation graph (6 agents)
+- [ ] LangGraph forecast graph (2 agents)
+- [ ] LLM client integration
+- [ ] Evidence graph construction
 
-## Phase 5 — Optimization Engine
+### Phase 4 — Simulation & Verification
+- [ ] Shadow DB cloning (Docker)
+- [ ] HypoPG integration
+- [ ] Workload replay engine
+- [ ] Statistical verification
+- [ ] Policy engine
 
-Build:
+### Phase 5 — Prediction & Learning
+- [ ] Time-series forecasting (LightGBM + LSTM)
+- [ ] Thompson Sampling bandit
+- [ ] Closed-loop retraining
+- [ ] Drift detection (Evidently)
+- [ ] MLflow experiment tracking
 
-* candidate generator
-* index advisor
-* query optimization recommendations
-* statistics recommendations
-* maintenance recommendations
-* risk scoring
-
----
-
-## Phase 6 — Sandbox
-
-Build:
-
-* isolated database environment
-* workload replay
-* benchmark runner
-* before/after comparison
-* rollback validation
-
----
-
-## Phase 7 — Predictive ML
-
-Build:
-
-* feature engineering
-* anomaly detection
-* forecasting
-* degradation prediction
-* model evaluation
+### Phase 6 — Production
+- [ ] Canary deployment with auto-rollback
+- [ ] ROI translation engine
+- [ ] Background worker scaling
+- [ ] Monitoring & alerting
+- [ ] Production hardening
 
 ---
 
-## Phase 8 — Closed-Loop Learning
+## Contributing
 
-Record:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-```text
-Problem
-↓
-Diagnosis
-↓
-Recommendation
-↓
-Experiment
-↓
-Execution
-↓
-Outcome
-```
+### Code Standards
 
-Use the collected outcomes to improve:
-
-* prediction accuracy
-* recommendation ranking
-* confidence estimation
-* risk estimation
+- **Backend**: Python 3.12+, Ruff for linting/formatting, Pydantic v2, SQLAlchemy async
+- **Frontend**: TypeScript strict, ESLint, Tailwind CSS, shadcn/ui components
+- **Commits**: Conventional commits preferred
+- **Tests**: Write tests for new features
 
 ---
 
-# Example Investigation
+## License
 
-Suppose a production query suddenly becomes slow.
-
-The collector detects:
-
-```text
-Query:
-SELECT * FROM orders
-WHERE customer_id = $1;
-
-Previous p95:
-420ms
-
-Current p95:
-4.8s
-```
-
-The anomaly detector flags the change.
-
-The investigation begins.
-
-### Planner Agent
-
-Finds:
-
-```text
-Estimated rows:
-2,000
-
-Actual rows:
-1,700,000
-```
-
-### I/O Agent
-
-Finds:
-
-```text
-Disk reads:
-very high
-
-Buffer hit ratio:
-decreased
-```
-
-### Vacuum Agent
-
-Finds:
-
-```text
-Table modification rate:
-high
-
-Statistics:
-stale
-```
-
-### Lock Agent
-
-Finds:
-
-```text
-No significant blocking.
-```
-
-### Supervisor
-
-Combines the evidence:
-
-```text
-Root Cause:
-Cardinality estimation failure caused by stale statistics.
-
-Confidence:
-93%
-
-Primary evidence:
-- huge estimated/actual row mismatch
-- recent table modifications
-- stale statistics
-- plan regression
-- no significant lock contention
-```
-
-The optimization engine recommends:
-
-```sql
-ANALYZE orders;
-```
-
-The sandbox tests the change.
-
-The result:
-
-```text
-p95:
-4.8s → 610ms
-
-Rows estimate:
-2,000 → 1,630,000
-
-Execution plan:
-Sequential Scan → Index Scan
-```
-
-The verifier marks:
-
-```text
-IMPROVED
-```
-
-The outcome is stored for future learning.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-# Example Optimization
+<div align="center">
 
-Consider a query:
+**Built with precision for PostgreSQL intelligence**
 
-```sql
-SELECT *
-FROM orders
-WHERE customer_id = $1
-ORDER BY created_at DESC
-LIMIT 50;
-```
+Zentrix.ai — From telemetry to transformation, with evidence at every step.
 
-The agent identifies:
+[Backend](apps/backend/README.md) · [Frontend](apps/frontend/README.md) · [Architecture](DOCS/architecture.md)
 
-```text
-High frequency
-+
-High latency
-+
-Repeated sort operation
-+
-Large scanned row count
-```
-
-Candidate:
-
-```sql
-CREATE INDEX CONCURRENTLY
-idx_orders_customer_created
-ON orders(customer_id, created_at DESC);
-```
-
-Before executing, the system estimates:
-
-```text
-Expected latency:
-900ms → <100ms
-
-Expected storage cost:
-+X GB
-
-Risk:
-Medium
-
-Rollback:
-DROP INDEX CONCURRENTLY ...
-```
-
-The sandbox tests the strategy.
-
-If the result is positive:
-
-```text
-Latency:
-870ms → 82ms
-
-CPU:
--31%
-
-Rows scanned:
--98%
-
-Regression:
-None detected
-```
-
-The optimization receives a high confidence score.
-
-Production execution can then require human approval depending on policy.
-
----
-
-# Security
-
-DB Agent handles highly sensitive database information.
-
-Security principles:
-
-## Least Privilege
-
-The collector should use read-only credentials whenever possible.
-
----
-
-## Credential Isolation
-
-Database passwords should:
-
-* never be stored in frontend code
-* never be logged
-* never be returned through API responses
-* never be committed to Git
-
----
-
-## SQL Safety
-
-AI-generated SQL should pass through:
-
-```text
-Parser
- ↓
-Policy Engine
- ↓
-Risk Classifier
- ↓
-Sandbox
- ↓
-Approval
- ↓
-Execution
-```
-
-The LLM should never have arbitrary direct database access.
-
----
-
-## Audit Trail
-
-Every important operation should be recorded:
-
-```text
-who
-what
-when
-why
-database
-query
-agent
-recommendation
-approval
-result
-rollback
-```
-
----
-
-# Production Architecture
-
-A production deployment can look like:
-
-```text
-                         Internet
-                            │
-                            ▼
-                     Load Balancer
-                            │
-                            ▼
-                    Next.js Frontend
-                            │
-                            ▼
-                     FastAPI Gateway
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-         Agent Workers   ML Workers   API Workers
-              │             │             │
-              └─────────────┼─────────────┘
-                            ▼
-                     Message / Job Layer
-                            │
-             ┌──────────────┼──────────────┐
-             ▼              ▼              ▼
-        PostgreSQL       Qdrant         MLflow
-        Metadata DB      Knowledge       Models
-             │
-             ▼
-      Target PostgreSQL
-       / Neon / Cloud
-```
-
-For larger deployments, collectors and agent workers can scale independently.
-
----
-
-# Roadmap
-
-## Near Term
-
-* [ ] PostgreSQL connection manager
-* [ ] Secure credential handling
-* [ ] PostgreSQL telemetry collector
-* [ ] Query performance dashboard
-* [ ] anomaly detection
-* [ ] root-cause investigation
-* [ ] multi-agent supervisor
-* [ ] optimization recommendations
-
-## Medium Term
-
-* [ ] simulation sandbox
-* [ ] workload replay
-* [ ] before/after verification
-* [ ] risk scoring
-* [ ] automated rollback
-* [ ] predictive workload models
-* [ ] model evaluation pipeline
-
-## Advanced
-
-* [ ] closed-loop learning
-* [ ] optimization outcome dataset
-* [ ] recommendation ranking model
-* [ ] adaptive risk model
-* [ ] workload-specific optimization policies
-* [ ] autonomous low-risk optimization
-* [ ] multi-database support
-* [ ] Kubernetes-native database intelligence
-* [ ] cross-database learning
-
----
-
-# Design Principles
-
-DB Agent follows several important principles.
-
-### 1. Evidence Before Reasoning
-
-Collect reliable database evidence before asking an LLM to reason.
-
-### 2. Diagnosis Before Optimization
-
-Do not recommend an optimization without understanding the likely cause.
-
-### 3. Simulation Before Production
-
-Test risky changes before applying them whenever technically possible.
-
-### 4. Measurement After Execution
-
-An optimization is not considered successful merely because it executed successfully.
-
-### 5. Learning From Outcomes
-
-Every optimization creates valuable feedback.
-
-### 6. Deterministic Systems Where Possible
-
-Use SQL, statistics, metrics, parsers, and ML for measurable tasks.
-
-Use LLMs primarily for:
-
-* hypothesis generation
-* evidence synthesis
-* explanation
-* planning
-* multi-agent reasoning
-
-### 7. Human Control Over High-Risk Actions
-
-Autonomy should increase with evidence and decrease with risk.
-
----
-
-# What DB Agent Ultimately Becomes
-
-The long-term architecture is not simply:
-
-```text
-User → AI → Database
-```
-
-It is:
-
-```text
-                  ┌─────────────────────┐
-                  │ PostgreSQL Workload │
-                  └──────────┬──────────┘
-                             ↓
-                    Continuous Sensing
-                             ↓
-                    ML Anomaly Detection
-                             ↓
-                    Multi-Agent Diagnosis
-                             ↓
-                  Evidence-Based Planning
-                             ↓
-                    Safe Experimentation
-                             ↓
-                   Statistical Verification
-                             ↓
-                     Controlled Execution
-                             ↓
-                     Outcome Measurement
-                             ↓
-                    Continuous Learning
-                             │
-                             └──────────────┐
-                                            ↓
-                                  Better Future Decisions
-```
-
-The fundamental objective is:
-
-> **Build a database agent that does not merely monitor PostgreSQL, but understands its behavior, investigates failures, predicts degradation, safely experiments with optimizations, verifies the results, and improves from its own operational history.**
-
----
-
-# Status
-
-**Project Type:** AI-native Database Reliability & Optimization Platform
-
-**Primary Database:** PostgreSQL
-
-**Primary Backend:** Python + FastAPI
-
-**Agent Framework:** LangGraph
-
-**ML:** scikit-learn / XGBoost / PyTorch where justified
-
-**Frontend:** Next.js + React + TypeScript
-
-**Observability:** OpenTelemetry + Prometheus + Grafana
-
-**Vector Memory:** Qdrant
-
-**Infrastructure:** Docker + Kubernetes + Terraform
-
-**Target Deployments:** Local PostgreSQL, Neon, managed PostgreSQL, cloud PostgreSQL
-
-**Core Differentiator:**
-
-```text
-Detect
-  +
-Diagnose
-  +
-Predict
-  +
-Simulate
-  +
-Verify
-  +
-Optimize
-  +
-Learn
-```
-
----
-
-# License
-
-Choose a license appropriate for the intended open-source/commercial model of the project.
-
-For example:
-
-```text
-MIT License
-```
-
-or a commercial/source-available license if the platform is intended to become a proprietary product.
+</div>

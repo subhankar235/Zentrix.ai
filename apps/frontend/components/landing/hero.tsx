@@ -33,9 +33,7 @@ export function Hero() {
             transition={{ duration: 0.75, delay: 0.06, ease }}
             className="mt-6 font-display text-[2.7rem] leading-[1.03] font-semibold tracking-[-0.03em] sm:text-6xl"
           >
-            A DBA that <span className="text-gradient-signal">proves</span> it,
-            <br />
-            before it touches prod.
+            A DBA that <span className="text-gradient-signal">proves</span> it, before it touches{"\u00A0"}prod.
           </motion.h1>
 
           <motion.p
