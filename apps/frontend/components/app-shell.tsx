@@ -16,13 +16,14 @@ import {
 } from 'lucide-react'
 import { useSelectedDb } from '@/components/app-providers'
 import { DatabaseSelector } from '@/components/database-selector'
-import { connections } from '@/lib/mock-data'
+import { useAuth, UserButton, SignInButton } from '@clerk/nextjs'
+import { useConnectionsQuery } from '@/hooks/use-connections'
 import { cn } from '@/lib/utils'
 
 type NavItem = {
   label: string
   icon: React.ComponentType<{ className?: string }>
-  href: (dbId: string) => string
+  href: (dbId: string | null) => string
   match: (path: string) => boolean
 }
 
@@ -60,7 +61,7 @@ const nav: NavItem[] = [
   {
     label: 'Forecasts',
     icon: TrendingUp,
-    href: (id) => `/forecasts/${id}`,
+   href: (id) => (id ? `/forecasts/${id}` : '/connections'),
     match: (p) => p.startsWith('/forecasts'),
   },
   {
@@ -71,14 +72,12 @@ const nav: NavItem[] = [
   },
 ]
 
-function activeProblemCount() {
-  return connections.reduce((sum, c) => sum + c.activeProblems, 0)
-}
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { selectedId } = useSelectedDb()
-  const problems = activeProblemCount()
+  const { isSignedIn } = useAuth()
+  const { data: connections = [] } = useConnectionsQuery()
+  const connectedCount = connections.length
 
   return (
     <div className="flex min-h-screen">
@@ -120,8 +119,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2 rounded-md bg-sidebar-accent/40 px-3 py-2">
             <Activity className="h-4 w-4 text-warning" />
             <div className="leading-tight">
-              <p className="tnum text-sm font-semibold">{problems}</p>
-              <p className="text-[10px] text-muted-foreground">active problems</p>
+            <p className="tnum text-sm font-semibold">{connectedCount}</p>
+            <p className="text-[10px] text-muted-foreground">connected databases</p>
             </div>
           </div>
         </div>
@@ -144,23 +143,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="relative flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent"
             >
               <Activity className="h-3.5 w-3.5 text-warning" />
-              <span className="tnum">{problems}</span>
-              <span className="hidden sm:inline">active</span>
-              {problems > 0 ? (
-                <span className="absolute -right-1 -top-1 flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger opacity-70" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-danger" />
-                </span>
-              ) : null}
+              <span className="tnum">{connectedCount}</span>
+              <span className="hidden sm:inline">connected</span>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                MC
-              </div>
-              <div className="hidden leading-tight md:block">
-                <p className="text-xs font-medium">Maya Chen</p>
-                <p className="text-[10px] text-muted-foreground">SRE · Owner</p>
-              </div>
+              {isSignedIn ? (
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: 'h-8 w-8',
+                    },
+                  }}
+                />
+              ) : (
+                <SignInButton mode="modal">
+                  <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">
+                    Sign In
+                  </button>
+                </SignInButton>
+              )}
             </div>
           </div>
         </header>

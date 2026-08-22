@@ -7,6 +7,7 @@ Reference: ARCHITECTURE.md §4 (db/customer_db.py), §7, §14 & PRD.md §14
 import asyncio
 import re
 import uuid
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Dict, Optional
 import asyncpg
@@ -85,6 +86,19 @@ class CustomerConnectionManager:
             # Decrypt stored credentials just-in-time
             decrypted_conn_str = decrypt_connection_string(conn_record.encrypted_connection_string)
             dsn = _prepare_asyncpg_dsn(decrypted_conn_str)
+            parsed_dsn = urlsplit(dsn)
+            query = parse_qs(parsed_dsn.query, keep_blank_values=True)
+            if "ssl" not in query and "sslmode" not in query and conn_record.ssl_mode:
+                query["ssl"] = [conn_record.ssl_mode]
+                dsn = urlunsplit(
+                    (
+                        parsed_dsn.scheme,
+                        parsed_dsn.netloc,
+                        parsed_dsn.path,
+                        urlencode(query, doseq=True),
+                        parsed_dsn.fragment,
+                    )
+                )
 
             logger.info(
                 f"Initializing customer database connection pool for connection {connection_id}",

@@ -1,13 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { connections } from '@/lib/mock-data'
 
 // ---------------- Selected database context ----------------
 
 type DbContextValue = {
-  selectedId: string
-  setSelectedId: (id: string) => void
+  selectedId: string | null
+  setSelectedId: (id: string | null) => void
 }
 
 const DbContext = React.createContext<DbContextValue | null>(null)
@@ -65,7 +64,7 @@ function ToastViewport({ toasts }: { toasts: Toast[] }) {
 }
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  const [selectedId, setSelectedId] = React.useState(connections[0].id)
+  const [selectedId, setSelectedId] = React.useState<string | null>(null)
   const [toasts, setToasts] = React.useState<Toast[]>([])
 
   const toast = React.useCallback((t: Omit<Toast, 'id'>) => {

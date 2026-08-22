@@ -6,13 +6,10 @@ Reference: PRD.md §12 & ARCHITECTURE.md §4
 import uuid
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.deps import get_current_user, get_db_session
-from app.core.security import encrypt_connection_string
-from app.models.connection import DatabaseConnection
-from app.models.diagnosis import Diagnosis
+from app.api.deps import get_connection_user, get_db_session, get_current_user
 from app.models.user import User
+from app.models.connection import DatabaseConnection
 from app.schemas.connection import (
     ConnectionCreate,
     ConnectionOut,
@@ -21,82 +18,125 @@ from app.schemas.connection import (
 )
 from app.schemas.diagnosis import DiagnosisOut
 from app.schemas.telemetry import TelemetrySummaryResponse
+from app.services.connection_service import (
+    _provision_monitoring_dsn,
+    connection_service,
+    verify_raw_dsn,
+)
+from sqlalchemy import select
+from app.models.diagnosis import Diagnosis
 
 router = APIRouter(prefix="/connections", tags=["Database Connections"])
+
+
+@router.post("/test", response_model=ConnectionTestResponse)
+async def test_connection_payload(
+    conn_in: ConnectionCreate,
+    current_user: User = Depends(get_connection_user),
+) -> ConnectionTestResponse:
+    """Test a target database before persisting its credentials."""
+    raw_conn_str = connection_service._build_connection_string(conn_in)
+    result = await verify_raw_dsn(raw_conn_str)
+    if not result.success:
+        return result
+    if result.permissions.get("pg_stat_statements") and result.permissions.get("read_only_role"):
+        return result
+
+    try:
+        provisioned_dsn, _ = await _provision_monitoring_dsn(raw_conn_str)
+        provisioned_result = await verify_raw_dsn(provisioned_dsn)
+        if provisioned_result.success and provisioned_result.permissions.get("read_only_role"):
+            return provisioned_result
+        return ConnectionTestResponse(
+            success=False,
+            postgres_version=provisioned_result.postgres_version,
+            permissions=provisioned_result.permissions,
+            latency_ms=provisioned_result.latency_ms,
+            error="The dedicated monitoring role was created but failed read-only validation.",
+        )
+    except Exception:
+        return ConnectionTestResponse(
+            success=False,
+            postgres_version=result.postgres_version,
+            permissions=result.permissions,
+            latency_ms=result.latency_ms,
+            error=(
+                "The supplied role is not read-only and Zentrix could not provision a dedicated "
+                "monitoring role. Grant CREATEROLE to the setup role or provide a dedicated "
+                "read-only PostgreSQL connection string."
+            ),
+        )
 
 
 @router.post("", response_model=ConnectionOut, status_code=status.HTTP_201_CREATED)
 async def register_connection(
     conn_in: ConnectionCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
     Register a new monitored target PostgreSQL connection.
-    Encrypts connection credentials at rest.
+    Encrypts connection credentials at rest and runs initial permission checks.
     """
-    # Build or use provided connection string
-    if conn_in.connection_string:
-        raw_conn_str = conn_in.connection_string
-    else:
-        raw_conn_str = (
-            f"postgresql://{conn_in.username}:{conn_in.password or ''}@"
-            f"{conn_in.host}:{conn_in.port}/{conn_in.database_name}?sslmode={conn_in.ssl_mode}"
-        )
-
-    encrypted_str = encrypt_connection_string(raw_conn_str)
-
-    connection = DatabaseConnection(
+    return await connection_service.create_connection(
         user_id=current_user.id,
-        name=conn_in.name,
-        encrypted_connection_string=encrypted_str,
-        host=conn_in.host,
-        port=conn_in.port,
-        database_name=conn_in.database_name,
-        username=conn_in.username,
-        ssl_mode=conn_in.ssl_mode,
-        provider=conn_in.provider,
-        permission_status={"pg_stat_statements": True, "hypopg": True},
-        is_active=True,
+        conn_in=conn_in,
+        db=db,
     )
-    db.add(connection)
-    await db.commit()
-    await db.refresh(connection)
-    return connection
 
 
 @router.get("", response_model=List[ConnectionOut])
 async def list_connections(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
     List all active monitored database connections owned by current user.
     """
-    stmt = (
-        select(DatabaseConnection)
-        .where(DatabaseConnection.user_id == current_user.id)
-        .order_by(DatabaseConnection.created_at.desc())
+    return await connection_service.list_connections(
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
     )
-    res = await db.execute(stmt)
-    return res.scalars().all()
 
 
 @router.get("/{id}", response_model=ConnectionOut)
 async def get_connection(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
-    Get monitored connection details by ID.
+    Get monitored connection details by ID (UUID or slug/name).
     """
-    stmt = select(DatabaseConnection).where(
-        DatabaseConnection.id == id,
-        DatabaseConnection.user_id == current_user.id,
+    conn = await connection_service.get_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
     )
-    res = await db.execute(stmt)
-    conn = res.scalar_one_or_none()
+    if not conn:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
+    return conn
+
+
+@router.patch("/{id}", response_model=ConnectionOut)
+async def update_connection(
+    id: str,
+    conn_in: ConnectionUpdate,
+    current_user: User = Depends(get_connection_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Any:
+    """
+    Update monitored connection configuration.
+    """
+    conn = await connection_service.update_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        conn_in=conn_in,
+        db=db,
+    )
     if not conn:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
     return conn
@@ -104,93 +144,84 @@ async def get_connection(
 
 @router.post("/{id}/test", response_model=ConnectionTestResponse)
 async def test_connection(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
-    Test target database reachability, permissions, and extensions.
+    Test target database reachability, credentials, and required extensions (pg_stat_statements, hypopg).
     """
-    stmt = select(DatabaseConnection).where(
-        DatabaseConnection.id == id,
-        DatabaseConnection.user_id == current_user.id,
+    test_result = await connection_service.test_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
     )
-    res = await db.execute(stmt)
-    conn = res.scalar_one_or_none()
-    if not conn:
+    if not test_result.success and test_result.error == "Database connection not found or unauthorized":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
-
-    return ConnectionTestResponse(
-        success=True,
-        postgres_version="PostgreSQL 18 (Mocked/Connected)",
-        permissions={
-            "pg_stat_statements": True,
-            "hypopg": True,
-            "pg_stat_activity": True,
-        },
-        latency_ms=12.5,
-    )
+    return test_result
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_connection(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> None:
     """
     Delete / remove a monitored database connection.
     """
-    stmt = select(DatabaseConnection).where(
-        DatabaseConnection.id == id,
-        DatabaseConnection.user_id == current_user.id,
+    deleted = await connection_service.delete_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
     )
-    res = await db.execute(stmt)
-    conn = res.scalar_one_or_none()
-    if not conn:
+    if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
-
-    await db.delete(conn)
-    await db.commit()
 
 
 @router.get("/{id}/telemetry", response_model=TelemetrySummaryResponse)
 async def get_connection_telemetry(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
     Retrieve live/recent normalized telemetry metrics summary for a connected database.
     """
-    from datetime import datetime, timezone, timedelta
-    now = datetime.now(timezone.utc)
-    return TelemetrySummaryResponse(
+    summary = await connection_service.get_telemetry_summary(
         connection_id=id,
-        window_start=now - timedelta(hours=1),
-        window_end=now,
-        total_queries=1542,
-        avg_latency_ms=4.82,
-        p95_latency_ms=18.4,
-        cache_hit_ratio=0.985,
-        active_tables_count=12,
-        top_queries=[],
-        top_bloated_tables=[],
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
     )
+    if not summary:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
+    return summary
 
 
 @router.get("/{id}/diagnoses", response_model=List[DiagnosisOut])
 async def list_connection_diagnoses(
-    id: uuid.UUID,
+    id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
     List detected root-cause diagnoses for a given database connection.
     """
+    conn = await connection_service.get_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
+    )
+    if not conn:
+        return []
+
     stmt = (
         select(Diagnosis)
-        .where(Diagnosis.connection_id == id)
+        .where(Diagnosis.connection_id == conn.id)
         .order_by(Diagnosis.created_at.desc())
     )
     res = await db.execute(stmt)

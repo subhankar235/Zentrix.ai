@@ -1,8 +1,8 @@
-// Fixed reference "now" matching the mock data set.
-const NOW = new Date('2026-08-21T14:30:00Z').getTime()
-
 export function relativeTime(iso: string): string {
-  const diff = NOW - new Date(iso).getTime()
+  const timestamp = new Date(iso).getTime()
+  if (!Number.isFinite(timestamp)) return 'unknown'
+
+  const diff = Math.max(0, Date.now() - timestamp)
   const s = Math.round(diff / 1000)
   if (s < 60) return `${s}s ago`
   const m = Math.round(s / 60)

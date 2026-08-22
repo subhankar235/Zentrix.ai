@@ -18,6 +18,7 @@ settings = get_settings()
 
 
 @router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def signup(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db_session),

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.db.base import Base
@@ -18,13 +19,15 @@ from app.db.base import Base
 logger = get_logger(__name__)
 settings = get_settings()
 
-# Configure the async SQLAlchemy engine for PostgreSQL / Neon
+# Configure the async SQLAlchemy engine for PostgreSQL / Neon pooler
 engine: AsyncEngine = create_async_engine(
     settings.APP_DATABASE_URL,
     echo=False,
     future=True,
     pool_pre_ping=True,
+    poolclass=NullPool,
 )
+
 
 # Async session factory
 async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(

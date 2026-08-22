@@ -1,0 +1,24 @@
+# Evidently AI Data and Prediction Drift Monitoring Configuration
+# Reference: ARCHITECTURE.md §6 & PRD.md §5 Feature 3 L4
+
+drift_monitoring:
+  data_drift:
+    confidence: 0.95
+    drift_share_threshold: 0.30
+    features:
+      - p95_exec_time
+      - mean_exec_time
+      - calls
+      - shared_blks_read
+      - cpu_seconds
+      - cardinality_error
+      - dead_tuple_ratio
+      - idx_scan_ratio
+  prediction_drift:
+    confidence: 0.95
+    threshold: 0.25
+  retrain_triggers:
+    min_new_experiments: 20
+    drift_threshold_exceeded: true
+    min_mae_improvement_ratio: 0.03
+    max_days_between_retrain: 7

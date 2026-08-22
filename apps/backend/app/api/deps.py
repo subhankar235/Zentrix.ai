@@ -87,15 +87,61 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Resolve user by UUID or email
+    # Resolve user by UUID, email, or Clerk User ID
+    user = None
     try:
         user_uuid = uuid.UUID(user_id_str)
         stmt = select(User).where(User.id == user_uuid)
+        res = await db.execute(stmt)
+        user = res.scalar_one_or_none()
     except ValueError:
-        stmt = select(User).where(User.email == user_id_str)
+        pass
 
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
+    if user is None:
+        candidate_emails = [
+            f"{user_id_str}@clerk.user",
+            payload.get("email"),
+            payload.get("primary_email_address"),
+            payload.get("email_address"),
+        ]
+        candidate_emails = [e for e in candidate_emails if e]
+        if candidate_emails:
+            stmt = select(User).where(User.email.in_(candidate_emails))
+            res = await db.execute(stmt)
+            user = res.scalar_one_or_none()
+
+    # If user authenticated via Clerk but doesn't exist yet in the database, provision record
+    if user is None and (user_id_str.startswith("user_") or "@" in (payload.get("email") or "")):
+        email = (
+            payload.get("email")
+            or payload.get("primary_email_address")
+            or payload.get("email_address")
+            or f"{user_id_str}@clerk.user"
+        )
+        full_name = (
+            payload.get("name")
+            or payload.get("full_name")
+            or f"{payload.get('first_name', '')} {payload.get('last_name', '')}".strip()
+            or None
+        )
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            hashed_password="clerk_authenticated_user",
+            full_name=full_name,
+            role="dba",
+            is_active=True,
+            is_superuser=False,
+        )
+        try:
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+        except Exception:
+            await db.rollback()
+            stmt = select(User).where(User.email == email)
+            res = await db.execute(stmt)
+            user = res.scalar_one_or_none()
 
     if user is None:
         raise HTTPException(
@@ -110,6 +156,45 @@ async def get_current_user(
             detail="User account is deactivated",
         )
 
+    return user
+
+
+async def get_connection_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db_session),
+    header_token: Optional[str] = Depends(oauth2_scheme),
+    cookie_token: Optional[str] = Cookie(default=None, alias=COOKIE_AUTH_NAME),
+) -> User:
+    """Resolve the owner for connection/telemetry routes during local development.
+
+    Production still requires the normal JWT authentication flow. The local
+    development identity exists only so the real database connection and
+    monitoring paths can be exercised before the auth UI is finished.
+    """
+    if not (settings.is_development and settings.DEV_CONNECTIONS_WITHOUT_AUTH):
+        return await get_current_user(
+            request=request,
+            db=db,
+            header_token=header_token,
+            cookie_token=cookie_token,
+        )
+
+    local_email = "local-dev@zentrix.local"
+    user = await db.scalar(select(User).where(User.email == local_email))
+    if user:
+        return user
+
+    user = User(
+        email=local_email,
+        hashed_password="local-development-only",
+        full_name="Local Development",
+        role="owner",
+        is_active=True,
+        is_superuser=False,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
     return user
 
 
@@ -170,4 +255,3 @@ async def get_customer_connection(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Could not establish connection to target database",
         )
-

@@ -47,7 +47,7 @@ export interface DatabaseConnection {
   status: ConnectionStatus
   health: HealthStatus
   lastCheckedISO: string
-  version: string
+  version?: string
   checks: {
     reachability: boolean
     credentials: boolean
@@ -55,7 +55,7 @@ export interface DatabaseConnection {
     readOnlyRole: boolean
   }
   latencySparkline: number[]
-  activeProblems: number
+  activeProblems?: number
 }
 
 export interface Recommendation {

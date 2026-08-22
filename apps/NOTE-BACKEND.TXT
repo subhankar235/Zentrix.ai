@@ -1,0 +1,41 @@
+              PostgreSQL problem
+                      ↓
+              Evidence collected
+                      ↓
+             ┌─────────────────┐
+             │    LangGraph    │
+             └────────┬────────┘
+                      ↓
+     ┌────────┬───────┼───────┬────────┐
+     ↓        ↓       ↓       ↓        ↓
+   Planner  Locks  Vacuum    I/O    Schema
+     ↓        ↓       ↓       ↓        ↓
+     └────────┴───────┼───────┴────────┘
+                      ↓
+                 Supervisor
+                      ↓
+             Root-cause report
+                      ↓
+          "WHY did the DB become slow?"
+
+
+                                         ┌────────────────────────────────┐
+                               │       worker.Dockerfile        │
+                               │ (Single Multi-Purpose Image)   │
+                               └───────────────┬────────────────┘
+                                               │
+                                               ▼
+                              [python -m app.workers <type>]
+                                               │
+               ┌───────────────────┬───────────┴───────────┬───────────────────┐
+               ▼                   ▼                       ▼                   ▼
+       [telemetry_collector] [canary_monitor]      [retrain_worker]    [shadow_lab_worker]
+               │                   │                       │                   │
+               └───────────────────┴───────────┬───────────┴───────────────────┘
+                                               │
+                                               ▼
+                             [PostgreSQL Application Database]
+                            (Shared State & Decoupled Storage)
+                                               ▲
+                                               │
+                                 [FastAPI Backend Server]
