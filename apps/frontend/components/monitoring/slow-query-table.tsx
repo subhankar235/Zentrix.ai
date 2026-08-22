@@ -2,8 +2,10 @@
 
 import * as React from 'react'
 import { Card } from '@/components/ui/card'
-import { StatusBadge } from '@/components/status-badge'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/components/ui/state-feedback'
+
+import type { TelemetryQuery } from '@/lib/api/monitoring'
 
 interface SlowQuery {
   id: string
@@ -12,71 +14,47 @@ interface SlowQuery {
   meanMs: number
   p99Ms: number
   sharePct: number
-  trend: 'up' | 'down' | 'flat'
 }
 
-function mulberry(seed: number) {
-  return function () {
-    seed |= 0
-    seed = (seed + 0x6d2b79f5) | 0
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-const QUERY_SHAPES = [
-  'SELECT * FROM orders WHERE customer_id = $1 ORDER BY created_at DESC',
-  'UPDATE inventory SET qty = qty - $1 WHERE sku = $2',
-  'SELECT count(*) FROM events WHERE ts > now() - interval $1',
-  'SELECT o.*, li.* FROM orders o JOIN line_items li ON li.order_id = o.id',
-  'INSERT INTO audit_log (actor, action, payload) VALUES ($1, $2, $3)',
-  'SELECT * FROM sessions WHERE token = $1 AND expires_at > now()',
-  'DELETE FROM cache_entries WHERE expires_at < now()',
-  'SELECT sku, sum(qty) FROM order_items GROUP BY sku ORDER BY 2 DESC',
-]
-
-function build(connId: string, stress: number): SlowQuery[] {
-  let h = 0
-  for (let i = 0; i < connId.length; i++) h = (h * 31 + connId.charCodeAt(i)) | 0
-  const rand = mulberry(h)
-  return QUERY_SHAPES.map((query, i): SlowQuery => {
-    const mean = Number((6 + rand() * 90 * stress).toFixed(1))
+function build(realQueries: TelemetryQuery[] = []): SlowQuery[] {
+  const totalCalls = realQueries.reduce((acc, q) => acc + (q.calls || 0), 0) || 1
+  return realQueries.map((q, i) => {
+    const mean = q.mean_exec_time || 0
+    const p99 = q.max_exec_time || mean
+    const share = Number((((q.calls || 0) / totalCalls) * 100).toFixed(1))
     return {
-      id: `q${i}`,
-      query,
-      calls: Math.round(400 + rand() * 48000),
-      meanMs: mean,
-      p99Ms: Number((mean * (2.5 + rand() * 3)).toFixed(1)),
-      sharePct: Number((2 + rand() * 22).toFixed(1)),
-      trend: rand() > 0.6 ? 'up' : rand() > 0.3 ? 'down' : 'flat',
+      id: q.id || q.query_hash || `q-${i}`,
+      query: q.query_text || '(query text unavailable)',
+      calls: q.calls || 0,
+      meanMs: Number(mean.toFixed(1)),
+      p99Ms: Number(p99.toFixed(1)),
+      sharePct: share,
     }
   }).sort((a, b) => b.p99Ms - a.p99Ms)
 }
 
 export function SlowQueryTable({
-  connId,
-  stress,
+  realQueries,
 }: {
-  connId: string
-  stress: number
+  realQueries?: TelemetryQuery[]
 }) {
-  const rows = React.useMemo(() => build(connId, stress), [connId, stress])
+  const rows = React.useMemo(() => build(realQueries), [realQueries])
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h3 className="text-sm font-medium">Top statements by p99</h3>
+       <div className="flex items-center justify-between border-b border-border px-4 py-3">
+         <h3 className="text-sm font-medium">Top statements by highest observed latency</h3>
         <span className="text-xs text-muted-foreground">via pg_stat_statements</span>
       </div>
-      <div className="overflow-x-auto">
+      {rows.length === 0 ? <EmptyState title="No query telemetry returned" description="pg_stat_statements returned no statements for this snapshot." /> : null}
+      {rows.length > 0 ? <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-2 font-medium">Statement</th>
               <th className="px-4 py-2 text-right font-medium">Calls</th>
               <th className="px-4 py-2 text-right font-medium">Mean</th>
-              <th className="px-4 py-2 text-right font-medium">p99</th>
-              <th className="px-4 py-2 text-right font-medium">% time</th>
+               <th className="px-4 py-2 text-right font-medium">Highest observed</th>
+               <th className="px-4 py-2 text-right font-medium">Share</th>
             </tr>
           </thead>
           <tbody>
@@ -100,20 +78,13 @@ export function SlowQueryTable({
                   {r.p99Ms} ms
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <span className="tnum text-muted-foreground">{r.sharePct}%</span>
-                    <StatusBadge
-                      status={r.trend}
-                      label={r.trend === 'up' ? '▲' : r.trend === 'down' ? '▼' : '—'}
-                      tone={r.trend === 'up' ? 'danger' : r.trend === 'down' ? 'success' : 'neutral'}
-                    />
-                  </div>
+                  <span className="tnum text-muted-foreground">{r.sharePct}%</span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </div> : null}
     </Card>
   )
 }

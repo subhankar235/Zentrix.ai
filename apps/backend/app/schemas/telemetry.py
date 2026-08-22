@@ -117,7 +117,9 @@ class TelemetrySummaryResponse(BaseModel):
     total_queries: int
     avg_latency_ms: float
     p95_latency_ms: float
-    cache_hit_ratio: float
+    cache_hit_ratio: Optional[float] = None
     active_tables_count: int
+    query_telemetry_available: bool = False
+    table_telemetry_available: bool = False
     top_queries: List[QueryMetricOut] = Field(default_factory=list)
     top_bloated_tables: List[TableMetricOut] = Field(default_factory=list)

@@ -40,6 +40,16 @@ class Settings(BaseSettings):
         default=8000,
         description="Backend HTTP port",
     )
+    CORS_ORIGINS: list[str] = Field(
+        default=[
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8000",
+        ],
+        description="Allowed CORS origin domains",
+    )
 
     # ─── Application Database (PostgreSQL / Neon) ────────────────────────────
     APP_DATABASE_URL: str = Field(
@@ -88,6 +98,29 @@ class Settings(BaseSettings):
     JWT_EXPIRY_MINUTES: int = Field(
         default=1440,
         description="JWT token lifetime in minutes (default 24h)",
+    )
+
+    DEV_CONNECTIONS_WITHOUT_AUTH: bool = Field(
+        default=True,
+        description="Allow local development connection and telemetry routes without login",
+    )
+
+    # ─── Clerk Authentication Configuration ──────────────────────────────────
+    CLERK_SECRET_KEY: Optional[str] = Field(
+        default=None,
+        description="Clerk Secret Key (sk_test_... or sk_live_...)",
+    )
+    CLERK_ISSUER: Optional[str] = Field(
+        default=None,
+        description="Clerk Issuer URL (e.g. https://clerk.yourdomain.com or https://...clerk.accounts.dev)",
+    )
+    CLERK_JWKS_URL: Optional[str] = Field(
+        default=None,
+        description="Custom Clerk JWKS URL for token public key resolution",
+    )
+    CLERK_PEM_PUBLIC_KEY: Optional[str] = Field(
+        default=None,
+        description="Clerk JWT PEM Public Key for offline RS256 verification",
     )
 
     # ─── Connection Credential Encryption ────────────────────────────────────

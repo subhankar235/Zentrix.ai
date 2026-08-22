@@ -43,7 +43,7 @@ export function ConnectionCard({
                 <div className="min-w-0">
                     <p className="truncate font-mono text-sm font-medium">{conn.name}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        {conn.provider} · {conn.version}
+                        {conn.provider}{conn.version ? ` · ${conn.version}` : ''}
                     </p>
                 </div>
                 <StatusBadge status={conn.status} dot />
@@ -61,7 +61,7 @@ export function ConnectionCard({
             <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
                 <span className="text-muted-foreground">Polled {relativeTime(conn.lastCheckedISO)}</span>
                 <Link
-                    href={`/monitoring/${conn.id}`}
+                    href={`/monitoring?connectionId=${conn.id}`}
                     onClick={(e) => e.stopPropagation()}
                     className="flex items-center gap-1 font-medium text-primary hover:underline"
                 >

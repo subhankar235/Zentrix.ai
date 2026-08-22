@@ -2,16 +2,26 @@
 
 import * as React from 'react'
 import { Check, ChevronsUpDown, Database } from 'lucide-react'
-import { connections } from '@/lib/mock-data'
 import { useSelectedDb } from '@/components/app-providers'
 import { StatusBadge } from '@/components/status-badge'
 import { cn } from '@/lib/utils'
+import { useConnectionsQuery } from '@/hooks/use-connections'
+import { useAppStore } from '@/stores/use-app-store'
 
 export function DatabaseSelector() {
   const { selectedId, setSelectedId } = useSelectedDb()
+  const setAppSelectedId = useAppStore((s) => s.setSelectedConnectionId)
+  const { data: connections = [], isLoading } = useConnectionsQuery()
   const [open, setOpen] = React.useState(false)
   const ref = React.useRef<HTMLDivElement>(null)
   const selected = connections.find((c) => c.id === selectedId) ?? connections[0]
+
+  React.useEffect(() => {
+    if (!selectedId && connections[0]) {
+      setSelectedId(connections[0].id)
+      setAppSelectedId(connections[0].id)
+    }
+  }, [connections, selectedId, setSelectedId, setAppSelectedId])
 
   React.useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -26,13 +36,16 @@ export function DatabaseSelector() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        disabled={isLoading || !selected}
         className="flex w-full min-w-[220px] items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-left text-sm hover:bg-accent"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         <Database className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span className="flex-1 truncate font-mono text-xs">{selected.name}</span>
-        <StatusBadge status={selected.health} dot />
+        <span className="flex-1 truncate font-mono text-xs">
+          {isLoading ? 'Loading connections…' : selected?.name || 'No database connected'}
+        </span>
+        {selected ? <StatusBadge status={selected.health} dot /> : null}
         <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </button>
 
@@ -52,6 +65,7 @@ export function DatabaseSelector() {
               aria-selected={c.id === selectedId}
               onClick={() => {
                 setSelectedId(c.id)
+                setAppSelectedId(c.id)
                 setOpen(false)
               }}
               className={cn(

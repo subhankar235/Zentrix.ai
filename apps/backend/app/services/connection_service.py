@@ -4,6 +4,7 @@ Handles database registration, extension verification (pg_stat_statements, hypop
 Reference: TECHSTACK.md User Connection Workflow, PRD.md §4 Core User Journey & ARCHITECTURE.md §4
 """
 
+import hashlib
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -22,6 +23,7 @@ from app.schemas.telemetry import (
     TableMetricOut,
     TelemetrySummaryResponse,
 )
+from app.tools import pg_introspection
 
 logger = get_logger(__name__)
 
@@ -39,6 +41,7 @@ async def verify_raw_dsn(raw_conn_str: str) -> ConnectionTestResponse:
         "pg_stat_activity": False,
         "pg_stat_user_tables": False,
         "pg_statio_user_tables": False,
+        "read_only_role": False,
     }
     postgres_version: Optional[str] = None
     start_time = time.perf_counter()
@@ -106,6 +109,24 @@ async def verify_raw_dsn(raw_conn_str: str) -> ConnectionTestResponse:
         except Exception:
             permissions["pg_statio_user_tables"] = False
 
+        # 8. Check that the monitoring role is not an elevated write-capable role.
+        # Keep this as an explicit warning for now so existing targets can still
+        # be inspected while the user creates a dedicated monitoring role.
+        try:
+            read_only = await conn.fetchval(
+                """
+                SELECT NOT rolsuper
+                   AND NOT rolcreaterole
+                   AND NOT rolcreatedb
+                   AND NOT has_schema_privilege(current_user, 'public', 'CREATE')
+                FROM pg_roles
+                WHERE rolname = current_user;
+                """
+            )
+            permissions["read_only_role"] = bool(read_only)
+        except Exception:
+            permissions["read_only_role"] = False
+
         # Build response
         missing = []
         if not permissions["pg_stat_statements"]:
@@ -113,7 +134,7 @@ async def verify_raw_dsn(raw_conn_str: str) -> ConnectionTestResponse:
 
         error_msg = None
         if missing:
-            error_msg = f"Connected successfully, but missing required extensions: {', '.join(missing)}"
+            error_msg = f"Connected successfully, but required monitoring checks failed: {', '.join(missing)}"
 
         return ConnectionTestResponse(
             success=True,
@@ -155,6 +176,33 @@ class ConnectionService:
 
         # Run non-blocking test check to populate initial permission status
         test_result = await verify_raw_dsn(raw_conn_str)
+        if not test_result.success:
+            raise ValueError(test_result.error or "Database connection checks failed")
+
+        existing_stmt = (
+            select(DatabaseConnection)
+            .where(
+                DatabaseConnection.user_id == user_id,
+                func.lower(DatabaseConnection.host) == conn_in.host.strip().lower(),
+                DatabaseConnection.port == conn_in.port,
+                func.lower(DatabaseConnection.database_name) == conn_in.database_name.strip().lower(),
+                func.lower(DatabaseConnection.username) == conn_in.username.strip().lower(),
+            )
+            .order_by(DatabaseConnection.created_at.desc())
+        )
+        existing = (await db.execute(existing_stmt)).scalars().first()
+
+        if existing:
+            existing.name = conn_in.name
+            existing.encrypted_connection_string = encrypted_str
+            existing.provider = conn_in.provider
+            existing.ssl_mode = conn_in.ssl_mode
+            existing.permission_status = test_result.permissions
+            existing.last_checked_at = datetime.now(timezone.utc)
+            existing.is_active = True
+            await db.commit()
+            await db.refresh(existing)
+            return existing
 
         connection = DatabaseConnection(
             user_id=user_id,
@@ -223,19 +271,41 @@ class ConnectionService:
             stmt = stmt.where(DatabaseConnection.user_id == user_id)
 
         res = await db.execute(stmt)
-        return list(res.scalars().all())
+        connections = list(res.scalars().all())
+        unique_connections: list[DatabaseConnection] = []
+        seen_targets: set[tuple[str, int, str, str]] = set()
+        for connection in connections:
+            target = (
+                connection.host.strip().lower(),
+                connection.port,
+                connection.database_name.strip().lower(),
+                connection.username.strip().lower(),
+            )
+            if target in seen_targets:
+                continue
+            seen_targets.add(target)
+            unique_connections.append(connection)
+        return unique_connections
 
     async def get_connection(
         self,
-        connection_id: uuid.UUID,
+        connection_id: Any,
         user_id: uuid.UUID,
         is_superuser: bool,
         db: AsyncSession,
     ) -> Optional[DatabaseConnection]:
         """
-        Get connection by ID.
+        Get connection by ID (UUID or slug/name).
         """
-        stmt = select(DatabaseConnection).where(DatabaseConnection.id == connection_id)
+        if isinstance(connection_id, str):
+            try:
+                conn_uuid = uuid.UUID(connection_id)
+                stmt = select(DatabaseConnection).where(DatabaseConnection.id == conn_uuid)
+            except ValueError:
+                stmt = select(DatabaseConnection).where(DatabaseConnection.name == connection_id)
+        else:
+            stmt = select(DatabaseConnection).where(DatabaseConnection.id == connection_id)
+
         if not is_superuser:
             stmt = stmt.where(DatabaseConnection.user_id == user_id)
 
@@ -244,7 +314,7 @@ class ConnectionService:
 
     async def update_connection(
         self,
-        connection_id: uuid.UUID,
+        connection_id: Any,
         user_id: uuid.UUID,
         is_superuser: bool,
         conn_in: Any,
@@ -266,7 +336,7 @@ class ConnectionService:
 
     async def delete_connection(
         self,
-        connection_id: uuid.UUID,
+        connection_id: Any,
         user_id: uuid.UUID,
         is_superuser: bool,
         db: AsyncSession,
@@ -278,71 +348,158 @@ class ConnectionService:
         if not conn_record:
             return False
 
-        await customer_connection_manager.close_customer_pool(connection_id)
+        await customer_connection_manager.close_customer_pool(conn_record.id)
         await db.delete(conn_record)
         await db.commit()
         return True
 
     async def get_telemetry_summary(
         self,
-        connection_id: uuid.UUID,
+        connection_id: Any,
         user_id: uuid.UUID,
         is_superuser: bool,
         db: AsyncSession,
     ) -> Optional[TelemetrySummaryResponse]:
         """
         Retrieve telemetry summary for a monitored database.
-        Aggregates recent stored metrics or queries live statistics.
+        Queries live database stats via customer_connection_manager or stored metrics.
         """
         conn_record = await self.get_connection(connection_id, user_id, is_superuser, db)
-        if not conn_record:
-            return None
-
         now = datetime.now(timezone.utc)
         window_start = now - timedelta(hours=24)
 
-        # 1. Fetch top recent query metrics from DB
-        q_stmt = (
-            select(QueryMetric)
-            .where(QueryMetric.connection_id == connection_id)
-            .order_by(QueryMetric.total_exec_time.desc())
-            .limit(10)
-        )
-        q_res = await db.execute(q_stmt)
-        top_queries = [QueryMetricOut.model_validate(q) for q in q_res.scalars().all()]
+        if not conn_record:
+            return None
 
-        # 2. Fetch top bloated table metrics from DB
-        t_stmt = (
-            select(TableMetric)
-            .where(TableMetric.connection_id == connection_id)
-            .order_by(TableMetric.dead_tuple_ratio.desc())
-            .limit(10)
-        )
-        t_res = await db.execute(t_stmt)
-        top_tables = [TableMetricOut.model_validate(t) for t in t_res.scalars().all()]
+        top_queries: List[QueryMetricOut] = []
+        top_tables: List[TableMetricOut] = []
+        cache_hit_ratio: Optional[float] = None
+        query_telemetry_available = False
+        table_telemetry_available = False
 
-        # 3. Calculate summary totals
-        total_queries = len(top_queries)
+        # 1. Query live PostgreSQL stats if customer pool is reachable
+        try:
+            pool = await customer_connection_manager.get_customer_pool(conn_record.id, db)
+            async with pool.acquire() as customer_conn:
+                try:
+                    live_queries = await pg_introspection.get_query_metrics(customer_conn, limit=15)
+                    query_telemetry_available = True
+                except Exception as exc:
+                    logger.info(f"Query telemetry unavailable for connection {conn_record.id}: {exc}")
+                    live_queries = []
+                for q in live_queries:
+                    calls = int(q.get("calls", 0) or 0)
+                    mean_time = float(q.get("mean_exec_time", 0.0) or 0.0)
+                    max_time = float(q.get("max_exec_time", 0.0) or 0.0)
+                    total_time = float(q.get("total_exec_time", 0.0) or 0.0)
+                    q_text = str(q.get("query") or "")
+                    q_out = QueryMetricOut(
+                        id=uuid.uuid4(),
+                        connection_id=conn_record.id,
+                        created_at=now,
+                        timestamp=now,
+                        db_id=q.get("db_id"),
+                        userid=q.get("userid"),
+                        queryid=q.get("queryid"),
+                        query_hash=hashlib.sha256(q_text.encode("utf-8")).hexdigest()[:64],
+                        query_text=q_text,
+                        calls=calls,
+                        mean_exec_time=round(mean_time, 2),
+                        max_exec_time=round(max_time, 2),
+                        min_exec_time=float(q.get("min_exec_time", 0.0) or 0.0),
+                        total_exec_time=round(total_time, 2),
+                        rows=int(q.get("rows", 0) or 0),
+                        shared_blks_hit=int(q.get("shared_blks_hit", 0) or 0),
+                        shared_blks_read=int(q.get("shared_blks_read", 0) or 0),
+                        shared_blks_dirtied=int(q.get("shared_blks_dirtied", 0) or 0),
+                        shared_blks_written=int(q.get("shared_blks_written", 0) or 0),
+                        temp_blks_read=int(q.get("temp_blks_read", 0) or 0),
+                        temp_blks_written=int(q.get("temp_blks_written", 0) or 0),
+                        wal_bytes=int(q.get("wal_bytes", 0) or 0),
+                        plans=int(q.get("plans", 0) or 0),
+                        planning_time=float(q.get("planning_time", 0.0) or 0.0),
+                    )
+                    top_queries.append(q_out)
+
+                try:
+                    db_stats = await customer_conn.fetchrow(
+                        "SELECT sum(blks_hit) as hit, sum(blks_read) as read FROM pg_stat_database;"
+                    )
+                    if db_stats and db_stats["hit"] is not None and db_stats["read"] is not None:
+                        h = float(db_stats["hit"] or 0)
+                        r = float(db_stats["read"] or 0)
+                        if h + r > 0:
+                            cache_hit_ratio = round(h / (h + r), 4)
+                except Exception as exc:
+                    logger.info(f"Cache telemetry unavailable for connection {conn_record.id}: {exc}")
+
+                try:
+                    live_tables = await pg_introspection.get_table_stats(customer_conn)
+                    table_telemetry_available = True
+                    for t in live_tables[:10]:
+                        t_out = TableMetricOut(
+                            id=uuid.uuid4(),
+                            connection_id=conn_record.id,
+                            created_at=now,
+                            timestamp=now,
+                            schema_name=t.get("schemaname", "public"),
+                            table_name=t.get("relname", "table"),
+                            live_tuples=int(t.get("n_live_tup", 0) or 0),
+                            dead_tuples=int(t.get("n_dead_tup", 0) or 0),
+                            dead_tuple_ratio=float(t.get("dead_tuple_ratio", 0.0) or 0.0),
+                            table_size_bytes=int(t.get("table_size", 0) or 0),
+                            index_size_bytes=int(t.get("index_size", 0) or 0),
+                        )
+                        top_tables.append(t_out)
+                except Exception as exc:
+                    logger.info(f"Table telemetry unavailable for connection {conn_record.id}: {exc}")
+        except Exception as exc:
+            logger.info(f"Using stored telemetry cache for connection {conn_record.id}: {exc}")
+
+        # 2. Fallback to stored QueryMetric / TableMetric in app DB if pool had no results
+        if not top_queries:
+            q_stmt = (
+                select(QueryMetric)
+                .where(QueryMetric.connection_id == conn_record.id)
+                .order_by(QueryMetric.total_exec_time.desc())
+                .limit(10)
+            )
+            q_res = await db.execute(q_stmt)
+            top_queries = [QueryMetricOut.model_validate(q) for q in q_res.scalars().all()]
+
+        if not top_tables:
+            t_stmt = (
+                select(TableMetric)
+                .where(TableMetric.connection_id == conn_record.id)
+                .order_by(TableMetric.dead_tuple_ratio.desc())
+                .limit(10)
+            )
+            t_res = await db.execute(t_stmt)
+            top_tables = [TableMetricOut.model_validate(t) for t in t_res.scalars().all()]
+
+        total_queries = sum(q.calls for q in top_queries) if top_queries else 0
         avg_latency = (
-            sum(q.mean_exec_time for q in top_queries) / total_queries
-            if total_queries > 0
+            sum(q.mean_exec_time for q in top_queries) / len(top_queries)
+            if top_queries
             else 0.0
         )
         p95_latency = (
             max((q.max_exec_time for q in top_queries), default=0.0)
-            if total_queries > 0
+            if top_queries
             else 0.0
         )
 
         return TelemetrySummaryResponse(
-            connection_id=connection_id,
+            connection_id=conn_record.id,
             window_start=window_start,
             window_end=now,
             total_queries=total_queries,
             avg_latency_ms=round(avg_latency, 2),
             p95_latency_ms=round(p95_latency, 2),
-            cache_hit_ratio=0.98,
+            cache_hit_ratio=cache_hit_ratio,
             active_tables_count=len(top_tables),
+            query_telemetry_available=query_telemetry_available,
+            table_telemetry_available=table_telemetry_available,
             top_queries=top_queries,
             top_bloated_tables=top_tables,
         )

@@ -69,12 +69,69 @@ def create_access_token(
     return encoded_jwt
 
 
+_jwk_clients: Dict[str, Any] = {}
+
+
+def _get_jwk_client(jwks_url: str) -> Any:
+    """Cached PyJWKClient instance for resolving RS256 public keys."""
+    if jwks_url not in _jwk_clients:
+        _jwk_clients[jwks_url] = jwt.PyJWKClient(jwks_url, cache_jwk_set=True, lifespan=3600)
+    return _jwk_clients[jwks_url]
+
+
 def decode_access_token(token: str) -> Dict[str, Any]:
     """
-    Decode and validate a JWT access token.
+    Decode and validate a JWT access token (supports Clerk RS256 and internal HS256 tokens).
     Raises ValueError on token expiration or invalid signature.
     """
     settings = get_settings()
+
+    # 1. Peek at unverified header to determine signing algorithm
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+        alg = unverified_header.get("alg", "HS256")
+    except Exception as e:
+        raise ValueError(f"Malformed authentication token header: {e}")
+
+    # 2. RS256 (Clerk asymmetric session tokens)
+    if alg == "RS256":
+        try:
+            if settings.CLERK_PEM_PUBLIC_KEY:
+                pem_key = settings.CLERK_PEM_PUBLIC_KEY.strip()
+                if not pem_key.startswith("-----BEGIN"):
+                    pem_key = f"-----BEGIN PUBLIC KEY-----\n{pem_key}\n-----END PUBLIC KEY-----"
+                return jwt.decode(
+                    token,
+                    pem_key,
+                    algorithms=["RS256"],
+                    options={"verify_aud": False},
+                )
+
+            # Resolve JWKS endpoint
+            if settings.CLERK_JWKS_URL:
+                jwks_url = settings.CLERK_JWKS_URL
+            elif settings.CLERK_ISSUER:
+                jwks_url = settings.CLERK_ISSUER.rstrip("/") + "/.well-known/jwks.json"
+            else:
+                jwks_url = "https://api.clerk.com/v1/jwks"
+
+            jwks_client = _get_jwk_client(jwks_url)
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+
+            return jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256"],
+                options={"verify_aud": False},
+            )
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Authentication token has expired")
+        except jwt.PyJWTError as e:
+            raise ValueError(f"Invalid Clerk authentication token: {e}")
+        except Exception as e:
+            raise ValueError(f"Failed to verify Clerk token signature: {e}")
+
+    # 3. HS256 (Internal HMAC access tokens)
     try:
         payload = jwt.decode(
             token,

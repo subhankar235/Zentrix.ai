@@ -7,7 +7,7 @@ import uuid
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.deps import get_current_user, get_db_session
+from app.api.deps import get_connection_user, get_db_session, get_current_user
 from app.models.user import User
 from app.models.connection import DatabaseConnection
 from app.schemas.connection import (
@@ -18,17 +18,27 @@ from app.schemas.connection import (
 )
 from app.schemas.diagnosis import DiagnosisOut
 from app.schemas.telemetry import TelemetrySummaryResponse
-from app.services.connection_service import connection_service
+from app.services.connection_service import connection_service, verify_raw_dsn
 from sqlalchemy import select
 from app.models.diagnosis import Diagnosis
 
 router = APIRouter(prefix="/connections", tags=["Database Connections"])
 
 
+@router.post("/test", response_model=ConnectionTestResponse)
+async def test_connection_payload(
+    conn_in: ConnectionCreate,
+    current_user: User = Depends(get_connection_user),
+) -> ConnectionTestResponse:
+    """Test a target database before persisting its credentials."""
+    raw_conn_str = connection_service._build_connection_string(conn_in)
+    return await verify_raw_dsn(raw_conn_str)
+
+
 @router.post("", response_model=ConnectionOut, status_code=status.HTTP_201_CREATED)
 async def register_connection(
     conn_in: ConnectionCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -44,7 +54,7 @@ async def register_connection(
 
 @router.get("", response_model=List[ConnectionOut])
 async def list_connections(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -59,12 +69,12 @@ async def list_connections(
 
 @router.get("/{id}", response_model=ConnectionOut)
 async def get_connection(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
-    Get monitored connection details by ID.
+    Get monitored connection details by ID (UUID or slug/name).
     """
     conn = await connection_service.get_connection(
         connection_id=id,
@@ -79,9 +89,9 @@ async def get_connection(
 
 @router.patch("/{id}", response_model=ConnectionOut)
 async def update_connection(
-    id: uuid.UUID,
+    id: str,
     conn_in: ConnectionUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -101,8 +111,8 @@ async def update_connection(
 
 @router.post("/{id}/test", response_model=ConnectionTestResponse)
 async def test_connection(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -121,8 +131,8 @@ async def test_connection(
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_connection(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> None:
     """
@@ -140,8 +150,8 @@ async def delete_connection(
 
 @router.get("/{id}/telemetry", response_model=TelemetrySummaryResponse)
 async def get_connection_telemetry(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    id: str,
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -160,23 +170,26 @@ async def get_connection_telemetry(
 
 @router.get("/{id}/diagnoses", response_model=List[DiagnosisOut])
 async def list_connection_diagnoses(
-    id: uuid.UUID,
+    id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
     List detected root-cause diagnoses for a given database connection.
     """
-    stmt = select(Diagnosis).join(DatabaseConnection, DatabaseConnection.id == Diagnosis.connection_id).where(Diagnosis.connection_id == id)
-    if not current_user.is_superuser:
-        stmt = stmt.where(DatabaseConnection.user_id == current_user.id)
-    stmt = stmt.order_by(Diagnosis.created_at.desc())
+    conn = await connection_service.get_connection(
+        connection_id=id,
+        user_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+        db=db,
+    )
+    if not conn:
+        return []
+
+    stmt = (
+        select(Diagnosis)
+        .where(Diagnosis.connection_id == conn.id)
+        .order_by(Diagnosis.created_at.desc())
+    )
     res = await db.execute(stmt)
-    diagnoses = res.scalars().all()
-    if not diagnoses:
-        connection_stmt = select(DatabaseConnection.id).where(DatabaseConnection.id == id)
-        if not current_user.is_superuser:
-            connection_stmt = connection_stmt.where(DatabaseConnection.user_id == current_user.id)
-        if await db.scalar(connection_stmt) is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
-    return diagnoses
+    return res.scalars().all()

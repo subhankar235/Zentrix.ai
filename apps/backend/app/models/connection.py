@@ -6,7 +6,7 @@ Reference: PRD.md §13, §14 & ARCHITECTURE.md §7
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text, Uuid
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, JSON, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base, TimestampMixin
 
@@ -62,6 +62,17 @@ class DatabaseConnection(Base, TimestampMixin):
     username: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+    __table_args__ = (
+        Index(
+            "uq_database_connections_owner_target",
+            "user_id",
+            func.lower(host),
+            "port",
+            func.lower(database_name),
+            func.lower(username),
+            unique=True,
+        ),
     )
     ssl_mode: Mapped[str] = mapped_column(
         String(50),

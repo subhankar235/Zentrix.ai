@@ -1,23 +1,87 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { PageHeader } from '@/components/page-header'
-import { ConnectionSummaryCard } from '@/components/dashboard/connection-summary-card'
-import { ActiveProblemsList } from '@/components/dashboard/active-problems-list'
-import { ActivityFeed } from '@/components/dashboard/activity-feed'
-import { Card, CardContent } from '@/components/ui/card'
-import { getConnections, getActiveDiagnoses, getActivity, getExperiments } from '@/lib/mock-data'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { PageHeader } from '@/components/page-header';
+import { ConnectionSummaryCard } from '@/components/dashboard/connection-summary-card';
+import { ActiveProblemsList } from '@/components/dashboard/active-problems-list';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
+import { Card, CardContent } from '@/components/ui/card';
+import { LoadingState, ErrorState } from '@/components/ui/state-feedback';
+import { useConnectionsQuery } from '@/hooks/use-connections';
+import { useDiagnosticsQuery } from '@/hooks/use-diagnostics';
+import { useExperimentsQuery } from '@/hooks/use-experiments';
+import { useAuditQuery } from '@/hooks/use-audit';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const [healthy, setHealthy] = React.useState(false)
-  const connections = getConnections()
-  const activeDiagnoses = healthy ? [] : getActiveDiagnoses()
-  const activity = getActivity()
-  const awaitingApproval = getExperiments().filter((e) => e.outcome === 'AWAITING_APPROVAL').length
+  const [healthyView, setHealthyView] = React.useState(false);
 
-  const totalProblems = activeDiagnoses.length
-  const criticalDbs = connections.filter((c) => c.health === 'Critical').length
+  const {
+    data: connections = [],
+    isLoading: isConnLoading,
+    isError: isConnError,
+    refetch: refetchConn,
+  } = useConnectionsQuery();
+
+  const {
+    data: diagnoses = [],
+    isLoading: isDiagLoading,
+    isError: isDiagError,
+    refetch: refetchDiag,
+  } = useDiagnosticsQuery();
+
+  const {
+    data: experiments = [],
+    refetch: refetchExp,
+  } = useExperimentsQuery();
+
+  const {
+    data: activity = [],
+    refetch: refetchAct,
+  } = useAuditQuery(10);
+
+  const isLoading = isConnLoading || isDiagLoading;
+  const isError = isConnError || isDiagError;
+
+  const activeDiagnoses = healthyView ? [] : diagnoses.filter((d) => d.status === 'Active');
+  const awaitingApproval = experiments.filter((e) => e.outcome === 'AWAITING_APPROVAL').length;
+  const totalProblems = activeDiagnoses.length;
+  const criticalDbs = connections.filter((c) => c.health === 'Critical').length;
+
+  const handleRefetchAll = () => {
+    refetchConn();
+    refetchDiag();
+    refetchExp();
+    refetchAct();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Fleet overview"
+          description="Health, active problems, and recent automated activity across every connected database."
+        />
+        <LoadingState message="Fetching live fleet metrics and problem diagnoses..." />
+      </div>
+    );
+  }
+
+  if (isError && connections.length === 0) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Fleet overview"
+          description="Health, active problems, and recent automated activity across every connected database."
+        />
+        <ErrorState
+          title="Fleet communication error"
+          message="Unable to communicate with the telemetry service. Please verify backend connectivity."
+          onRetry={handleRefetchAll}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -28,20 +92,20 @@ export default function DashboardPage() {
           <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-xs">
             <button
               type="button"
-              onClick={() => setHealthy(false)}
+              onClick={() => setHealthyView(false)}
               className={cn(
                 'rounded px-2.5 py-1 transition-colors',
-                !healthy ? 'bg-accent font-medium' : 'text-muted-foreground hover:text-foreground',
+                !healthyView ? 'bg-accent font-medium' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               Live data
             </button>
             <button
               type="button"
-              onClick={() => setHealthy(true)}
+              onClick={() => setHealthyView(true)}
               className={cn(
                 'rounded px-2.5 py-1 transition-colors',
-                healthy ? 'bg-accent font-medium' : 'text-muted-foreground hover:text-foreground',
+                healthyView ? 'bg-accent font-medium' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               Healthy state
@@ -69,7 +133,7 @@ export default function DashboardPage() {
           <CardContent className="p-4">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Critical</p>
             <p className={cn('tnum mt-1 text-2xl font-semibold', criticalDbs > 0 && 'text-danger')}>
-              {healthy ? 0 : criticalDbs}
+              {healthyView ? 0 : criticalDbs}
             </p>
           </CardContent>
         </Card>
@@ -85,7 +149,7 @@ export default function DashboardPage() {
         {connections.map((c) => (
           <ConnectionSummaryCard
             key={c.id}
-            conn={healthy ? { ...c, health: 'Healthy', activeProblems: 0 } : c}
+            conn={healthyView ? { ...c, health: 'Healthy', activeProblems: 0 } : c}
           />
         ))}
       </div>
@@ -101,5 +165,5 @@ export default function DashboardPage() {
         </section>
       </div>
     </div>
-  )
+  );
 }
