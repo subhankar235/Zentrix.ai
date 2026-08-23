@@ -54,6 +54,11 @@ class QueryMetric(Base):
         index=True,
         nullable=False,
     )
+    capture_source: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        index=True,
+        nullable=True,
+    )
     query_text: Mapped[Optional[str]] = mapped_column(
         Text,
         nullable=True,
@@ -182,6 +187,11 @@ class TableMetric(Base):
         String(63),
         nullable=False,
         index=True,
+    )
+    capture_source: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        index=True,
+        nullable=True,
     )
     row_count: Mapped[int] = mapped_column(
         BigInteger,
@@ -314,6 +324,11 @@ class PlanMetric(Base):
         String(64),
         index=True,
         nullable=False,
+    )
+    capture_source: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        index=True,
+        nullable=True,
     )
     node_types: Mapped[Optional[List[str]]] = mapped_column(
         JSON,

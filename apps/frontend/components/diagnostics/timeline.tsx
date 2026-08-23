@@ -20,6 +20,14 @@ const iconMap: Record<TimelineEntry['icon'], LucideIcon> = {
 }
 
 export function Timeline({ entries }: { entries: TimelineEntry[] }) {
+    if (!entries || entries.length === 0) {
+        return (
+            <div className="p-6 text-center text-xs text-muted-foreground">
+                No timeline events recorded during this telemetry window.
+            </div>
+        )
+    }
+
     return (
         <ol className="relative space-y-5 pl-2">
             <span className="absolute bottom-2 left-[13px] top-2 w-px bg-border" aria-hidden="true" />

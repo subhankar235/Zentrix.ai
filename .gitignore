@@ -42,6 +42,7 @@ out/
 docker-compose.override.yml
 
 # ─── ML / Data ───────────────────────────────────────────────────────────────
+.artifacts/
 *.pkl
 *.joblib
 mlruns/

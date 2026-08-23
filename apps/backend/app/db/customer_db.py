@@ -14,7 +14,7 @@ import asyncpg
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
-from app.core.security import decrypt_connection_string
+from app.core.security import decrypt_connection_string, encrypt_connection_string
 from app.models.connection import DatabaseConnection
 
 logger = get_logger(__name__)
@@ -32,14 +32,25 @@ def _prepare_asyncpg_dsn(raw_url: str) -> str:
     elif url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://"):]
 
-    # asyncpg uses ssl= rather than sslmode= and does not support channel_binding in URL
+    # asyncpg accepts PostgreSQL's sslmode DSN option, but not channel_binding.
     if "channel_binding=" in url:
         url = re.sub(r"[?&]channel_binding=[^&]+", "", url)
         if "?" not in url and "&" in url:
             url = url.replace("&", "?", 1)
 
-    if "sslmode=" in url and "ssl=" not in url:
-        url = url.replace("sslmode=", "ssl=")
+    parsed = urlsplit(url)
+    query = parse_qs(parsed.query, keep_blank_values=True)
+    if "ssl" in query and "sslmode" not in query:
+        query["sslmode"] = query.pop("ssl")
+        url = urlunsplit(
+            (
+                parsed.scheme,
+                parsed.netloc,
+                parsed.path,
+                urlencode(query, doseq=True),
+                parsed.fragment,
+            )
+        )
 
     return url
 
@@ -88,8 +99,10 @@ class CustomerConnectionManager:
             dsn = _prepare_asyncpg_dsn(decrypted_conn_str)
             parsed_dsn = urlsplit(dsn)
             query = parse_qs(parsed_dsn.query, keep_blank_values=True)
-            if "ssl" not in query and "sslmode" not in query and conn_record.ssl_mode:
-                query["ssl"] = [conn_record.ssl_mode]
+            if "ssl" in query and "sslmode" not in query:
+                query["sslmode"] = query.pop("ssl")
+            if "sslmode" not in query and conn_record.ssl_mode:
+                query["sslmode"] = [conn_record.ssl_mode]
                 dsn = urlunsplit(
                     (
                         parsed_dsn.scheme,
@@ -105,17 +118,42 @@ class CustomerConnectionManager:
                 extra={"connection_id": str(connection_id)},
             )
 
-            try:
-                pool = await asyncpg.create_pool(
-                    dsn=dsn,
+            async def create_pool(pool_dsn: str) -> asyncpg.Pool:
+                return await asyncpg.create_pool(
+                    dsn=pool_dsn,
                     min_size=min_size,
                     max_size=max_size,
                     command_timeout=30.0,
                     max_inactive_connection_lifetime=300.0,
                 )
+
+            try:
+                pool = await create_pool(dsn)
                 self._pools[connection_id] = pool
                 return pool
             except Exception as e:
+                setup_dsn = conn_record.encrypted_setup_connection_string
+                if setup_dsn:
+                    try:
+                        # Repair a rotated or stale monitoring role using only
+                        # the separately encrypted setup credential.
+                        from app.services.connection_service import _provision_monitoring_dsn
+
+                        repaired_raw, monitoring_username = await _provision_monitoring_dsn(
+                            decrypt_connection_string(setup_dsn)
+                        )
+                        conn_record.encrypted_connection_string = encrypt_connection_string(repaired_raw)
+                        conn_record.username = monitoring_username
+                        await db.commit()
+                        repaired_dsn = _prepare_asyncpg_dsn(repaired_raw)
+                        pool = await create_pool(repaired_dsn)
+                        self._pools[connection_id] = pool
+                        return pool
+                    except Exception as repair_error:
+                        logger.error(
+                            "Failed to repair customer database credentials",
+                            extra={"connection_id": str(connection_id), "error": str(repair_error)},
+                        )
                 logger.error(
                     f"Failed to create asyncpg pool for connection {connection_id}: {e}",
                     extra={"connection_id": str(connection_id)},

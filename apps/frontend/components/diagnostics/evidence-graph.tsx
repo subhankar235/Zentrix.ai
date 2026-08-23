@@ -48,6 +48,14 @@ export function EvidenceGraph({
         return map
     }, [columns, height])
 
+    if (!nodes || nodes.length === 0) {
+        return (
+            <div className="p-8 text-center text-xs text-muted-foreground">
+                No causal evidence graph nodes recorded for this diagnosis.
+            </div>
+        )
+    }
+
     return (
         <div className="overflow-x-auto">
             <div className="relative mx-auto" style={{ width, height, minWidth: width }}>

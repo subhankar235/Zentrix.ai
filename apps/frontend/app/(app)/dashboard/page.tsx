@@ -157,11 +157,11 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">Active problems</h2>
-          <ActiveProblemsList diagnoses={activeDiagnoses} />
+          <ActiveProblemsList diagnoses={activeDiagnoses} connections={connections} />
         </section>
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">Activity</h2>
-          <ActivityFeed items={activity} />
+          <ActivityFeed items={activity} connections={connections} />
         </section>
       </div>
     </div>

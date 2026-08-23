@@ -12,7 +12,7 @@ import { useDiagnosticsQuery, useTriggerDiagnosisMutation } from '@/hooks/use-di
 import { useAppStore } from '@/stores/use-app-store';
 
 type Scope = 'this' | 'all';
-type StatusFilter = 'all' | 'Active' | 'Resolved';
+type StatusFilter = 'all' | 'Active' | 'Observed' | 'Needs Evidence' | 'Resolved';
 
 export default function DiagnosticsPage() {
   const { toast } = useToast();
@@ -36,7 +36,7 @@ export default function DiagnosticsPage() {
   const list = rawDiagnoses
     .filter((d) => (status === 'all' ? true : d.status === status))
     .filter((d) => (onlyLow ? d.lowConfidence : true))
-    .sort((a, b) => b.confidencePct - a.confidencePct);
+    .sort((a, b) => Date.parse(b.detectedAtISO) - Date.parse(a.detectedAtISO));
 
   const active = rawDiagnoses.filter((d) => d.status === 'Active').length;
 
@@ -112,6 +112,8 @@ export default function DiagnosticsPage() {
           options={[
             { value: 'all', label: 'All' },
             { value: 'Active', label: 'Active' },
+            { value: 'Observed', label: 'Observed' },
+            { value: 'Needs Evidence', label: 'Needs evidence' },
             { value: 'Resolved', label: 'Resolved' },
           ]}
         />
@@ -130,12 +132,17 @@ export default function DiagnosticsPage() {
       {list.length === 0 ? (
         <EmptyState
           title="No diagnoses match"
-          description="The agent has not surfaced any root-cause analyses for this filter. Healthy databases produce no findings."
+          description="No diagnosis records match this filter. Live snapshots report an observation or insufficient evidence instead of inventing a root cause."
         />
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {list.map((d) => (
-            <DiagnosisCard key={d.id} diagnosis={d} showConnection={scope === 'all'} />
+              <DiagnosisCard
+                key={d.id}
+                diagnosis={d}
+                showConnection={scope === 'all'}
+                connectionName={connections.find((connection) => connection.id === d.connectionId)?.name}
+              />
           ))}
         </div>
       )}

@@ -1,55 +1,197 @@
 import { apiClient } from './client';
-import type { Diagnosis, Recommendation } from '../../types/types';
-import { diagnoses as mockDiagnoses } from '../mock-data';
+import type {
+  ContributingCause,
+  Diagnosis,
+  EvidenceEdge,
+  EvidenceNode,
+  Recommendation,
+  SupportingEvidence,
+  TimelineEntry,
+} from '../../types/types';
+
+interface BackendEvidenceNode {
+  id: string;
+  node_type: string;
+  label: string;
+  agent_domain: string;
+  confidence: number;
+  metadata_payload?: Record<string, unknown> | null;
+}
+
+interface BackendEvidenceEdge {
+  id: string;
+  source_node_id: string;
+  target_node_id: string;
+  relation_type: string;
+  weight: number;
+  explanation?: string | null;
+}
+
+interface BackendDiagnosis {
+  id: string;
+  connection_id: string;
+  title: string;
+  primary_root_cause: string;
+  contributing_factors?: Array<Record<string, unknown>> | null;
+  severity: string;
+  confidence: number;
+  summary: string;
+  validation_plan?: Record<string, unknown> | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  evidence_graph?: {
+    nodes: BackendEvidenceNode[];
+    edges: BackendEvidenceEdge[];
+  };
+}
+
+function text(value: unknown, fallback: string): string {
+  if (value == null) return fallback;
+  if (typeof value === 'string') return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return fallback;
+  }
+}
+
+function toNode(node: BackendEvidenceNode): EvidenceNode {
+  const metadata = node.metadata_payload || {};
+  const normalizedType = node.node_type.toLowerCase();
+  return {
+    id: node.id,
+    kind: normalizedType.includes('root') || normalizedType.includes('hypothesis') ? 'cause' : normalizedType === 'metric' ? 'symptom' : 'event',
+    label: node.label,
+    detail: text(metadata.detail || metadata.claim || metadata.evidence, `${node.agent_domain} evidence`),
+    metric: metadata.metric ? String(metadata.metric) : undefined,
+    value: metadata.value != null ? String(metadata.value) : undefined,
+  };
+}
+
+function toTimeline(value: unknown): TimelineEntry[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const item = entry as Record<string, unknown>;
+    const event = String(item.event || 'evidence');
+    const icon: TimelineEntry['icon'] = event.includes('lock')
+      ? 'lock'
+      : event.includes('query')
+        ? 'latency'
+        : event.includes('plan')
+          ? 'plan'
+          : 'stats';
+    return [{
+      timeISO: text(item.timestamp, new Date().toISOString()),
+      title: event.replaceAll('_', ' '),
+      detail: item.latency_ms != null ? `Observed latency: ${item.latency_ms} ms.` : 'Captured from the live PostgreSQL target.',
+      icon,
+    } satisfies TimelineEntry];
+  });
+}
+
+function toDiagnosis(data: BackendDiagnosis): Diagnosis {
+  const graph = data.evidence_graph || { nodes: [], edges: [] };
+  const validation = data.validation_plan || {};
+  const rootCause = data.primary_root_cause.toUpperCase() as Diagnosis['primaryRootCause'];
+  const contributingCauses: ContributingCause[] = (data.contributing_factors || []).map((item, index) => ({
+    rootCause: text(item.cause || item.rootCause, 'UNKNOWN') as Diagnosis['primaryRootCause'],
+    rank: index === 0 ? 'CONTRIBUTING' : 'CORRELATED',
+    confidencePct: Math.round(Number(item.confidence || 0) * 100),
+    summary: text(item.summary || item.agent, 'Observed supporting evidence from the live database.'),
+  }));
+  const action = validation.recommended_action ? String(validation.recommended_action) : '';
+  const modelOutputs = validation.model_outputs;
+  const recommendations: Recommendation[] = action
+    ? [{
+        id: `${data.id}-validation`,
+        type: rootCause.includes('VACUUM') || rootCause === 'BLOAT' ? 'VACUUM' : rootCause.includes('STATISTICS') ? 'STATISTICS' : 'QUERY_REWRITE',
+        title: action,
+        rationale: 'Generated from the live evidence collected for this diagnosis. Validate before changing production.',
+        predictedImpact: 'Requires verification',
+        uncertaintyPct: 100 - Math.round(Number(data.confidence || 0) * 100),
+        risk: 'Low',
+      }]
+    : [];
+  const supportingEvidence: SupportingEvidence[] = Array.isArray(validation.supporting_evidence)
+    ? validation.supporting_evidence.map((item, index) => {
+        const evidence: Record<string, unknown> =
+          typeof item === 'object' && item !== null ? (item as Record<string, unknown>) : { claim: item };
+        return {
+          id: `${data.id}-evidence-${index}`,
+          claim: text(evidence.claim || evidence.metric, 'Live PostgreSQL evidence'),
+          metric: text(evidence.metric, 'observed metric'),
+          value: text(evidence.value, 'observed'),
+          rank: index === 0 ? 'PRIMARY' : 'CONTRIBUTING',
+        };
+      })
+    : [];
+
+  return {
+    id: data.id,
+    connectionId: data.connection_id,
+    title: data.title,
+    primaryRootCause: rootCause,
+    confidencePct: Math.round(Number(data.confidence || 0) * 100),
+    status: data.status === 'RESOLVED'
+      ? 'Resolved'
+      : data.status === 'OBSERVED'
+        ? 'Observed'
+        : data.status === 'INSUFFICIENT_EVIDENCE'
+          ? 'Needs Evidence'
+          : 'Active',
+    detectedAtISO: data.created_at,
+    lowConfidence: Number(data.confidence || 0) < 0.5,
+    summary: data.summary,
+    affectedObject: text(validation.affected_object, 'database'),
+    telemetrySource: validation.source ? String(validation.source) : undefined,
+    capturedAtISO: validation.captured_at ? String(validation.captured_at) : undefined,
+    telemetryWarnings: [
+      ...(Array.isArray(validation.capture_errors)
+        ? validation.capture_errors.map((item) => `Telemetry source unavailable: ${text((item as Record<string, unknown>).source, 'unknown')}`)
+        : []),
+      ...(Array.isArray(validation.plan_errors)
+        ? validation.plan_errors.map(() => 'Some query plans could not be captured from the monitored database.')
+        : []),
+    ],
+    modelResults:
+      modelOutputs && typeof modelOutputs === 'object'
+        ? (modelOutputs as Diagnosis['modelResults'])
+        : undefined,
+    contributingCauses,
+    evidenceNodes: graph.nodes.map(toNode),
+    evidenceEdges: graph.edges.map((edge): EvidenceEdge => ({ from: edge.source_node_id, to: edge.target_node_id })),
+    timeline: toTimeline(validation.timeline),
+    supportingEvidence,
+    recommendations,
+  };
+}
 
 export const diagnosticsApi = {
   list: async (connectionId?: string | null): Promise<Diagnosis[]> => {
-    try {
-      const endpoint = connectionId ? `/diagnostics?connectionId=${connectionId}` : '/diagnostics';
-      const data = await apiClient.get<Diagnosis[]>(endpoint);
-      if (Array.isArray(data) && data.length > 0) return data;
-      return connectionId ? mockDiagnoses.filter((d) => d.connectionId === connectionId) : mockDiagnoses;
-    } catch (err) {
-      console.warn('[diagnosticsApi.list] Falling back to mock data:', err);
-      return connectionId ? mockDiagnoses.filter((d) => d.connectionId === connectionId) : mockDiagnoses;
-    }
+    const endpoint = connectionId ? `/diagnostics?connectionId=${encodeURIComponent(connectionId)}` : '/diagnostics';
+    const data = await apiClient.get<BackendDiagnosis[]>(endpoint);
+    return data.map(toDiagnosis);
   },
 
   getById: async (id: string): Promise<Diagnosis> => {
-    try {
-      return await apiClient.get<Diagnosis>(`/diagnostics/${id}`);
-    } catch (err) {
-      console.warn(`[diagnosticsApi.getById] Falling back to mock for ${id}:`, err);
-      const found = mockDiagnoses.find((d) => d.id === id);
-      if (found) return found;
-      throw err;
-    }
+    const data = await apiClient.get<BackendDiagnosis>(`/diagnostics/${id}`);
+    return toDiagnosis(data);
   },
 
-  trigger: async (connectionId: string): Promise<{ diagnosisId: string; status: string; message: string }> => {
-    try {
-      return await apiClient.post('/diagnostics/trigger', { connectionId });
-    } catch (err) {
-      console.warn('[diagnosticsApi.trigger] Falling back to local trigger simulation:', err);
-      return {
-        diagnosisId: 'diag-new-' + Date.now(),
-        status: 'Triggered',
-        message: 'AI specialist agents dispatched to analyze connection.',
-      };
-    }
+  trigger: async (connectionId: string): Promise<{ diagnosisId?: string; status?: string; message?: string }> => {
+    const data = await apiClient.post<BackendDiagnosis>(`/diagnostics/trigger`, { connectionId });
+    return {
+      diagnosisId: data.id,
+      status: data.status,
+      message: 'Live PostgreSQL evidence analyzed and the diagnosis was persisted.',
+    };
   },
 
   getRecommendations: async (diagnosisId?: string): Promise<Recommendation[]> => {
-    try {
-      const endpoint = diagnosisId ? `/diagnostics/${diagnosisId}/recommendations` : '/recommendations';
-      const data = await apiClient.get<Recommendation[]>(endpoint);
-      if (Array.isArray(data) && data.length > 0) return data;
-      const allRecs = mockDiagnoses.flatMap((d) => d.recommendations);
-      return diagnosisId ? allRecs.filter((r) => r.id.includes(diagnosisId)) : allRecs;
-    } catch (err) {
-      console.warn('[diagnosticsApi.getRecommendations] Falling back to mock:', err);
-      const allRecs = mockDiagnoses.flatMap((d) => d.recommendations);
-      return diagnosisId ? allRecs.filter((r) => r.id.includes(diagnosisId)) : allRecs;
-    }
+    if (!diagnosisId) return [];
+    const data = await apiClient.get<unknown[]>(`/diagnostics/${diagnosisId}/recommendations`);
+    return data as Recommendation[];
   },
 };

@@ -1,14 +1,28 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import type { Diagnosis } from '@/types/types'
+import type { DatabaseConnection, Diagnosis } from '@/types/types'
 import { Card } from '@/components/ui/card'
 import { StatusBadge } from '@/components/status-badge'
 import { ConfidenceMeter } from '@/components/confidence-meter'
 import { EmptyState } from '@/components/states'
 import { relativeTime } from '@/lib/format'
-import { getConnectionName } from '@/lib/mock-data'
+import { useConnectionsQuery } from '@/hooks/use-connections'
 
-export function ActiveProblemsList({ diagnoses }: { diagnoses: Diagnosis[] }) {
+export function ActiveProblemsList({
+    diagnoses,
+    connections: propConnections,
+}: {
+    diagnoses: Diagnosis[]
+    connections?: DatabaseConnection[]
+}) {
+    const { data: fetchedConnections = [] } = useConnectionsQuery()
+    const connections = propConnections || fetchedConnections
+
+    const resolveConnectionName = (connectionId: string): string => {
+        const found = connections.find((c) => c.id === connectionId)
+        return found?.name || connectionId
+    }
+
     if (diagnoses.length === 0) {
         return (
             <Card>
@@ -39,7 +53,7 @@ export function ActiveProblemsList({ diagnoses }: { diagnoses: Diagnosis[] }) {
                             <div className="min-w-0">
                                 <p className="truncate text-sm font-medium">{d.title}</p>
                                 <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span className="font-mono">{getConnectionName(d.connectionId)}</span>
+                                    <span className="font-mono">{resolveConnectionName(d.connectionId)}</span>
                                     {d.lowConfidence ? (
                                         <span className="text-warning">· low confidence</span>
                                     ) : null}

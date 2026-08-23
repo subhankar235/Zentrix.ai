@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from app.api.deps import get_current_user, get_db_session
+from app.api.deps import get_connection_user, get_db_session
 from app.models.diagnosis import Diagnosis, EvidenceGraphEdge, EvidenceGraphNode
 from app.models.connection import DatabaseConnection
 from app.models.experiment import OptimizationExperiment
@@ -55,7 +55,7 @@ def _detail(diag: Diagnosis) -> DiagnosisDetailOut:
 async def list_diagnoses(
     connectionId: Optional[str] = None,
     connection_id: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -80,7 +80,7 @@ async def list_diagnoses(
 @router.post("/trigger", status_code=status.HTTP_202_ACCEPTED)
 async def trigger_diagnostic_run(
     payload: TriggerPayload,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -88,11 +88,7 @@ async def trigger_diagnostic_run(
     """
     conn_str = payload.connectionId or payload.connection_id
     if not conn_str:
-        return {
-            "diagnosisId": f"diag-{uuid.uuid4()}",
-            "status": "Triggered",
-            "message": "AI specialist agents dispatched to analyze connection.",
-        }
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A database connection is required")
 
     stmt = select(DatabaseConnection)
     try:
@@ -107,11 +103,7 @@ async def trigger_diagnostic_run(
     res = await db.execute(stmt)
     conn_rec = res.scalar_one_or_none()
     if not conn_rec:
-        return {
-            "diagnosisId": f"diag-{uuid.uuid4()}",
-            "status": "Triggered",
-            "message": "AI specialist agents dispatched to analyze connection.",
-        }
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
 
     try:
         diagnosis = await diagnosis_service.run_diagnosis(
@@ -121,18 +113,16 @@ async def trigger_diagnostic_run(
             query_id=payload.query_id,
         )
         return _detail(diagnosis)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except Exception as exc:
-        return {
-            "diagnosisId": f"diag-{uuid.uuid4()}",
-            "status": "Triggered",
-            "message": f"AI specialist agents dispatched to analyze connection ({exc}).",
-        }
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Live diagnosis failed: {exc}") from exc
 
 
 @router.get("/{id}", response_model=DiagnosisDetailOut)
 async def get_diagnosis_report(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -150,7 +140,7 @@ async def get_diagnosis_report(
 @router.get("/{id}/recommendations", response_model=List[OptimizationExperimentOut])
 async def get_diagnosis_recommendations(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -173,7 +163,7 @@ async def get_diagnosis_recommendations(
 async def trigger_investigation(
     id: uuid.UUID,
     request: Optional[InvestigationTriggerRequest] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """

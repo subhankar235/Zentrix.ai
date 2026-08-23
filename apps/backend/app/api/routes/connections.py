@@ -23,8 +23,11 @@ from app.services.connection_service import (
     connection_service,
     verify_raw_dsn,
 )
-from sqlalchemy import select
+from sqlalchemy import func, select
+from datetime import datetime, timezone
 from app.models.diagnosis import Diagnosis
+from app.core.security import encrypt_connection_string
+from app.db.customer_db import customer_connection_manager
 
 router = APIRouter(prefix="/connections", tags=["Database Connections"])
 
@@ -33,6 +36,7 @@ router = APIRouter(prefix="/connections", tags=["Database Connections"])
 async def test_connection_payload(
     conn_in: ConnectionCreate,
     current_user: User = Depends(get_connection_user),
+    db: AsyncSession = Depends(get_db_session),
 ) -> ConnectionTestResponse:
     """Test a target database before persisting its credentials."""
     raw_conn_str = connection_service._build_connection_string(conn_in)
@@ -43,9 +47,26 @@ async def test_connection_payload(
         return result
 
     try:
-        provisioned_dsn, _ = await _provision_monitoring_dsn(raw_conn_str)
+        provisioned_dsn, monitoring_username = await _provision_monitoring_dsn(raw_conn_str)
         provisioned_result = await verify_raw_dsn(provisioned_dsn)
         if provisioned_result.success and provisioned_result.permissions.get("read_only_role"):
+            existing = await db.scalar(
+                select(DatabaseConnection).where(
+                    DatabaseConnection.user_id == current_user.id,
+                    func.lower(DatabaseConnection.host) == conn_in.host.strip().lower(),
+                    DatabaseConnection.port == conn_in.port,
+                    func.lower(DatabaseConnection.database_name) == conn_in.database_name.strip().lower(),
+                )
+            )
+            if existing:
+                existing.encrypted_connection_string = encrypt_connection_string(provisioned_dsn)
+                existing.encrypted_setup_connection_string = encrypt_connection_string(raw_conn_str)
+                existing.username = monitoring_username
+                existing.ssl_mode = conn_in.ssl_mode
+                existing.permission_status = provisioned_result.permissions
+                existing.last_checked_at = datetime.now(timezone.utc)
+                await db.commit()
+                await customer_connection_manager.close_customer_pool(existing.id)
             return provisioned_result
         return ConnectionTestResponse(
             success=False,

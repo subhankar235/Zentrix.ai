@@ -8,14 +8,15 @@ import { StatusBadge } from '@/components/status-badge'
 import { ConfidenceMeter } from '@/components/confidence-meter'
 import { rootCauseLabel } from '@/lib/labels'
 import { relativeTime } from '@/lib/format'
-import { getConnectionName } from '@/lib/mock-data'
 
 export function DiagnosisCard({
     diagnosis,
     showConnection = false,
+    connectionName,
 }: {
     diagnosis: Diagnosis
     showConnection?: boolean
+    connectionName?: string
 }) {
     const d = diagnosis
     return (
@@ -38,7 +39,7 @@ export function DiagnosisCard({
                             <span>
                                 Object <code className="font-mono text-foreground/80">{d.affectedObject}</code>
                             </span>
-                            {showConnection ? <span>{getConnectionName(d.connectionId)}</span> : null}
+                            {showConnection ? <span>{connectionName || d.connectionId}</span> : null}
                             <span>Detected {relativeTime(d.detectedAtISO)}</span>
                             <span>
                                 {d.contributingCauses.length} contributing{' '}

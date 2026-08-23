@@ -9,6 +9,8 @@ export function useDiagnosticsQuery(connectionId?: string | null) {
   return useQuery({
     queryKey: connectionId ? ['diagnostics', { connectionId }] : DIAGNOSTICS_QUERY_KEY,
     queryFn: () => diagnosticsApi.list(connectionId),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -17,6 +19,8 @@ export function useDiagnosisDetailQuery(id: string | null | undefined) {
     queryKey: ['diagnostics', id],
     queryFn: () => (id ? diagnosticsApi.getById(id) : null),
     enabled: Boolean(id),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
 

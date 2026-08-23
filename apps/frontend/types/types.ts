@@ -14,6 +14,8 @@ export type RootCauseClass =
   | 'TEMP_SPILL'
   | 'CONNECTION_CONTENTION'
   | 'CHECKPOINT_PRESSURE'
+  | 'NO_ACTIVE_INCIDENT'
+  | 'INSUFFICIENT_EVIDENCE'
   | 'UNKNOWN'
 
 export type CausalRank = 'PRIMARY' | 'CONTRIBUTING' | 'CORRELATED' | 'UNRELATED'
@@ -111,17 +113,51 @@ export interface Diagnosis {
   title: string
   primaryRootCause: RootCauseClass
   confidencePct: number
-  status: 'Active' | 'Resolved'
+  status: 'Active' | 'Observed' | 'Needs Evidence' | 'Resolved'
   detectedAtISO: string
   lowConfidence: boolean
   summary: string
   affectedObject: string
+  telemetrySource?: string
+  capturedAtISO?: string
+  telemetryWarnings?: string[]
+  modelResults?: DiagnosisModelResults
   contributingCauses: ContributingCause[]
   evidenceNodes: EvidenceNode[]
   evidenceEdges: EvidenceEdge[]
   timeline: TimelineEntry[]
   supportingEvidence: SupportingEvidence[]
   recommendations: Recommendation[]
+}
+
+export interface DiagnosisModelResults {
+  artifacts?: {
+    status?: string
+    source?: string
+  }
+  anomaly?: {
+    status?: string
+    reason?: string
+    anomaly_score?: number
+    is_anomaly?: boolean
+  }
+  rca?: {
+    status?: string
+    reason?: string
+    ranked_causes?: Array<{
+      cause: string
+      probability: number
+      rank?: string
+    }>
+  }
+  temporal?: {
+    reason?: string
+    anomaly_probability?: number
+    is_anomaly?: boolean
+    status?: string
+    required_rows?: number
+    available_rows?: number
+  }
 }
 
 export type PipelineStage =
