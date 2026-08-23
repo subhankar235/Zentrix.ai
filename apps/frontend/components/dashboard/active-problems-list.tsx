@@ -27,8 +27,8 @@ export function ActiveProblemsList({
         return (
             <Card>
                 <EmptyState
-                    title="No active problems"
-                    description="Your databases look healthy. New diagnoses will appear here the moment telemetry crosses a threshold."
+                    title="No diagnosis signals"
+                    description="No live diagnosis has been recorded for the connected databases yet."
                     className="border-0"
                 />
             </Card>

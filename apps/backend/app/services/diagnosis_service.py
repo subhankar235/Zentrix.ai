@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import uuid
 import hashlib
+import math
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -353,6 +354,26 @@ async def _load_live_evidence(
         "plan_flip": len(plan_flips),
         "telemetry_capture_error_count": len(capture_errors),
     }
+    latency_p50_values = sorted(float(row.get("mean_exec_time") or 0) for row in queries)
+    latency_p95_values = sorted(float(row.get("max_exec_time") or 0) for row in queries)
+    numeric_metrics.update(
+        {
+            "latency_p50": latency_p50_values[len(latency_p50_values) // 2] if latency_p50_values else 0.0,
+            "latency_p95": latency_p95_values[
+                min(len(latency_p95_values) - 1, math.ceil(len(latency_p95_values) * 0.95) - 1)
+            ] if latency_p95_values else 0.0,
+            "execution_time": sum(float(row.get("total_exec_time") or 0) for row in queries),
+            "planning_time": sum(float(row.get("planning_time") or 0) for row in queries),
+            "buffer_hits": sum(int(row.get("shared_blks_hit") or 0) for row in queries),
+            "buffer_reads": sum(int(row.get("shared_blks_read") or 0) for row in queries),
+            "temp_blks_read": sum(int(row.get("temp_blks_read") or 0) for row in queries),
+            "temp_blks_written": sum(int(row.get("temp_blks_written") or 0) for row in queries),
+            "wal_rate": int(sum(int(row.get("wal_bytes") or 0) for row in queries)),
+        }
+    )
+    numeric_metrics["cache_hit_ratio"] = numeric_metrics["buffer_hits"] / max(
+        numeric_metrics["buffer_hits"] + numeric_metrics["buffer_reads"], 1
+    )
     positive_cardinality_errors = [value for value in cardinality_errors if value > 0]
     if positive_cardinality_errors:
         numeric_metrics["cardinality_error"] = max(positive_cardinality_errors)

@@ -45,6 +45,11 @@ export function DiagnosisCard({
                                 {d.contributingCauses.length} contributing{' '}
                                 {d.contributingCauses.length === 1 ? 'cause' : 'causes'}
                             </span>
+                            {d.modelResults?.anomaly?.anomaly_score != null ? (
+                                <span className={d.modelResults.anomaly.is_anomaly ? 'text-warning' : undefined}>
+                                    Anomaly {Math.round(d.modelResults.anomaly.anomaly_score * 100)}%
+                                </span>
+                            ) : null}
                         </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">

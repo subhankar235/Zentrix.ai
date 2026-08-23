@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import math
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -40,6 +41,8 @@ async def _prepare_table(connection: asyncpg.Connection, table: str) -> None:
 async def _snapshot(connection: asyncpg.Connection, table: str, query: str) -> dict[str, Any]:
     captured_at = datetime.now(timezone.utc)
     plan = await pg_introspection.get_explain_plan(connection, query)
+    query_rows = await pg_introspection.get_query_metrics(connection, limit=25)
+    query_row = max(query_rows, key=lambda row: float(row.get("total_exec_time") or 0), default={})
     table_rows = await pg_introspection.get_table_stats(connection, table=table)
     table_row = table_rows[0] if table_rows else {}
     buffer_rows = await pg_introspection.get_buffer_stats(connection)
@@ -57,16 +60,24 @@ async def _snapshot(connection: asyncpg.Connection, table: str, query: str) -> d
     idx_scans = float(table_row.get("idx_scan") or 0)
     heap_reads = float(buffer_row.get("heap_blks_read") or 0)
     heap_hits = float(buffer_row.get("heap_blks_hit") or 0)
+    analyze_at = table_row.get("last_analyze") or table_row.get("last_autoanalyze")
+    vacuum_at = table_row.get("last_vacuum") or table_row.get("last_autovacuum")
+    analyze_age = max(0.0, (captured_at - analyze_at).total_seconds() / 3600) if analyze_at else 0.0
+    vacuum_age = max(0.0, (captured_at - vacuum_at).total_seconds() / 3600) if vacuum_at else 0.0
+    estimated_rows = float(plan.get("estimated_rows") or 0)
+    actual_rows = float(plan.get("actual_rows") or 0)
     return {
         "timestamp": captured_at.isoformat(),
         "query_hash": plan.get("query_hash"),
         "table_name": table,
-        "estimated_rows": plan.get("estimated_rows"),
-        "actual_rows": plan.get("actual_rows"),
+        "estimated_rows": estimated_rows,
+        "actual_rows": actual_rows,
         "estimated_cost": plan.get("estimated_cost"),
         "actual_time": plan.get("actual_time"),
-        "execution_time": plan.get("actual_time"),
-        "latency_p95": plan.get("actual_time"),
+        "execution_time": float(query_row.get("total_exec_time") or plan.get("actual_time") or 0),
+        "latency_p50": float(query_row.get("mean_exec_time") or plan.get("actual_time") or 0),
+        "latency_p95": float(query_row.get("max_exec_time") or plan.get("actual_time") or 0),
+        "planning_time": float(query_row.get("planning_time") or 0),
         "buffer_hits": plan.get("buffer_hits", heap_hits),
         "buffer_reads": plan.get("buffer_reads", heap_reads),
         "buffer_hit_ratio": heap_hits / max(heap_hits + heap_reads, 1.0),
@@ -75,11 +86,14 @@ async def _snapshot(connection: asyncpg.Connection, table: str, query: str) -> d
         "lock_wait_seconds": float(len(waiting)),
         "connection_count": len(activity),
         "temp_io": 0.0,
-        "wal_rate": 0.0,
+        "temp_blks_read": float(query_row.get("temp_blks_read") or 0),
+        "temp_blks_written": float(query_row.get("temp_blks_written") or 0),
+        "wal_rate": float(query_row.get("wal_bytes") or 0),
         "plan_flip": 0.0,
         "table_growth_rate": 0.0,
-        "analyze_age": 0.0,
-        "vacuum_age": 0.0,
+        "analyze_age": analyze_age,
+        "vacuum_age": vacuum_age,
+        "cardinality_error": math.log1p(actual_rows) - math.log1p(estimated_rows),
     }
 
 
