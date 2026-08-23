@@ -2,6 +2,11 @@
 
 # Zentrix.ai
 
+[![GitHub](https://img.shields.io/badge/GitHub-Source-black?logo=github)](https://github.com/subhankar235/Zentrix.ai)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Try%20Now-brightgreen?logo=vercel)](https://zentrix-ai-bxlt.vercel.app/)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-Watch-red?logo=youtube)](https://drive.google.com/file/d/1x-nbj-7GlqTi7IS_pli8Qwk6Vv1ynJ64)
+[![Presentation](https://img.shields.io/badge/Presentation-Slides-blue?logo=google-slides)](https://drive.google.com/file/d/1xydadQgS_nOXu9jA8l9OWW0nD3HW_UUZ)
+
 **Autonomous Agentic Database Intelligence & Optimization Platform**
 
 An AI-native system that continuously observes PostgreSQL databases, investigates root causes of performance issues, safely verifies optimization strategies, predicts future degradation, and learns from outcomes.
@@ -13,6 +18,9 @@ An AI-native system that continuously observes PostgreSQL databases, investigate
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.8-009688.svg)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2.70-purple.svg)](https://langchain-ai.github.io/langgraph/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+[![Backend](https://img.shields.io/badge/Backend-README-blue?logo=fastapi)](apps/backend/README.md)
+[![Frontend](https://img.shields.io/badge/Frontend-README-purple?logo=next.js)](apps/frontend/README.md)
 
 </div>
 
