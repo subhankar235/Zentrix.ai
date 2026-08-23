@@ -46,6 +46,10 @@ class DatabaseConnection(Base, TimestampMixin):
         Text,
         nullable=False,
     )
+    encrypted_setup_connection_string: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
     host: Mapped[str] = mapped_column(
         String(255),
         nullable=False,

@@ -20,7 +20,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.graph_forecast import run_forecast_pipeline
 from app.core.logging import get_logger
-from app.ml.forecasting.train import generate_synthetic_telemetry_series
 from app.models.connection import DatabaseConnection
 from app.models.experiment import BanditEvent
 from app.models.forecast import ForecastRecord, ModelDriftReport
@@ -61,30 +60,25 @@ class ForecastService:
         res = await db.execute(stmt)
         query_rows = list(res.scalars().all())
 
-        if len(query_rows) >= 12:
-            return [
-                {
-                    "timestamp": q.timestamp.isoformat(),
-                    "mean_exec_time": q.mean_exec_time,
-                    "max_exec_time": q.max_exec_time,
-                    "p95_exec_time": q.max_exec_time * 0.9,
-                    "calls": q.calls,
-                    "rows": q.rows,
-                    "shared_blks_read": q.shared_blks_read,
-                    "shared_blks_hit": q.shared_blks_hit,
-                    "temp_blks_read": q.temp_blks_read,
-                    "temp_blks_written": q.temp_blks_written,
-                    "cpu_seconds": q.total_exec_time / 1000.0,
-                    "wal_bytes": q.wal_bytes,
-                    "cardinality_error": 0.1,
-                    "dead_tuple_ratio": 0.02,
-                }
-                for q in query_rows
-            ]
-
-        # Use realistic telemetry series if cold start / few telemetry rows in DB
-        logger.info(f"Generating realistic telemetry sequence for connection {connection_id}")
-        return generate_synthetic_telemetry_series(n_days=14)
+        return [
+            {
+                "timestamp": q.timestamp.isoformat(),
+                "mean_exec_time": q.mean_exec_time,
+                "max_exec_time": q.max_exec_time,
+                "p95_exec_time": q.max_exec_time * 0.9,
+                "calls": q.calls,
+                "rows": q.rows,
+                "shared_blks_read": q.shared_blks_read,
+                "shared_blks_hit": q.shared_blks_hit,
+                "temp_blks_read": q.temp_blks_read,
+                "temp_blks_written": q.temp_blks_written,
+                "cpu_seconds": q.total_exec_time / 1000.0,
+                "wal_bytes": q.wal_bytes,
+                "cardinality_error": 0.1,
+                "dead_tuple_ratio": 0.02,
+            }
+            for q in query_rows
+        ]
 
     async def generate_forecast(
         self,

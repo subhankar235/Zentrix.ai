@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
 CREATE TABLE IF NOT EXISTS fault_lab_orders (
     id BIGSERIAL PRIMARY KEY,
     customer_id BIGINT NOT NULL,

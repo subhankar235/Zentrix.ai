@@ -52,10 +52,12 @@ def _is_plan_eligible(query: str | None) -> bool:
     if not query:
         return False
     statement = query.strip().lower()
+    if statement.endswith(";"):
+        statement = statement[:-1].rstrip()
     return (
         statement.startswith("select")
         or statement.startswith("with")
-    ) and ";" not in statement and "$" not in statement
+    ) and ";" not in statement and "$" not in statement and "neon.neon_perf_counters" not in statement and "pg_ls_dir" not in statement
 
 
 def _rate(current: int | float, previous: int | float | None, elapsed_seconds: float | None) -> float:
@@ -74,6 +76,7 @@ def _query_metric(connection_id: UUID, captured_at: datetime, row: dict[str, Any
         userid=row.get("userid"),
         queryid=row.get("queryid"),
         query_hash=_query_hash(query_text),
+        capture_source="live_postgresql",
         query_text=query_text,
         calls=_int(row.get("calls")),
         total_exec_time=_float(row.get("total_exec_time")),
@@ -108,6 +111,7 @@ def _table_metric(
         timestamp=captured_at,
         schema_name=row.get("schemaname") or "public",
         table_name=row.get("relname") or "unknown",
+        capture_source="live_postgresql",
         row_count=live,
         table_size_bytes=_int(row.get("table_size")),
         index_size_bytes=_int(row.get("index_size")),
@@ -180,6 +184,7 @@ async def collect_connection_telemetry(
                 id=uuid4(),
                 connection_id=connection_id,
                 query_metrics_id=query_metric.id,
+                capture_source="live_postgresql",
                 timestamp=captured_at,
                 query_id=query_metric.queryid,
                 plan_hash=_plan_hash(features),

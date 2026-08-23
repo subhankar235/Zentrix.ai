@@ -73,7 +73,7 @@ async def apply_fault(connection: Any, fault: FaultScenario) -> dict[str, Any]:
     elif FaultType.INDEX_UNUSED.value in fault.labels:
         statements.append(f"CREATE INDEX IF NOT EXISTS {table}_customer_id_idx ON {table} (customer_id)")
     elif FaultType.IO_SATURATION.value in fault.labels or FaultType.BUFFER_PRESSURE.value in fault.labels:
-        statements.append(f"SELECT count(*) FROM {table} a CROSS JOIN {table} b")
+        statements.append(f"SELECT a.id, b.id FROM {table} a CROSS JOIN {table} b LIMIT 10000")
     elif FaultType.LOCK_CONTENTION.value in fault.labels:
         # The held transaction must remain open; use hold_lock() for that case.
         statements.append(f"SELECT id FROM {table} WHERE id = 1 FOR UPDATE")

@@ -55,7 +55,7 @@ def test_domain_exception_instantiation_and_formatting():
 async def test_401_unauthenticated_error_standard_format():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Accessing protected route without Authorization header
-        res = await client.get("/api/v1/connections")
+        res = await client.get("/api/v1/experiments")
         assert res.status_code == 401
         data = res.json()
         assert "error" in data

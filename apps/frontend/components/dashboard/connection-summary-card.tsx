@@ -7,12 +7,20 @@ import { Sparkline } from '@/components/sparkline'
 import { relativeTime } from '@/lib/format'
 import { useSelectedDb } from '@/components/app-providers'
 import { useAppStore } from '@/stores/use-app-store'
+import type { Diagnosis } from '@/types/types'
+import { rootCauseLabel } from '@/lib/labels'
 
 function healthTone(h: DatabaseConnection['health']) {
     return h === 'Healthy' ? 'success' : h === 'Degraded' ? 'warning' : 'danger'
 }
 
-export function ConnectionSummaryCard({ conn }: { conn: DatabaseConnection }) {
+export function ConnectionSummaryCard({
+    conn,
+    latestDiagnosis,
+}: {
+    conn: DatabaseConnection
+    latestDiagnosis?: Diagnosis
+}) {
     const latest = conn.latencySparkline[conn.latencySparkline.length - 1]
     const { setSelectedId } = useSelectedDb()
     const setAppSelectedId = useAppStore((s) => s.setSelectedConnectionId)
@@ -56,7 +64,22 @@ export function ConnectionSummaryCard({ conn }: { conn: DatabaseConnection }) {
 
             <div className="flex items-center justify-between border-t border-border pt-3 text-xs">
                 <span className="text-muted-foreground">Checked {relativeTime(conn.lastCheckedISO)}</span>
-                {conn.activeProblems != null && conn.activeProblems > 0 ? (
+                {latestDiagnosis ? (
+                    <Link
+                        href={`/diagnostics/${latestDiagnosis.id}`}
+                        className="min-w-0 text-right hover:underline"
+                    >
+                        <span className="block truncate font-medium text-foreground">
+                            {rootCauseLabel[latestDiagnosis.primaryRootCause] || latestDiagnosis.primaryRootCause}
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground">
+                            {latestDiagnosis.status} · {latestDiagnosis.confidencePct}% confidence
+                            {latestDiagnosis.modelResults?.anomaly?.anomaly_score != null
+                                ? ` · anomaly ${Math.round(latestDiagnosis.modelResults.anomaly.anomaly_score * 100)}%`
+                                : ''}
+                        </span>
+                    </Link>
+                ) : conn.activeProblems != null && conn.activeProblems > 0 ? (
                     <Link
                         href="/diagnostics"
                         onClick={() => {

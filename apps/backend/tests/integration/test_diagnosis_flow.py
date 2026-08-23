@@ -63,6 +63,10 @@ async def test_diagnosis_service_persists_report_and_evidence_graph(diagnosis_db
             "hypotheses": [{"agent": "PLANNER", "cause": "CARDINALITY_MISESTIMATION", "confidence": 0.88, "evidence": [{"claim": "row mismatch", "directness": 1.0}]}],
             "evidence": [{"metric": "cardinality_error", "value": 3.9, "directness": 1.0}],
         })
+        async def fixture_live_evidence(connection_id_arg, db_arg, **kwargs):
+            return await diagnosis_module._load_evidence(connection_id_arg, db_arg, **kwargs)
+
+        monkeypatch.setattr(diagnosis_module, "_load_live_evidence", fixture_live_evidence)
 
         diagnosis = await diagnosis_module.run_diagnosis(connection_id, db)
         assert diagnosis.primary_root_cause == "CARDINALITY_MISESTIMATION"
@@ -82,6 +86,10 @@ async def test_diagnosis_api_lists_and_returns_persisted_report(diagnosis_db, mo
             "title": "Cold start diagnosis", "primary_root_cause": "UNKNOWN", "confidence": 0.0,
             "severity": "LOW", "summary": "UNKNOWN", "validation_plan": {}, "hypotheses": [], "evidence": [],
         })
+        async def fixture_live_evidence(connection_id_arg, db_arg, **kwargs):
+            return await diagnosis_module._load_evidence(connection_id_arg, db_arg, **kwargs)
+
+        monkeypatch.setattr(diagnosis_module, "_load_live_evidence", fixture_live_evidence)
         diagnosis = await diagnosis_module.run_diagnosis(connection_id, db)
         diagnosis_id = diagnosis.id
 
@@ -94,6 +102,7 @@ async def test_diagnosis_api_lists_and_returns_persisted_report(diagnosis_db, mo
 
     app.dependency_overrides[deps.get_db_session] = override_db
     app.dependency_overrides[deps.get_current_user] = override_user
+    app.dependency_overrides[deps.get_connection_user] = override_user
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             listed = await client.get(f"/api/v1/connections/{connection_id}/diagnoses")

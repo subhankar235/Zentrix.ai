@@ -79,12 +79,81 @@ export default function DiagnosisDetailPage() {
         </span>
       </div>
 
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span>
+          Source: <span className="font-medium text-foreground">{d.telemetrySource === 'live_postgresql' ? 'Live PostgreSQL' : d.telemetrySource || 'Unknown'}</span>
+        </span>
+        {d.capturedAtISO ? <span>Captured {relativeTime(d.capturedAtISO)}</span> : null}
+      </div>
+
+      {d.telemetryWarnings?.length ? (
+        <ErrorBanner
+          tone="warning"
+          title="Partial live telemetry"
+          description={d.telemetryWarnings.join(' ')}
+        />
+      ) : null}
+
       {d.lowConfidence ? (
         <ErrorBanner
           tone="warning"
           title="Low-confidence diagnosis — human review recommended"
           description="Signals are consistent with multiple root causes. The agent has withheld auto-remediation and is requesting an operator decision before any change is simulated."
         />
+      ) : null}
+
+      {d.modelResults ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>ML model evaluation</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Anomaly score</p>
+              <p className="tnum mt-1 text-lg font-semibold">
+                {d.modelResults.anomaly?.anomaly_score != null
+                  ? `${Math.round(d.modelResults.anomaly.anomaly_score * 100)}%`
+                  : 'Unavailable'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {d.modelResults.anomaly?.status === 'unavailable'
+                  ? 'No promoted real-data artifact is installed.'
+                  : d.modelResults.anomaly?.is_anomaly
+                    ? 'Isolation Forest flagged this snapshot.'
+                    : 'Isolation Forest found no anomaly.'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">RCA classifier</p>
+              <div className="mt-1 space-y-1">
+                {(d.modelResults.rca?.ranked_causes || []).slice(0, 3).map((cause) => (
+                  <div key={cause.cause} className="flex items-center justify-between gap-2 text-xs">
+                    <span>{cause.cause.replaceAll('_', ' ')}</span>
+                    <span className="tnum text-muted-foreground">{Math.round(cause.probability * 100)}%</span>
+                  </div>
+                ))}
+                {!d.modelResults.rca?.ranked_causes?.length ? <span className="text-xs text-muted-foreground">Unavailable</span> : null}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Temporal anomaly</p>
+              <p className="tnum mt-1 text-lg font-semibold">
+                {d.modelResults.temporal?.anomaly_probability != null
+                  ? `${Math.round(d.modelResults.temporal.anomaly_probability * 100)}%`
+                  : 'Unavailable'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {d.modelResults.temporal?.status === 'unavailable'
+                  ? 'No promoted real-data artifact is installed.'
+                  : d.modelResults.temporal?.status === 'insufficient_history'
+                  ? `Needs ${d.modelResults.temporal.required_rows} telemetry rows.`
+                  : d.modelResults.temporal?.is_anomaly
+                    ? 'LSTM detected temporal drift.'
+                    : 'LSTM found no temporal anomaly.'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -122,14 +191,18 @@ export default function DiagnosisDetailPage() {
                   </div>
                   <p className="text-xs font-semibold">{r.title}</p>
                   <p className="text-xs text-muted-foreground">{r.rationale}</p>
-                  <div className="pt-2">
-                    <Button size="sm" variant="outline" className="w-full gap-1" asChild>
-                      <Link href={`/experiments/${r.experimentId || 'new'}`}>
-                        <FlaskConical className="h-3.5 w-3.5" />
-                        Simulate &amp; Verify
-                      </Link>
-                    </Button>
-                  </div>
+                   <div className="pt-2">
+                     {r.experimentId ? (
+                       <Button size="sm" variant="outline" className="w-full gap-1" asChild>
+                         <Link href={`/experiments/${r.experimentId}`}>
+                           <FlaskConical className="h-3.5 w-3.5" />
+                           Simulate &amp; Verify
+                         </Link>
+                       </Button>
+                     ) : (
+                       <p className="text-[11px] text-muted-foreground">Validation required before creating an experiment.</p>
+                     )}
+                   </div>
                 </div>
               ))}
             </CardContent>

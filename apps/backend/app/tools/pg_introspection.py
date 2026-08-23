@@ -47,6 +47,8 @@ def _validate_read_query(query: str) -> str:
     a PostgreSQL read-only transaction as a second, database-enforced guard.
     """
     statement = query.strip()
+    if statement.endswith(";"):
+        statement = statement[:-1].rstrip()
     if not statement or ";" in statement:
         raise ValueError("Only one read-only SQL statement is allowed")
     if not _READ_QUERY.match(statement) or _WRITE_KEYWORDS.search(statement):
@@ -71,6 +73,7 @@ def _plan_features(plan: Any) -> dict[str, Any]:
     buffer_hits = 0
     buffer_reads = 0
     parallel_workers = 0
+    table_names: list[str] = []
     stack = [root]
     while stack:
         node = stack.pop()
@@ -84,6 +87,9 @@ def _plan_features(plan: Any) -> dict[str, Any]:
         buffer_hits += int(node.get("Shared Hit Blocks") or 0)
         buffer_reads += int(node.get("Shared Read Blocks") or 0)
         parallel_workers = max(parallel_workers, int(node.get("Workers Launched") or 0))
+        relation_name = node.get("Relation Name")
+        if relation_name:
+            table_names.append(str(relation_name))
         stack.extend(node.get("Plans") or [])
 
     return {
@@ -96,6 +102,7 @@ def _plan_features(plan: Any) -> dict[str, Any]:
         "buffer_hits": buffer_hits,
         "buffer_reads": buffer_reads,
         "parallel_workers": parallel_workers,
+        "table_name": table_names[0] if table_names else None,
     }
 
 
@@ -300,8 +307,11 @@ async def get_temp_file_stats(connection: asyncpg.Connection) -> list[dict[str, 
 
 
 async def get_wal_stats(connection: asyncpg.Connection) -> dict[str, Any]:
-    row = await connection.fetchrow("SELECT * FROM pg_stat_wal")
-    return dict(row) if row else {}
+    try:
+        row = await connection.fetchrow("SELECT * FROM pg_stat_wal")
+        return dict(row) if row else {}
+    except Exception:
+        return {}
 
 
 async def get_indexes(connection: asyncpg.Connection, schema: str | None = None, table: str | None = None) -> list[dict[str, Any]]:

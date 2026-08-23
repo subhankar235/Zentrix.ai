@@ -22,7 +22,7 @@ def test_prepare_asyncpg_dsn():
     assert cleaned.startswith("postgresql://")
     assert "postgresql+asyncpg://" not in cleaned
     assert "channel_binding" not in cleaned
-    assert "ssl=require" in cleaned
+    assert "sslmode=require" in cleaned
 
 
 @pytest.mark.asyncio

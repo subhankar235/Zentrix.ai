@@ -40,6 +40,8 @@ const statusTone: Record<string, Tone> = {
   Critical: 'danger',
   Failed: 'danger',
   Active: 'warning',
+  Observed: 'success',
+  'Needs Evidence': 'info',
   Resolved: 'success',
   // risk
   Low: 'success',

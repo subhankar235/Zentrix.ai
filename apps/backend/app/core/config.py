@@ -135,6 +135,34 @@ class Settings(BaseSettings):
         description="URI of the MLflow tracking server",
     )
 
+    # ─── Local model artifacts ───────────────────────────────────────────────
+    # Artifacts are generated locally or mounted from MLflow; they are never
+    # committed to the repository.
+    ANOMALY_MODEL_PATH: str = Field(
+        default=".artifacts/anomaly_model.joblib",
+        description="Promoted Isolation Forest artifact path",
+    )
+    TEMPORAL_MODEL_PATH: str = Field(
+        default=".artifacts/temporal_model.pt",
+        description="Promoted temporal LSTM artifact path",
+    )
+    RCA_MODEL_PATH: str = Field(
+        default=".artifacts/rca_model.joblib",
+        description="Promoted RCA classifier artifact path",
+    )
+    FEATURE1_MANIFEST_PATH: str = Field(
+        default=".artifacts/manifest.json",
+        description="Promoted Feature 1 Fault Lab artifact manifest path",
+    )
+    DELTA_MODEL_PATH: str = Field(
+        default=".artifacts/delta_predictor.joblib",
+        description="Promoted optimization delta model artifact path",
+    )
+    FORECASTING_MODEL_PATH: str = Field(
+        default=".artifacts/forecasting_model.joblib",
+        description="Promoted workload forecasting artifact path",
+    )
+
     # ─── Worker Configuration ────────────────────────────────────────────────
     TELEMETRY_POLL_INTERVAL_SECONDS: int = Field(
         default=60,

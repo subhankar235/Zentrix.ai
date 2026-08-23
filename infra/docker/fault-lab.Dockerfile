@@ -1,3 +1,5 @@
 FROM postgres:16-alpine
 
 COPY infra/docker/fault-lab-init.sql /docker-entrypoint-initdb.d/001_fault_lab.sql
+
+CMD ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]

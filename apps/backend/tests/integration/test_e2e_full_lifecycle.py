@@ -25,7 +25,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api import deps
 from app.db.base import Base
-from app.main import app
+from app.main import app as fastapi_app
 from app.models.telemetry import QueryMetric, TableMetric
 from app.models.user import User
 from app.workers.canary_monitor import execute_commit
@@ -44,9 +44,23 @@ async def e2e_db():
 
 
 @pytest.mark.asyncio
-async def test_zentrix_complete_end_to_end_journey(e2e_db):
+async def test_zentrix_complete_end_to_end_journey(e2e_db, monkeypatch):
     user_id = uuid.uuid4()
     conn_id = uuid.uuid4()
+
+    import sys
+    import app.services.connection_service
+    from app.schemas.connection import ConnectionTestResponse
+
+    async def mock_verify(raw_dsn):
+        return ConnectionTestResponse(
+            success=True,
+            postgres_version="PostgreSQL 16.3",
+            latency_ms=1.5,
+            permissions={"pg_stat_statements": True, "read_only_role": True},
+        )
+
+    monkeypatch.setattr(sys.modules["app.services.connection_service"], "verify_raw_dsn", mock_verify)
 
     async def override_db():
         async with e2e_db() as session:
@@ -61,11 +75,12 @@ async def test_zentrix_complete_end_to_end_journey(e2e_db):
         is_active=True,
     )
 
-    app.dependency_overrides[deps.get_db_session] = override_db
-    app.dependency_overrides[deps.get_current_user] = lambda: dba_user
+    fastapi_app.dependency_overrides[deps.get_db_session] = override_db
+    fastapi_app.dependency_overrides[deps.get_current_user] = lambda: dba_user
+    fastapi_app.dependency_overrides[deps.get_connection_user] = lambda: dba_user
 
     try:
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=fastapi_app), base_url="http://test") as client:
             # ── 1. Create Monitored Connection ──
             conn_res = await client.post(
                 "/api/v1/connections",
@@ -184,4 +199,4 @@ async def test_zentrix_complete_end_to_end_journey(e2e_db):
             assert "CANARY_START" in action_types
             assert "ROI_CALCULATED" in action_types
     finally:
-        app.dependency_overrides.clear()
+        fastapi_app.dependency_overrides.clear()

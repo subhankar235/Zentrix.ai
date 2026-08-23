@@ -98,6 +98,19 @@ services:
   # ─── MLflow Tracking Server ──────────────────────────────────────────────
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.10.0
+    command:
+      [
+        "mlflow",
+        "server",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "5000",
+        "--backend-store-uri",
+        "sqlite:////mlflow/artifacts/mlflow.db",
+        "--default-artifact-root",
+        "/mlflow/artifacts",
+      ]
     ports:
       - "5000:5000"
     env_file:

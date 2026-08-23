@@ -110,11 +110,15 @@ async def test_collect_connection_normalizes_and_persists_all_metric_types(monke
     assert isinstance(session.items[1], TableMetric)
     assert isinstance(session.items[2], PlanMetric)
     assert session.items[0].query_hash
+    assert session.items[0].capture_source == "live_postgresql"
+    assert session.items[1].capture_source == "live_postgresql"
+    assert session.items[2].capture_source == "live_postgresql"
     assert session.items[1].dead_tuple_ratio == pytest.approx(0.2)
     assert session.items[2].query_metrics_id == session.items[0].id
 
 
 def test_plan_eligibility_rejects_parameterized_or_multi_statement_queries():
     assert telemetry_collector._is_plan_eligible("SELECT 1")
+    assert telemetry_collector._is_plan_eligible("SELECT 1;")
     assert not telemetry_collector._is_plan_eligible("SELECT * FROM orders WHERE id = $1")
     assert not telemetry_collector._is_plan_eligible("SELECT 1; SELECT 2")

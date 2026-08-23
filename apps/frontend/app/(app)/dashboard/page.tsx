@@ -48,6 +48,17 @@ export default function DashboardPage() {
   const totalProblems = activeDiagnoses.length;
   const criticalDbs = connections.filter((c) => c.health === 'Critical').length;
 
+  const latestDiagnoses = new Map<string, (typeof diagnoses)[number]>();
+  for (const diagnosis of diagnoses) {
+    const current = latestDiagnoses.get(diagnosis.connectionId);
+    if (!current || Date.parse(diagnosis.detectedAtISO) > Date.parse(current.detectedAtISO)) {
+      latestDiagnoses.set(diagnosis.connectionId, diagnosis);
+    }
+  }
+  const currentDiagnoses = healthyView
+    ? []
+    : Array.from(latestDiagnoses.values()).filter((diagnosis) => diagnosis.status !== 'Resolved');
+
   const handleRefetchAll = () => {
     refetchConn();
     refetchDiag();
@@ -150,18 +161,21 @@ export default function DashboardPage() {
           <ConnectionSummaryCard
             key={c.id}
             conn={healthyView ? { ...c, health: 'Healthy', activeProblems: 0 } : c}
+            latestDiagnosis={healthyView ? undefined : latestDiagnoses.get(c.id)}
           />
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold">Active problems</h2>
-          <ActiveProblemsList diagnoses={activeDiagnoses} />
+          <h2 className="text-sm font-semibold">
+            {activeDiagnoses.length > 0 ? 'Active problems' : 'Latest diagnosis signals'}
+          </h2>
+          <ActiveProblemsList diagnoses={currentDiagnoses} connections={connections} />
         </section>
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">Activity</h2>
-          <ActivityFeed items={activity} />
+          <ActivityFeed items={activity} connections={connections} />
         </section>
       </div>
     </div>

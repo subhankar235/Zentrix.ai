@@ -34,7 +34,7 @@ def _quote_identifier(identifier: str) -> str:
     return '"' + identifier.replace('"', '""') + '"'
 
 
-async def _provision_monitoring_dsn(raw_conn_str: str) -> tuple[str, str]:
+async def _provision_monitoring_dsn(raw_conn_str: str, *, rotate_existing: bool = True) -> tuple[str, str]:
     """Create a dedicated read-only role and return a DSN for that role."""
     owner_dsn = _prepare_asyncpg_dsn(raw_conn_str)
     parsed = urlsplit(owner_dsn)
@@ -51,13 +51,17 @@ async def _provision_monitoring_dsn(raw_conn_str: str) -> tuple[str, str]:
         # The owner credential is used only for setup; it is never stored as the
         # monitoring credential after this function succeeds.
         await owner.execute("CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
-        await owner.execute(
-            "SELECT set_config('zentrix.monitoring_password', $1, false)",
-            role_password,
-        )
         role_exists = await owner.fetchval(
             "SELECT 1 FROM pg_roles WHERE rolname = $1",
             role_name,
+        )
+        if role_exists and not rotate_existing:
+            raise ValueError(
+                "The dedicated monitoring role already exists. Register the connection to rotate and save its credentials."
+            )
+        await owner.execute(
+            "SELECT set_config('zentrix.monitoring_password', $1, false)",
+            role_password,
         )
         if role_exists:
             await owner.execute(
@@ -287,6 +291,7 @@ class ConnectionService:
             monitoring_username = conn_in.username
 
         encrypted_str = encrypt_connection_string(raw_conn_str)
+        setup_encrypted_str = encrypt_connection_string(self._build_connection_string(conn_in))
 
         existing_stmt = (
             select(DatabaseConnection)
@@ -303,6 +308,7 @@ class ConnectionService:
         if existing:
             existing.name = conn_in.name
             existing.encrypted_connection_string = encrypted_str
+            existing.encrypted_setup_connection_string = setup_encrypted_str
             existing.username = monitoring_username
             existing.provider = conn_in.provider
             existing.ssl_mode = conn_in.ssl_mode
@@ -311,12 +317,14 @@ class ConnectionService:
             existing.is_active = True
             await db.commit()
             await db.refresh(existing)
+            await customer_connection_manager.close_customer_pool(existing.id)
             return existing
 
         connection = DatabaseConnection(
             user_id=user_id,
             name=conn_in.name,
             encrypted_connection_string=encrypted_str,
+            encrypted_setup_connection_string=setup_encrypted_str,
             host=conn_in.host,
             port=conn_in.port,
             database_name=conn_in.database_name,

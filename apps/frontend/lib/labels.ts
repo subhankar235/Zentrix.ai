@@ -14,6 +14,8 @@ export const rootCauseLabel: Record<RootCauseClass, string> = {
     TEMP_SPILL: 'Temp file spill',
     CONNECTION_CONTENTION: 'Connection contention',
     CHECKPOINT_PRESSURE: 'Checkpoint pressure',
+    NO_ACTIVE_INCIDENT: 'No active incident',
+    INSUFFICIENT_EVIDENCE: 'Insufficient live evidence',
     UNKNOWN: 'Unknown',
 }
 
