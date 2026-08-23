@@ -26,6 +26,9 @@ from app.models.audit import AuditLog, CanaryRun
 from app.models.connection import DatabaseConnection
 from app.models.experiment import ModelPrediction, OptimizationExperiment
 from app.schemas.experiment import ExperimentVerificationOut
+from app.db.customer_db import customer_connection_manager
+from app.tools.pg_introspection import get_query_metrics
+from app.workers.shadow_lab_worker import ReplayQuery, shadow_lab_worker
 
 logger = get_logger(__name__)
 
@@ -37,6 +40,41 @@ ALLOWED_CANARY_PATTERNS = [
 
 
 AUTHORIZED_APPROVAL_ROLES = {"admin", "dba", "engineer", "lead", "owner"}
+
+
+async def _load_replay_workload(
+    connection_id: uuid.UUID,
+    db: AsyncSession,
+    query_id: int | None = None,
+) -> list[ReplayQuery]:
+    """Load executable read queries from the live target for shadow replay."""
+    pool = await customer_connection_manager.get_customer_pool(connection_id, db)
+    async with pool.acquire() as customer:
+        rows = await get_query_metrics(customer, limit=100)
+
+    workload: list[ReplayQuery] = []
+    seen: set[str] = set()
+    for row in rows:
+        if query_id is not None and row.get("queryid") != query_id:
+            continue
+        query = str(row.get("query") or "").strip()
+        normalized = query.rstrip(";").strip()
+        if (
+            not normalized
+            or ";" in normalized
+            or not normalized.lower().startswith(("select", "with"))
+            or "$" in normalized
+            or normalized in seen
+        ):
+            continue
+        seen.add(normalized)
+        workload.append(ReplayQuery(query=normalized, weight=max(1, min(int(row.get("calls") or 1), 3))))
+        if len(workload) >= 25:
+            break
+
+    if not workload:
+        raise ValueError("No replayable parameter-free read queries were found in pg_stat_statements")
+    return workload
 
 
 def is_authorized_for_approval(user: Any) -> bool:
@@ -73,6 +111,7 @@ class SimulationService:
         workload: list[Any] | None = None,
         customer_connection: Any = None,
         diagnosis_id: uuid.UUID | None = None,
+        source_dsn: str | None = None,
     ) -> OptimizationExperiment:
         """Execute Feature 2 agent graph and persist experiment & prediction records."""
         connection = await db.scalar(
@@ -86,7 +125,23 @@ class SimulationService:
         query_id = candidate_data.get("query_id")
         table_name = candidate_data.get("table_name")
 
-        # Invoke multi-agent simulation graph
+        if not candidate_data.get("experiment_results"):
+            if source_dsn is None:
+                source_dsn = await customer_connection_manager.get_customer_dsn(connection_id, db)
+            replay_workload = workload or await _load_replay_workload(connection_id, db, query_id)
+            shadow_result = await shadow_lab_worker.run_ephemeral_experiment(
+                source_dsn,
+                sql,
+                replay_workload,
+                iterations=2,
+            )
+            if shadow_result.get("status") != "COMPLETED":
+                raise RuntimeError(
+                    f"Shadow simulation failed: {shadow_result.get('error', 'unknown error')}"
+                )
+            candidate_data = {**candidate_data, "experiment_results": shadow_result}
+
+        # Invoke multi-agent simulation graph using measured shadow metrics.
         candidate_spec = {
             "name": candidate_data.get("name", f"opt_{uuid.uuid4().hex[:8]}"),
             "sql": sql,
@@ -107,10 +162,16 @@ class SimulationService:
         policy_status = report.get("overall_status", "REJECTED")
         stat_verdict = report.get("statistical_verdict", "REJECTED")
         is_verified = report.get("canary_eligible", False)
+        verification = report.get("verification_report", {})
 
         now = datetime.now(timezone.utc)
-        base_p95 = float(candidate_data.get("baseline_p95", 100.0))
-        cand_p95 = float(candidate_data.get("candidate_p95", base_p95 * (1.0 - report.get("p95_improvement_ratio", 0.0))))
+        experiment_results = candidate_data.get("experiment_results", {})
+        base_p95 = float(experiment_results.get("baseline_p95", candidate_data.get("baseline_p95", 0.0)))
+        cand_p95 = float(experiment_results.get("candidate_p95", candidate_data.get("candidate_p95", 0.0)))
+        base_latency = float(experiment_results.get("baseline_p50", base_p95))
+        cand_latency = float(experiment_results.get("candidate_p50", cand_p95))
+        base_metrics = experiment_results.get("baseline_metrics", {})
+        candidate_metrics = experiment_results.get("candidate_metrics", {})
 
         experiment = OptimizationExperiment(
             connection_id=connection_id,
@@ -120,28 +181,32 @@ class SimulationService:
             table_name=table_name,
             strategy=strategy,
             candidate_sql=sql,
-            baseline_latency=base_p95 * 0.6,
+            baseline_latency=base_latency,
             baseline_p95=base_p95,
-            baseline_cpu=0.5,
-            baseline_io=1000.0,
-            candidate_latency=cand_p95 * 0.6,
+            baseline_cpu=float(base_metrics.get("cpu", 0.0)),
+            baseline_io=float(base_metrics.get("io", 0.0)),
+            candidate_latency=cand_latency,
             candidate_p95=cand_p95,
-            candidate_cpu=0.35,
-            candidate_io=500.0,
+            candidate_cpu=float(candidate_metrics.get("cpu", 0.0)),
+            candidate_io=float(candidate_metrics.get("io", 0.0)),
             predicted_latency_delta=cand_p95 - base_p95,
+            actual_latency_delta=cand_p95 - base_p95,
             statistical_significance=(stat_verdict == "VERIFIED"),
-            confidence_interval_low=float(candidate_data.get("ci_lower", -30.0)),
-            confidence_interval_high=float(candidate_data.get("ci_upper", -5.0)),
+            confidence_interval_low=float(verification.get("ci_lower", 0.0)),
+            confidence_interval_high=float(verification.get("ci_upper", 0.0)),
             skeptic_findings={
                 "skeptic_score": report.get("skeptic_risk_score", 0.0),
+                "risk_factors": report.get("risk_factors", []),
                 "passed_rules": report.get("passed_rules", []),
                 "violated_rules": report.get("violated_rules", []),
                 "deployment_plan": report.get("deployment_plan", {}),
+                "verification": report.get("verification_report", {}),
+                "policy": report.get("policy_report", {}),
             },
             policy_verdict=policy_status,
             success=is_verified,
             risk="LOW" if is_verified else "HIGH",
-            status="SIMULATED" if is_verified else "REJECTED",
+            status="SIMULATED",
         )
 
         db.add(experiment)
@@ -152,8 +217,8 @@ class SimulationService:
             experiment_id=experiment.id,
             model_version="delta_predictor_v1",
             prediction=cand_p95 - base_p95,
-            lower_bound=float(candidate_data.get("ci_lower", -30.0)),
-            upper_bound=float(candidate_data.get("ci_upper", -5.0)),
+            lower_bound=float(verification.get("ci_lower", 0.0)),
+            upper_bound=float(verification.get("ci_upper", 0.0)),
             confidence=float(report.get("ml_confidence", 0.85)),
             features_snapshot=candidate_spec,
             created_at=now,
@@ -198,10 +263,13 @@ class SimulationService:
         self,
         experiment_id: uuid.UUID,
         db: AsyncSession,
+        owner_user_id: uuid.UUID | None = None,
+        owner_is_superuser: bool = False,
     ) -> OptimizationExperiment | None:
         """Fetch optimization experiment by ID with predictions and canary runs."""
         stmt = (
             select(OptimizationExperiment)
+            .join(DatabaseConnection, DatabaseConnection.id == OptimizationExperiment.connection_id)
             .where(OptimizationExperiment.id == experiment_id)
             .options(
                 selectinload(OptimizationExperiment.predictions),
@@ -209,6 +277,8 @@ class SimulationService:
                 selectinload(OptimizationExperiment.approvals),
             )
         )
+        if owner_user_id and not owner_is_superuser:
+            stmt = stmt.where(DatabaseConnection.user_id == owner_user_id)
         return await db.scalar(stmt)
 
     async def list_experiments(
@@ -216,15 +286,20 @@ class SimulationService:
         db: AsyncSession,
         connection_id: uuid.UUID | None = None,
         limit: int = 50,
+        owner_user_id: uuid.UUID | None = None,
+        owner_is_superuser: bool = False,
     ) -> list[OptimizationExperiment]:
         """List optimization experiments."""
         stmt = (
             select(OptimizationExperiment)
+            .join(DatabaseConnection, DatabaseConnection.id == OptimizationExperiment.connection_id)
             .order_by(OptimizationExperiment.created_at.desc())
             .limit(limit)
         )
         if connection_id:
             stmt = stmt.where(OptimizationExperiment.connection_id == connection_id)
+        if owner_user_id and not owner_is_superuser:
+            stmt = stmt.where(DatabaseConnection.user_id == owner_user_id)
         res = await db.execute(stmt)
         return list(res.scalars().all())
 
@@ -245,7 +320,11 @@ class SimulationService:
             experiment_id=exp.id,
             policy_verdict=exp.policy_verdict,
             statistical_significance=exp.statistical_significance,
-            p_value=0.01 if exp.statistical_significance else 0.45,
+            p_value=(
+                float((skeptic_data.get("verification") or {}).get("p_value"))
+                if (skeptic_data.get("verification") or {}).get("p_value") is not None
+                else None
+            ),
             confidence_interval=[exp.confidence_interval_low or 0.0, exp.confidence_interval_high or 0.0],
             skeptic_critiques=[
                 {"check": rule, "status": "PASS"} for rule in skeptic_data.get("passed_rules", [])
@@ -265,6 +344,7 @@ class SimulationService:
         user: Any,
         reason: str | None,
         db: AsyncSession,
+        owner_is_superuser: bool = False,
     ) -> Approval:
         """Record an authorized human approval before canary deployment."""
         if not is_authorized_for_approval(user):
@@ -274,7 +354,7 @@ class SimulationService:
                 f"Required roles: {', '.join(sorted(AUTHORIZED_APPROVAL_ROLES))}."
             )
 
-        exp = await self.get_experiment(experiment_id, db)
+        exp = await self.get_experiment(experiment_id, db, user.id, owner_is_superuser)
         if not exp:
             raise LookupError(f"Experiment {experiment_id} not found")
 
@@ -309,6 +389,7 @@ class SimulationService:
         user: Any,
         reason: str | None,
         db: AsyncSession,
+        owner_is_superuser: bool = False,
     ) -> Approval:
         """Record an authorized human rejection halting the pipeline."""
         if not is_authorized_for_approval(user):
@@ -318,7 +399,7 @@ class SimulationService:
                 f"Required roles: {', '.join(sorted(AUTHORIZED_APPROVAL_ROLES))}."
             )
 
-        exp = await self.get_experiment(experiment_id, db)
+        exp = await self.get_experiment(experiment_id, db, user.id, owner_is_superuser)
         if not exp:
             raise LookupError(f"Experiment {experiment_id} not found")
 
@@ -356,9 +437,10 @@ class SimulationService:
         *,
         customer_connection: Any = None,
         observation_window_minutes: int | None = None,
+        owner_is_superuser: bool = False,
     ) -> CanaryRun:
         """Guarded canary deployment with mandatory human approval check."""
-        exp = await self.get_experiment(experiment_id, db)
+        exp = await self.get_experiment(experiment_id, db, user_id, owner_is_superuser)
         if not exp:
             raise LookupError(f"Experiment {experiment_id} not found")
 
@@ -435,4 +517,3 @@ class SimulationService:
 
 
 simulation_service = SimulationService()
-

@@ -11,6 +11,7 @@ import asyncio
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
@@ -22,6 +23,7 @@ from app.tools.shadow_db_tool import (
     ShadowDatabase,
     install_candidate_optimization,
     is_docker_available,
+    clone_customer_database,
     provision_shadow_db,
     teardown_shadow_db,
 )
@@ -78,15 +80,16 @@ async def replay_workload(
             else:
                 continue
 
-            lat, success, err = await _execute_timed(connection, q, *args)
-            if success:
-                latencies.append(lat)
-                if is_write:
-                    write_latencies.append(lat)
+            for _ in range(max(1, int(item.weight) if isinstance(item, ReplayQuery) else 1)):
+                lat, success, err = await _execute_timed(connection, q, *args)
+                if success:
+                    latencies.append(lat)
+                    if is_write:
+                        write_latencies.append(lat)
+                    else:
+                        read_latencies.append(lat)
                 else:
-                    read_latencies.append(lat)
-            else:
-                errors.append(err or "Unknown query error")
+                    errors.append(err or "Unknown query error")
 
     if not latencies:
         return {
@@ -127,6 +130,8 @@ class ShadowLabWorker:
         iterations: int = 1,
     ) -> dict[str, Any]:
         """Execute paired baseline vs candidate simulation on a connection."""
+        before_size = await target_connection.fetchval("SELECT pg_database_size(current_database())")
+
         # 1. Baseline workload replay
         baseline_metrics = await replay_workload(target_connection, workload, iterations=iterations)
 
@@ -164,6 +169,13 @@ class ShadowLabWorker:
             else 0.0
         )
 
+        after_size = await target_connection.fetchval("SELECT pg_database_size(current_database())")
+        storage_increase = (
+            max(0.0, (float(after_size) - float(before_size)) / max(float(before_size), 1.0))
+            if before_size is not None and after_size is not None
+            else 0.0
+        )
+
         return {
             "status": "COMPLETED",
             "candidate_sql": candidate_sql,
@@ -178,13 +190,14 @@ class ShadowLabWorker:
             "p95_improvement_ratio": float(p95_improvement),
             "regression_rate": float(regression_rate),
             "write_latency_increase_ratio": float(max(0.0, write_increase)),
-            "storage_increase_ratio": 0.05,  # Estimated index size ratio
+            "storage_increase_ratio": float(storage_increase),
             "baseline_metrics": baseline_metrics,
             "candidate_metrics": candidate_metrics,
         }
 
     async def run_ephemeral_experiment(
         self,
+        source_dsn: str,
         candidate_sql: str,
         workload: Sequence[ReplayQuery | Mapping[str, Any] | str],
         config: ShadowConfig | None = None,
@@ -195,6 +208,7 @@ class ShadowLabWorker:
         shadow_instance: ShadowDatabase | None = None
         try:
             shadow_instance = await provision_shadow_db(config)
+            await clone_customer_database(source_dsn, shadow_instance.dsn)
             conn = await shadow_instance.connect()
             try:
                 result = await self.run_simulation_experiment(
@@ -219,7 +233,10 @@ async def run_shadow_lab_worker(
 ) -> None:
     """Continuous background worker loop executing queued simulation experiments."""
     from app.db.session import async_session_factory
+    from app.db.customer_db import customer_connection_manager
     from app.models.experiment import OptimizationExperiment
+    from app.models.connection import DatabaseConnection
+    from app.tools.pg_introspection import get_query_metrics
     from sqlalchemy import select
 
     factory = session_factory or async_session_factory
@@ -239,21 +256,42 @@ async def run_shadow_lab_worker(
                 pending = list(res.scalars().all())
                 for exp in pending:
                     logger.info(f"Shadow Lab processing pending experiment {exp.id}")
-                    # Simulate workload
-                    sample_workload = [
-                        {"query": f"SELECT * FROM {exp.table_name or 'users'} LIMIT 10", "is_write": False}
-                    ]
-                    if is_docker_available():
+                    exp.status = "RUNNING"
+                    await db.commit()
+                    try:
+                        source_dsn = await customer_connection_manager.get_customer_dsn(exp.connection_id, db)
+                        pool = await customer_connection_manager.get_customer_pool(exp.connection_id, db)
+                        async with pool.acquire() as customer:
+                            rows = await get_query_metrics(customer, limit=100)
+                        workload = [
+                            ReplayQuery(query=str(row["query"]).strip())
+                            for row in rows
+                            if str(row.get("query") or "").strip().lower().startswith(("select", "with"))
+                            and ";" not in str(row.get("query") or "").rstrip(";")
+                            and "$" not in str(row.get("query") or "")
+                        ][:25]
+                        if not workload:
+                            raise RuntimeError("No replayable read queries found for shadow experiment")
+                        if not is_docker_available():
+                            raise RuntimeError("Docker is required for a real shadow experiment")
                         sim_res = await shadow_lab_worker.run_ephemeral_experiment(
-                            exp.candidate_sql, sample_workload
+                            source_dsn,
+                            exp.candidate_sql,
+                            workload,
+                            iterations=2,
                         )
-                    else:
-                        sim_res = {
-                            "status": "SIMULATED",
-                            "p95_improvement_ratio": 0.35,
-                            "regression_rate": 0.0,
-                        }
-                    exp.status = "SIMULATED"
+                        if sim_res.get("status") != "COMPLETED":
+                            raise RuntimeError(sim_res.get("error", "Shadow experiment failed"))
+                        exp.baseline_p95 = sim_res["baseline_p95"]
+                        exp.candidate_p95 = sim_res["candidate_p95"]
+                        exp.baseline_latency = sim_res["baseline_p50"]
+                        exp.candidate_latency = sim_res["candidate_p50"]
+                        exp.actual_latency_delta = exp.candidate_p95 - exp.baseline_p95
+                        exp.status = "SIMULATED"
+                    except Exception as exc:
+                        exp.status = "FAILED"
+                        exp.success = False
+                        exp.skeptic_findings = {"error": str(exc), "failed_at": datetime.now(timezone.utc).isoformat()}
                     await db.commit()
         except Exception as exc:
             logger.error(f"Shadow Lab worker loop error: {exc}", exc_info=True)
@@ -280,4 +318,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-

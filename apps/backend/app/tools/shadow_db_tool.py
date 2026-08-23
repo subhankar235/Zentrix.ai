@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -28,6 +29,18 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+_ALLOWED_SHADOW_SQL = (
+    re.compile(
+        r"^\s*CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?"
+        r"(?:IF\s+NOT\s+EXISTS\s+)?[A-Za-z_][A-Za-z0-9_$]*\s+ON\s+"
+        r"[A-Za-z_][A-Za-z0-9_$]*(?:\.[A-Za-z_][A-Za-z0-9_$]*)?\s*\("
+        r"[A-Za-z_][A-Za-z0-9_$]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_$]*)*\)\s*;?\s*$",
+        re.IGNORECASE,
+    ),
+    re.compile(r"^\s*ANALYZE(?:\s+[A-Za-z_][A-Za-z0-9_$]*(?:\.[A-Za-z_][A-Za-z0-9_$]*)?)?\s*;?\s*$", re.IGNORECASE),
+    re.compile(r"^\s*VACUUM\s+ANALYZE\s+[A-Za-z_][A-Za-z0-9_$]*(?:\.[A-Za-z_][A-Za-z0-9_$]*)?\s*;?\s*$", re.IGNORECASE),
+)
+
 
 class ShadowProvisioningError(RuntimeError):
     """Raised when an ephemeral shadow container cannot be provisioned."""
@@ -40,6 +53,7 @@ class ShadowConfig:
     postgres_user: str = "postgres"
     postgres_password: str = "shadowpass"
     postgres_db: str = "shadow_test"
+    host: str = field(default_factory=lambda: get_settings().SHADOW_DB_HOST)
     port: int | None = None
     memory_limit: str = "2g"
     startup_timeout_seconds: float = 30.0
@@ -120,7 +134,7 @@ async def provision_shadow_db(
     unique_id = uuid.uuid4().hex[:8]
     container_name = f"{cfg.container_prefix}-{unique_id}"
     port = cfg.port or _find_free_port()
-    dsn = f"postgresql://{cfg.postgres_user}:{cfg.postgres_password}@127.0.0.1:{port}/{cfg.postgres_db}"
+    dsn = f"postgresql://{cfg.postgres_user}:{cfg.postgres_password}@{cfg.host}:{port}/{cfg.postgres_db}"
 
     cmd = [
         "docker", "run", "-d",
@@ -181,8 +195,51 @@ async def teardown_shadow_db(container_id_or_name: str) -> bool:
         _, stderr = await proc.communicate()
         return proc.returncode == 0
     except Exception as exc:
-        logger.warning(f"Failed to remove container {container_id_or_name}: {exc}")
+        logger.warning(f"Failed to remove shadow container: {exc}")
         return False
+
+
+async def clone_customer_database(source_dsn: str, target_dsn: str) -> None:
+    """Clone a customer PostgreSQL database into the fresh shadow database.
+
+    The client utilities are executed server-side and credentials are never
+    logged. A failed dump or restore aborts the experiment instead of falling
+    back to synthetic metrics.
+    """
+    if not shutil.which("pg_dump") or not shutil.which("pg_restore"):
+        raise ShadowProvisioningError(
+            "pg_dump and pg_restore are required to create a real shadow clone"
+        )
+
+    dump = await asyncio.create_subprocess_exec(
+        "pg_dump",
+        "--format=custom",
+        "--no-owner",
+        "--no-acl",
+        "--dbname",
+        source_dsn,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    restore = await asyncio.create_subprocess_exec(
+        "pg_restore",
+        "--no-owner",
+        "--no-acl",
+        "--clean",
+        "--if-exists",
+        "--exit-on-error",
+        "--dbname",
+        target_dsn,
+        stdin=dump.stdout,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    restore_stdout, restore_stderr = await restore.communicate()
+    dump_stderr = await dump.stderr.read() if dump.stderr else b""
+    dump_code = await dump.wait()
+    if dump_code != 0 or restore.returncode != 0:
+        details = (dump_stderr + restore_stderr).decode(errors="replace").strip()
+        raise ShadowProvisioningError(f"Shadow clone failed: {details[-2000:]}")
 
 
 async def install_candidate_optimization(
@@ -194,6 +251,14 @@ async def install_candidate_optimization(
     Measures execution time and returns execution metadata.
     """
     start_time = time.monotonic()
+    cleaned = candidate_sql.strip()
+    if not any(pattern.match(cleaned) for pattern in _ALLOWED_SHADOW_SQL):
+        return {
+            "candidate_sql": candidate_sql,
+            "success": False,
+            "duration_ms": 0.0,
+            "error": "Candidate SQL is outside the supported index/statistics/vacuum action set",
+        }
     try:
         await connection.execute(candidate_sql)
         duration_ms = (time.monotonic() - start_time) * 1000.0

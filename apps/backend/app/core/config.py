@@ -173,8 +173,12 @@ class Settings(BaseSettings):
         description="Observation duration for canary monitor worker (minutes)",
     )
     SHADOW_DB_IMAGE: str = Field(
-        default="zentrix-shadow-db:latest",
-        description="Docker image used by shadow lab worker for ephemeral testing DBs",
+        default="postgres:16-alpine",
+        description="PostgreSQL image used for ephemeral customer database clones",
+    )
+    SHADOW_DB_HOST: str = Field(
+        default="127.0.0.1",
+        description="Host used by the backend to reach the Docker-published shadow port",
     )
 
     @property

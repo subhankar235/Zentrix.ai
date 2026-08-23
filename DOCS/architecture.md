@@ -81,6 +81,35 @@ Agents are **never** given raw database credentials or unrestricted SQL executio
 * **Customer Database** (Postgres, any provider): read via system views/`EXPLAIN` for Features 1 and 3; read/write via HypoPG (session-local, non-persistent) and shadow-clone databases for Feature 2; a narrow, policy-approved write path for canary deployment (`CREATE INDEX CONCURRENTLY`, `ANALYZE`).
 * **Shadow Databases** (ephemeral Docker Postgres containers): created per experiment, cloned from the customer database via `pg_dump`/`pg_restore`, destroyed after the experiment completes.
 
+### Recommendation and Experiment Data Contract
+
+Recommendations and experiments are separate persisted workflows:
+
+```text
+Live diagnosis + telemetry
+  -> deterministic recommendation candidate
+  -> owned customer connection + pg_stat_statements workload
+  -> ephemeral Docker shadow clone
+  -> baseline replay -> candidate installation -> candidate replay
+  -> paired verification and policy verdict
+  -> human approval -> guarded canary
+```
+
+The recommendation API (`GET /api/v1/diagnostics/recommendations` and
+`GET /api/v1/diagnoses/{id}/recommendations`) never creates browser-side
+placeholder candidates. It returns candidates derived from persisted diagnosis
+evidence and includes the exact candidate SQL, owning connection, diagnosis,
+and any linked experiment ID.
+
+The simulation API requires the recommendation's connection and diagnosis IDs.
+It decrypts the customer DSN only on the backend, obtains parameter-free
+read-only queries from `pg_stat_statements`, provisions a temporary Docker
+PostgreSQL container, restores the customer database with `pg_dump`/
+`pg_restore`, and removes the container in a `finally` block. Docker, the
+PostgreSQL client utilities, and a reachable Docker socket are required. If
+any real-data prerequisite is unavailable, the API returns an error or failed
+experiment; it does not fabricate performance metrics or a `VERIFIED` verdict.
+
 ### Background Processing
 
 Handled by `app/workers/`, run as separate async processes (not inside the request/response cycle):

@@ -44,6 +44,7 @@ from app.schemas.diagnosis import (
     DiagnosisUpdate,
     DiagnosisOut,
     DiagnosisDetailOut,
+    RecommendationOut,
     InvestigationTriggerRequest,
 )
 from app.schemas.experiment import (
@@ -125,6 +126,7 @@ __all__ = [
     "DiagnosisUpdate",
     "DiagnosisOut",
     "DiagnosisDetailOut",
+    "RecommendationOut",
     "InvestigationTriggerRequest",
     "ModelPredictionBase",
     "ModelPredictionCreate",

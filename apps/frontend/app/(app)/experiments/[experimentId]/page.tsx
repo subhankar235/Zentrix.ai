@@ -63,17 +63,6 @@ export default function ExperimentDetailPage() {
   const awaitingApproval =
     exp.approvalState === 'PENDING_APPROVAL' && exp.outcome === 'AWAITING_APPROVAL';
 
-  const seedFrom = (key: string) => exp.comparisons.find((c) => c.metric.toLowerCase().includes(key));
-  const seed = {
-    p50: seedFrom('mean')?.candidate ?? 58,
-    p95: seedFrom('p95')?.candidate ?? 134,
-    p99: seedFrom('p99')?.candidate ?? 210,
-    errorRate: 0.02,
-    lockWaits: 2,
-    cpu: seedFrom('cpu')?.candidate ?? 38,
-    throughput: seedFrom('throughput')?.candidate ?? 1800,
-  };
-
   async function handleApprove() {
     if (!exp) return;
     try {
@@ -142,7 +131,7 @@ export default function ExperimentDetailPage() {
 
       {canaryRunning && (
         <CanaryLivePanel
-          seed={seed}
+          experimentId={exp.id}
           outcome={exp.outcome === 'COMMIT' || exp.outcome === 'ROLLBACK' ? exp.outcome : 'COMMIT'}
           rollbackReason={exp.rollbackReason}
         />

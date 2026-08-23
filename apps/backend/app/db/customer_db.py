@@ -65,6 +65,31 @@ class CustomerConnectionManager:
         self._pools: Dict[uuid.UUID, asyncpg.Pool] = {}
         self._lock: asyncio.Lock = asyncio.Lock()
 
+    async def get_customer_dsn(
+        self,
+        connection_id: uuid.UUID,
+        db: AsyncSession,
+    ) -> str:
+        """Return a decrypted DSN for server-side shadow cloning only."""
+        record = await db.scalar(
+            select(DatabaseConnection).where(DatabaseConnection.id == connection_id)
+        )
+        if not record or not record.is_active:
+            raise ValueError(f"Active customer database connection {connection_id} not found")
+
+        dsn = _prepare_asyncpg_dsn(
+            decrypt_connection_string(record.encrypted_connection_string)
+        )
+        parsed = urlsplit(dsn)
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        if "ssl" in query and "sslmode" not in query:
+            query["sslmode"] = query.pop("ssl")
+        if "sslmode" not in query and record.ssl_mode:
+            query["sslmode"] = [record.ssl_mode]
+        return urlunsplit(
+            (parsed.scheme, parsed.netloc, parsed.path, urlencode(query, doseq=True), parsed.fragment)
+        )
+
     async def get_customer_pool(
         self,
         connection_id: uuid.UUID,

@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { experimentsApi } from '../lib/api/experiments';
+import type { Recommendation } from '../types/types';
 
 export const EXPERIMENTS_QUERY_KEY = ['experiments'] as const;
 
@@ -24,7 +25,7 @@ export function useSimulateMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (recommendationId: string) => experimentsApi.simulate(recommendationId),
+    mutationFn: (recommendation: Recommendation) => experimentsApi.simulate(recommendation),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EXPERIMENTS_QUERY_KEY });
     },

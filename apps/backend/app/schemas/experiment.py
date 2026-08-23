@@ -165,5 +165,7 @@ class ExperimentVerificationOut(BaseModel):
 class SimulationTriggerRequest(BaseModel):
     strategy: str
     candidate_sql: str
+    connection_id: uuid.UUID
+    diagnosis_id: Optional[uuid.UUID] = None
     table_name: Optional[str] = None
     query_id: Optional[int] = None

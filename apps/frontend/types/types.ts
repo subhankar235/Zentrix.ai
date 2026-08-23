@@ -62,12 +62,17 @@ export interface DatabaseConnection {
 
 export interface Recommendation {
   id: string
+  diagnosisId?: string
+  connectionId?: string
+  diagnosisTitle?: string
+  primaryRootCause?: RootCauseClass
   type: 'INDEX' | 'STATISTICS' | 'CONFIG' | 'QUERY_REWRITE' | 'VACUUM'
   title: string
   rationale: string
   predictedImpact: string
   uncertaintyPct: number
   risk: 'Low' | 'Medium' | 'High'
+  candidateSql?: string
   experimentId?: string
 }
 
@@ -189,13 +194,13 @@ export interface PolicyCheck {
 
 export interface CanaryPoint {
   t: number
-  p50: number
-  p95: number
-  p99: number
-  errorRate: number
-  lockWaits: number
-  cpu: number
-  throughput: number
+  p50?: number
+  p95?: number
+  p99?: number
+  errorRate?: number
+  lockWaits?: number
+  cpu?: number
+  throughput?: number
 }
 
 export interface Experiment {

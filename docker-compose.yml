@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ─── Application Database ────────────────────────────────────────────────
   app-db:
@@ -44,8 +42,13 @@ services:
       dockerfile: infra/docker/backend.Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
+    environment:
+      SHADOW_DB_HOST: host.docker.internal
+      SHADOW_DB_IMAGE: postgres:16-alpine
     depends_on:
       app-db:
         condition: service_healthy
@@ -89,8 +92,13 @@ services:
       context: .
       dockerfile: infra/docker/worker.Dockerfile
     command: ["python", "-m", "app.workers.shadow_lab_worker"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
+    environment:
+      SHADOW_DB_HOST: host.docker.internal
+      SHADOW_DB_IMAGE: postgres:16-alpine
     depends_on:
       app-db:
         condition: service_healthy
@@ -123,6 +131,9 @@ services:
     build:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     ports:
       - "3000:3000"
     env_file:

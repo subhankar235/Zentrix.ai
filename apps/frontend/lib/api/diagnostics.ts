@@ -46,6 +46,22 @@ interface BackendDiagnosis {
   };
 }
 
+interface BackendRecommendation {
+  id: string;
+  diagnosis_id: string;
+  connection_id: string;
+  diagnosis_title: string;
+  primary_root_cause: string;
+  type: Recommendation['type'];
+  title: string;
+  rationale: string;
+  predicted_impact: string;
+  uncertainty_pct: number;
+  risk: Recommendation['risk'];
+  candidate_sql: string;
+  experiment_id?: string | null;
+}
+
 function text(value: unknown, fallback: string): string {
   if (value == null) return fallback;
   if (typeof value === 'string') return value;
@@ -101,19 +117,8 @@ function toDiagnosis(data: BackendDiagnosis): Diagnosis {
     confidencePct: Math.round(Number(item.confidence || 0) * 100),
     summary: text(item.summary || item.agent, 'Observed supporting evidence from the live database.'),
   }));
-  const action = validation.recommended_action ? String(validation.recommended_action) : '';
   const modelOutputs = validation.model_outputs;
-  const recommendations: Recommendation[] = action
-    ? [{
-        id: `${data.id}-validation`,
-        type: rootCause.includes('VACUUM') || rootCause === 'BLOAT' ? 'VACUUM' : rootCause.includes('STATISTICS') ? 'STATISTICS' : 'QUERY_REWRITE',
-        title: action,
-        rationale: 'Generated from the live evidence collected for this diagnosis. Validate before changing production.',
-        predictedImpact: 'Requires verification',
-        uncertaintyPct: 100 - Math.round(Number(data.confidence || 0) * 100),
-        risk: 'Low',
-      }]
-    : [];
+  const recommendations: Recommendation[] = [];
   const supportingEvidence: SupportingEvidence[] = Array.isArray(validation.supporting_evidence)
     ? validation.supporting_evidence.map((item, index) => {
         const evidence: Record<string, unknown> =
@@ -189,9 +194,27 @@ export const diagnosticsApi = {
     };
   },
 
-  getRecommendations: async (diagnosisId?: string): Promise<Recommendation[]> => {
-    if (!diagnosisId) return [];
-    const data = await apiClient.get<unknown[]>(`/diagnostics/${diagnosisId}/recommendations`);
-    return data as Recommendation[];
+  getRecommendations: async (diagnosisId?: string, connectionId?: string): Promise<Recommendation[]> => {
+    const endpoint = diagnosisId
+      ? `/diagnostics/${diagnosisId}/recommendations`
+      : '/diagnostics/recommendations';
+    const data = await apiClient.get<BackendRecommendation[]>(endpoint, {
+      params: diagnosisId ? undefined : { connection_id: connectionId },
+    });
+    return data.map((item) => ({
+      id: item.id,
+      diagnosisId: item.diagnosis_id,
+      connectionId: item.connection_id,
+      diagnosisTitle: item.diagnosis_title,
+      primaryRootCause: item.primary_root_cause.toUpperCase() as Recommendation['primaryRootCause'],
+      type: item.type,
+      title: item.title,
+      rationale: item.rationale,
+      predictedImpact: item.predicted_impact,
+      uncertaintyPct: item.uncertainty_pct,
+      risk: item.risk,
+      candidateSql: item.candidate_sql,
+      experimentId: item.experiment_id || undefined,
+    }));
   },
 };

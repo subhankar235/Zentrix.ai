@@ -13,7 +13,7 @@ import { LoadingState, EmptyState } from '@/components/ui/state-feedback';
 import { EvidenceGraph } from '@/components/diagnostics/evidence-graph';
 import { Timeline } from '@/components/diagnostics/timeline';
 import { Button } from '@/components/ui/button';
-import { useDiagnosisDetailQuery } from '@/hooks/use-diagnostics';
+import { useDiagnosisDetailQuery, useRecommendationsQuery } from '@/hooks/use-diagnostics';
 import { useConnectionsQuery } from '@/hooks/use-connections';
 import { rootCauseLabel, recTypeLabel } from '@/lib/labels';
 import { relativeTime } from '@/lib/format';
@@ -21,6 +21,7 @@ import { relativeTime } from '@/lib/format';
 export default function DiagnosisDetailPage() {
   const params = useParams<{ id: string }>();
   const { data: d, isLoading, isError } = useDiagnosisDetailQuery(params.id);
+  const { data: recommendations = [] } = useRecommendationsQuery(params.id);
   const { data: connections = [] } = useConnectionsQuery();
 
   const conn = connections.find((c) => c.id === d?.connectionId);
@@ -179,32 +180,44 @@ export default function DiagnosisDetailPage() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
               <CardTitle>Candidate Optimizations</CardTitle>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/recommendations">View recommendations</Link>
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
-              {d.recommendations.map((r) => (
-                <div key={r.id} className="rounded-lg border border-border p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <StatusBadge status={r.type} label={recTypeLabel[r.type] || r.type} tone="info" />
-                    <span className="text-xs font-medium text-muted-foreground">{r.risk} risk</span>
+              {recommendations.length ? (
+                recommendations.map((r) => (
+                  <div key={r.id} className="space-y-2 rounded-lg border border-border p-3">
+                    <div className="flex items-center justify-between">
+                      <StatusBadge status={r.type} label={recTypeLabel[r.type] || r.type} tone="info" />
+                      <span className="text-xs font-medium text-muted-foreground">{r.risk} risk</span>
+                    </div>
+                    <p className="text-xs font-semibold">{r.title}</p>
+                    <p className="text-xs text-muted-foreground">{r.rationale}</p>
+                    <div className="pt-2">
+                      {r.experimentId ? (
+                        <Button size="sm" variant="outline" className="w-full gap-1" asChild>
+                          <Link href={`/experiments/${r.experimentId}`}>
+                            <FlaskConical className="h-3.5 w-3.5" />
+                            Simulate &amp; Verify
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Link href="/recommendations" className="text-[11px] text-primary hover:underline">
+                          Open recommendation to start a real shadow simulation.
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs font-semibold">{r.title}</p>
-                  <p className="text-xs text-muted-foreground">{r.rationale}</p>
-                   <div className="pt-2">
-                     {r.experimentId ? (
-                       <Button size="sm" variant="outline" className="w-full gap-1" asChild>
-                         <Link href={`/experiments/${r.experimentId}`}>
-                           <FlaskConical className="h-3.5 w-3.5" />
-                           Simulate &amp; Verify
-                         </Link>
-                       </Button>
-                     ) : (
-                       <p className="text-[11px] text-muted-foreground">Validation required before creating an experiment.</p>
-                     )}
-                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No actionable recommendation was generated for this diagnosis. Open Recommendations to review other
+                  supported candidates.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
