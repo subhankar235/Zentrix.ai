@@ -27,7 +27,7 @@ export function subscribeToSse<T>({
     onOpen?.();
   };
 
-  eventSource.onmessage = (event) => {
+  const handleMessage = (event: MessageEvent) => {
     try {
       const parsed = JSON.parse(event.data) as T;
       onMessage(parsed);
@@ -35,6 +35,9 @@ export function subscribeToSse<T>({
       onMessage(event.data as unknown as T);
     }
   };
+  eventSource.onmessage = handleMessage;
+  eventSource.addEventListener('canary_metric', handleMessage as EventListener);
+  eventSource.addEventListener('canary_completed', handleMessage as EventListener);
 
   eventSource.onerror = (err) => {
     onError?.(err);

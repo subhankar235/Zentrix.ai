@@ -24,10 +24,11 @@ export function useDiagnosisDetailQuery(id: string | null | undefined) {
   });
 }
 
-export function useRecommendationsQuery(diagnosisId?: string) {
+export function useRecommendationsQuery(diagnosisId?: string, connectionId?: string) {
   return useQuery({
-    queryKey: ['recommendations', diagnosisId || 'all'],
-    queryFn: () => diagnosticsApi.getRecommendations(diagnosisId),
+    queryKey: ['recommendations', diagnosisId || 'all', connectionId || 'all'],
+    queryFn: () => diagnosticsApi.getRecommendations(diagnosisId, connectionId),
+    refetchInterval: 30_000,
   });
 }
 

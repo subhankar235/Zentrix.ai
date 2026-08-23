@@ -10,13 +10,11 @@ import { Button } from '@/components/ui/button';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/state-feedback';
 import { useToast } from '@/components/app-providers';
 import { useConnectionsQuery } from '@/hooks/use-connections';
-import { useDiagnosticsQuery } from '@/hooks/use-diagnostics';
+import { useRecommendationsQuery } from '@/hooks/use-diagnostics';
 import { useSimulateMutation } from '@/hooks/use-experiments';
 import { useAppStore } from '@/stores/use-app-store';
 import { rootCauseLabel, recTypeLabel } from '@/lib/labels';
-import type { Recommendation, Diagnosis } from '@/types/types';
-
-type Row = { rec: Recommendation; diagnosis: Diagnosis };
+import type { Recommendation } from '@/types/types';
 
 const TYPE_FILTERS: (Recommendation['type'] | 'ALL')[] = [
   'ALL',
@@ -37,24 +35,23 @@ export default function RecommendationsPage() {
   const [typeFilter, setTypeFilter] = React.useState<Recommendation['type'] | 'ALL'>('ALL');
 
   const {
-    data: diagnoses = [],
+    data: recommendations = [],
     isLoading,
     isError,
     refetch,
-  } = useDiagnosticsQuery(scope === 'all' ? null : selectedId);
+  } = useRecommendationsQuery(undefined, scope === 'all' ? undefined : selectedId);
 
   const simulateMutation = useSimulateMutation();
 
-  const rows: Row[] = diagnoses.flatMap((d) => d.recommendations.map((rec) => ({ rec, diagnosis: d })));
-  const filtered = rows
-    .filter((r) => (typeFilter === 'ALL' ? true : r.rec.type === typeFilter))
-    .sort((a, b) => a.rec.uncertaintyPct - b.rec.uncertaintyPct);
+  const filtered = recommendations
+    .filter((rec) => (typeFilter === 'ALL' ? true : rec.type === typeFilter))
+    .sort((a, b) => a.uncertaintyPct - b.uncertaintyPct);
 
-  const withExperiment = rows.filter((r) => r.rec.experimentId).length;
+  const withExperiment = recommendations.filter((rec) => rec.experimentId).length;
 
-  const handleSimulate = async (recId: string) => {
+  const handleSimulate = async (recommendation: Recommendation) => {
     try {
-      await simulateMutation.mutateAsync(recId);
+      await simulateMutation.mutateAsync(recommendation);
       toast({
         kind: 'success',
         title: 'Simulation Dispatched',
@@ -78,7 +75,7 @@ export default function RecommendationsPage() {
     );
   }
 
-  if (isError && rows.length === 0) {
+  if (isError && recommendations.length === 0) {
     return (
       <div className="space-y-6">
         <PageHeader title="Recommendations" description="Proposed remediations ranked by prediction certainty." />
@@ -95,7 +92,7 @@ export default function RecommendationsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Recommendations"
-        description={`Proposed remediations ranked by prediction certainty for ${scope === 'all' ? 'all databases' : conn?.name ?? 'this database'}. ${withExperiment} of ${rows.length} have an active experiment.`}
+        description={`Proposed remediations ranked by prediction certainty for ${scope === 'all' ? 'all databases' : conn?.name ?? 'this database'}. ${withExperiment} of ${recommendations.length} have an active experiment.`}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -134,7 +131,7 @@ export default function RecommendationsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {filtered.map(({ rec, diagnosis }) => (
+          {filtered.map((rec) => (
             <Card key={rec.id} className="p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0 flex-1 space-y-2">
@@ -146,12 +143,16 @@ export default function RecommendationsPage() {
                   <p className="max-w-3xl text-sm text-muted-foreground text-pretty">{rec.rationale}</p>
                   <p className="text-xs text-muted-foreground">
                     Addresses{' '}
-                    <Link
-                      href={`/diagnostics/${diagnosis.id}`}
-                      className="text-primary underline-offset-2 hover:underline"
-                    >
-                      {rootCauseLabel[diagnosis.primaryRootCause] || diagnosis.primaryRootCause}
-                    </Link>{' '}
+                    {rec.diagnosisId ? (
+                      <Link
+                        href={`/diagnostics/${rec.diagnosisId}`}
+                        className="text-primary underline-offset-2 hover:underline"
+                      >
+                        {rootCauseLabel[rec.primaryRootCause || 'UNKNOWN'] || rec.primaryRootCause || 'diagnosis'}
+                      </Link>
+                    ) : (
+                      rec.diagnosisTitle || 'diagnosis'
+                    )}{' '}
                     · predicted impact <span className="font-medium text-foreground">{rec.predictedImpact}</span>
                   </p>
                 </div>
@@ -166,7 +167,7 @@ export default function RecommendationsPage() {
                   ) : (
                     <Button
                       size="sm"
-                      onClick={() => handleSimulate(rec.id)}
+                       onClick={() => handleSimulate(rec)}
                       disabled={simulateMutation.isPending}
                       className="gap-1"
                     >

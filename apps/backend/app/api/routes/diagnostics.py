@@ -22,7 +22,12 @@ from app.schemas.diagnosis import (
     EvidenceGraphOut,
     InvestigationTriggerRequest,
 )
-from app.schemas.experiment import OptimizationExperimentOut
+from app.schemas.diagnosis import RecommendationOut
+from app.services.recommendation_service import (
+    recommendations_for_connection,
+    recommendations_for_diagnosis,
+    recommendations_for_user,
+)
 from app.services.diagnosis_service import diagnosis_service
 
 from pydantic import BaseModel
@@ -119,6 +124,31 @@ async def trigger_diagnostic_run(
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Live diagnosis failed: {exc}") from exc
 
 
+@router.get("/recommendations", response_model=List[RecommendationOut])
+async def list_recommendations(
+    connection_id: Optional[uuid.UUID] = None,
+    current_user: User = Depends(get_connection_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Any:
+    """List actionable recommendations generated from persisted diagnoses."""
+    if current_user.is_superuser:
+        return await recommendations_for_connection(connection_id, db)
+
+    if connection_id:
+        owned = await db.scalar(
+            select(DatabaseConnection).where(
+                DatabaseConnection.id == connection_id,
+                DatabaseConnection.user_id == current_user.id,
+            )
+        )
+        if not owned:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Database connection not found")
+    else:
+        return await recommendations_for_user(current_user.id, db)
+
+    return await recommendations_for_connection(connection_id, db)
+
+
 @router.get("/{id}", response_model=DiagnosisDetailOut)
 async def get_diagnosis_report(
     id: uuid.UUID,
@@ -137,26 +167,24 @@ async def get_diagnosis_report(
     return _detail(diag)
 
 
-@router.get("/{id}/recommendations", response_model=List[OptimizationExperimentOut])
+@router.get("/{id}/recommendations", response_model=List[RecommendationOut])
 async def get_diagnosis_recommendations(
     id: uuid.UUID,
     current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
-    """
-    List candidate optimizations surfaced for a specific root cause diagnosis.
-    """
-    stmt = (
-        select(OptimizationExperiment)
-        .join(Diagnosis, Diagnosis.id == OptimizationExperiment.diagnosis_id)
+    """List actionable candidates surfaced for a specific diagnosis."""
+    diagnosis = await db.scalar(
+        select(Diagnosis)
         .join(DatabaseConnection, DatabaseConnection.id == Diagnosis.connection_id)
-        .where(OptimizationExperiment.diagnosis_id == id)
-        .order_by(OptimizationExperiment.created_at.desc())
+        .where(
+            Diagnosis.id == id,
+            (DatabaseConnection.user_id == current_user.id) if not current_user.is_superuser else True,
+        )
     )
-    if not current_user.is_superuser:
-        stmt = stmt.where(DatabaseConnection.user_id == current_user.id)
-    res = await db.execute(stmt)
-    return res.scalars().all()
+    if not diagnosis:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Diagnosis not found")
+    return await recommendations_for_diagnosis(diagnosis, db)
 
 
 @router.post("/{id}/investigate", status_code=status.HTTP_202_ACCEPTED)

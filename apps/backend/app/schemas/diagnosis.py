@@ -100,6 +100,24 @@ class DiagnosisDetailOut(DiagnosisOut):
     evidence_graph: EvidenceGraphOut = Field(default_factory=EvidenceGraphOut)
 
 
+class RecommendationOut(BaseModel):
+    """A deterministic, diagnosis-backed candidate optimization."""
+
+    id: uuid.UUID
+    diagnosis_id: uuid.UUID
+    connection_id: uuid.UUID
+    diagnosis_title: str
+    primary_root_cause: str
+    type: str = Field(..., description="Candidate type: INDEX, STATISTICS, or VACUUM")
+    title: str
+    rationale: str
+    predicted_impact: str
+    uncertainty_pct: float
+    risk: str
+    candidate_sql: str
+    experiment_id: Optional[uuid.UUID] = None
+
+
 class InvestigationTriggerRequest(BaseModel):
     connection_id: uuid.UUID
     time_window_minutes: int = Field(default=60, ge=5, le=1440)

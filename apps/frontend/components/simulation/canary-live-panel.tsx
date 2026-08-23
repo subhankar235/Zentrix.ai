@@ -1,139 +1,94 @@
 'use client'
 
 import * as React from 'react'
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  YAxis,
-} from 'recharts'
+import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts'
 import { CheckCircle2, Radio, Undo2 } from 'lucide-react'
 import type { CanaryPoint } from '@/types/types'
+import { subscribeToSse } from '@/lib/api/sse'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/status-badge'
 import { cn } from '@/lib/utils'
 
-const POINTS = 14
-const TICK_MS = 700
-
-type Seed = Pick<
-  CanaryPoint,
-  'p50' | 'p95' | 'p99' | 'errorRate' | 'lockWaits' | 'cpu' | 'throughput'
->
-
-function next(prev: number, jitterPct: number, min = 0): number {
-  const v = prev + prev * ((Math.random() - 0.48) * jitterPct)
-  return Math.max(min, Math.round(v * 100) / 100)
+type CanaryEvent = {
+  status?: string
+  metrics?: Record<string, number>
+  rollback_reason?: string | null
 }
 
 export function CanaryLivePanel({
-  seed,
+  experimentId,
   outcome = 'COMMIT',
   rollbackReason,
   onComplete,
 }: {
-  seed: Seed
+  experimentId: string
   outcome?: 'COMMIT' | 'ROLLBACK'
   rollbackReason?: string
   onComplete?: () => void
 }) {
   const [points, setPoints] = React.useState<CanaryPoint[]>([])
-  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+  const [liveStatus, setLiveStatus] = React.useState('RUNNING')
+  const [liveRollbackReason, setLiveRollbackReason] = React.useState<string | undefined>(rollbackReason)
 
   React.useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setPoints((prev) => {
-        if (prev.length >= POINTS) return prev
-        const last: CanaryPoint = prev[prev.length - 1] ?? { t: 0, ...seed }
-        const np: CanaryPoint = {
-          t: prev.length + 1,
-          p50: next(last.p50, 0.08),
-          p95: next(last.p95, 0.09),
-          p99: next(last.p99, 0.1),
-          errorRate: Math.round(next(last.errorRate, 0.5, 0) * 100) / 100,
-          lockWaits: Math.max(0, Math.round(next(last.lockWaits, 0.3))),
-          cpu: Math.min(100, Math.round(next(last.cpu, 0.06))),
-          throughput: Math.round(next(last.throughput, 0.05)),
+    return subscribeToSse<CanaryEvent>({
+      endpoint: `/experiments/${experimentId}/canary/stream`,
+      onMessage: (event) => {
+        const metrics = event.metrics || {}
+        setLiveStatus(event.status || 'RUNNING')
+        if (event.rollback_reason) setLiveRollbackReason(event.rollback_reason)
+        if (Object.keys(metrics).length) {
+          setPoints((previous) => [
+            ...previous,
+            {
+              t: previous.length + 1,
+              p50: metrics.p50_ms,
+              p95: metrics.p95_ms,
+              p99: metrics.p99_ms,
+              errorRate: metrics.error_rate,
+              lockWaits: metrics.lock_wait_count,
+              cpu: metrics.cpu_percent,
+              throughput: metrics.throughput,
+            },
+          ])
         }
-        return [...prev, np]
-      })
-    }, TICK_MS)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+        if (event.status && event.status !== 'RUNNING') onComplete?.()
+      },
+    })
+  }, [experimentId, onComplete])
 
-  const finished = points.length >= POINTS
-  const doneRef = React.useRef(false)
-
-  React.useEffect(() => {
-    if (!finished || doneRef.current) return
-    doneRef.current = true
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-    onComplete?.()
-  }, [finished, onComplete])
-
-  const progress = Math.min(1, points.length / POINTS)
+  const finished = liveStatus !== 'RUNNING'
+  const finalOutcome = liveStatus === 'ROLLED_BACK' ? 'ROLLBACK' : outcome
 
   return (
     <Card>
       <CardHeader className="border-b [.border-b]:pb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
-            <Radio
-              className={cn(
-                'h-4 w-4',
-                finished ? 'text-muted-foreground' : 'animate-pulse text-info',
-              )}
-            />
-            Live canary — monitoring window
+            <Radio className={cn('h-4 w-4', finished ? 'text-muted-foreground' : 'animate-pulse text-info')} />
+            Live canary - monitoring window
           </CardTitle>
           <div className="flex items-center gap-2">
-            {finished ? (
-              <StatusBadge status={outcome} dot />
-            ) : (
-              <span className="tnum text-xs text-muted-foreground">
-                {(points.length * TICK_MS) / 1000}s / {(POINTS * TICK_MS) / 1000}s
-              </span>
-            )}
+            {finished ? <StatusBadge status={finalOutcome} dot /> : <span className="text-xs text-muted-foreground">Waiting for live target metrics</span>}
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!finished ? (
-          <div className="h-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-info transition-all duration-500"
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-        ) : null}
-
         {finished ? (
-          outcome === 'COMMIT' ? (
+          finalOutcome === 'COMMIT' ? (
             <div className="flex items-start gap-3 rounded-lg border border-success/30 bg-success/10 p-4">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
               <div>
-                <p className="text-sm font-semibold text-success">Canary passed — COMMIT</p>
-                <p className="mt-0.5 text-xs text-muted-foreground text-pretty">
-                  All guardrail metrics stayed within thresholds for the full window. The change is
-                  promoted and the outcome is recorded in the audit trail.
-                </p>
+                <p className="text-sm font-semibold text-success">Canary passed - COMMIT</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Live guardrail metrics stayed within thresholds.</p>
               </div>
             </div>
           ) : (
             <div className="flex items-start gap-3 rounded-lg border border-danger/30 bg-danger/10 p-4">
               <Undo2 className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
               <div>
-                <p className="text-sm font-semibold text-danger">Threshold breached — ROLLBACK</p>
-                <p className="mt-0.5 text-xs text-muted-foreground text-pretty">
-                  {rollbackReason ??
-                    'Guardrail metrics breached policy limits during the window. The change was automatically reverted with no manual intervention required.'}
-                </p>
+                <p className="text-sm font-semibold text-danger">Threshold breached - ROLLBACK</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{liveRollbackReason || 'The live target was automatically reverted.'}</p>
               </div>
             </div>
           )
@@ -150,9 +105,7 @@ export function CanaryLivePanel({
           <div className="rounded-lg border border-border bg-background/40 p-3">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Samples</p>
             <p className="tnum mt-1 text-xl font-semibold">{points.length}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              of {POINTS} in window
-            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">from live SSE observations</p>
           </div>
         </div>
       </CardContent>
@@ -161,12 +114,7 @@ export function CanaryLivePanel({
 }
 
 function CanaryTile({
-  label,
-  unit,
-  dataKey,
-  digits,
-  points,
-  tone,
+  label, unit, dataKey, digits, points, tone,
 }: {
   label: string
   unit: string
@@ -175,20 +123,12 @@ function CanaryTile({
   points: CanaryPoint[]
   tone: string
 }) {
-  const last = points[points.length - 1]
-  const value = last ? last[dataKey] : null
-
+  const value = points[points.length - 1]?.[dataKey]
   return (
     <div className="space-y-1 rounded-lg border border-border bg-background/40 p-3">
-      <div className="flex items-baseline justify-between gap-1">
-        <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      </div>
+      <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="tnum text-lg font-semibold leading-none">
-        {value == null ? (
-          <span className="text-muted-foreground/60">—</span>
-        ) : (
-          value.toFixed(digits)
-        )}
+        {typeof value !== 'number' ? <span className="text-muted-foreground/60">-</span> : value.toFixed(digits)}
         {unit ? <span className="ml-1 text-[11px] font-normal text-muted-foreground">{unit}</span> : null}
       </p>
       <div className="h-8">
@@ -196,16 +136,7 @@ function CanaryTile({
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={points} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
               <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
-              <Area
-                type="monotone"
-                dataKey={dataKey}
-                stroke={tone}
-                strokeWidth={1.25}
-                fill={tone}
-                fillOpacity={0.12}
-                isAnimationActive={false}
-                dot={false}
-              />
+              <Area type="monotone" dataKey={dataKey} stroke={tone} strokeWidth={1.25} fill={tone} fillOpacity={0.12} isAnimationActive={false} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         ) : null}

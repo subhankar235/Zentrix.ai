@@ -65,43 +65,26 @@ def experiment_node(state: SimulationState) -> dict[str, Any]:
     # If fixture/pre-computed metrics provided, preserve them
     existing_metrics = candidate.get("experiment_results", candidate.get("baseline_metrics"))
     if isinstance(existing_metrics, Mapping):
-        return {"experiment_results": dict(existing_metrics)}
+        measured = dict(existing_metrics)
+        for key in (
+            "sample_size",
+            "p95_improvement_ratio",
+            "regression_rate",
+            "write_latency_increase_ratio",
+            "storage_increase_ratio",
+        ):
+            if key in candidate:
+                measured[key] = candidate[key]
+        return {"experiment_results": measured}
 
     if conn is not None and sql and workload:
         worker = ShadowLabWorker()
         result = _await_sync(worker.run_simulation_experiment(conn, sql, workload))
         return {"experiment_results": result}
 
-    # Synthetic fallback for offline fixture evaluation
-    base_p95 = float(candidate.get("baseline_p95", 100.0))
-    cand_p95 = float(candidate.get("candidate_p95", 70.0))
-    sample_size = int(candidate.get("sample_size", 20))
-    p95_improvement = (base_p95 - cand_p95) / max(base_p95, 1e-6)
-
-    # Generate synthetic paired latency arrays if not provided
-    np.random.seed(42)
-    base_lats = list(np.random.normal(loc=base_p95 * 0.7, scale=base_p95 * 0.1, size=sample_size))
-    cand_lats = list(np.random.normal(loc=cand_p95 * 0.7, scale=cand_p95 * 0.1, size=sample_size))
-
-    return {
-        "experiment_results": {
-            "status": "COMPLETED",
-            "candidate_sql": sql,
-            "sample_size": sample_size,
-            "baseline_p50": base_p95 * 0.6,
-            "baseline_p95": base_p95,
-            "baseline_p99": base_p95 * 1.3,
-            "candidate_p50": cand_p95 * 0.6,
-            "candidate_p95": cand_p95,
-            "candidate_p99": cand_p95 * 1.3,
-            "p95_improvement_ratio": p95_improvement,
-            "regression_rate": float(candidate.get("regression_rate", 0.02)),
-            "write_latency_increase_ratio": float(candidate.get("write_latency_increase_ratio", 0.04)),
-            "storage_increase_ratio": float(candidate.get("storage_increase_ratio", 0.08)),
-            "baseline_latencies": base_lats,
-            "candidate_latencies": cand_lats,
-        }
-    }
+    raise RuntimeError(
+        "Real shadow experiment metrics are required; no customer connection and workload were provided"
+    )
 
 
 # ─── 2. ML Scientist Agent (Impact & Uncertainty Prediction) ────────────────
@@ -235,10 +218,7 @@ def verification_node(state: SimulationState) -> dict[str, Any]:
         deltas = np.array(cand_lats) - np.array(base_lats)
         effect_size = float(np.mean(deltas) / max(np.std(deltas), 1e-6))
     else:
-        ci_lower = float(candidate.get("ci_lower", -30.0))
-        ci_upper = float(candidate.get("ci_upper", -5.0))
-        p_val = float(candidate.get("p_value", 0.005))
-        effect_size = -0.75
+        raise RuntimeError("Paired shadow replay samples are required for statistical verification")
 
     ci_excludes_zero = ci_upper < 0.0 or bool(candidate.get("ci_excludes_zero", ci_upper < 0.0))
     statistically_significant = p_val < 0.05 and ci_excludes_zero
@@ -276,16 +256,16 @@ def policy_node(state: SimulationState) -> dict[str, Any]:
     verif = state.get("verification_report", {})
 
     payload = {
-        "sample_size": verif.get("sample_size", exp_res.get("sample_size", 20)),
-        "baseline_p95": exp_res.get("baseline_p95", 100.0),
-        "candidate_p95": exp_res.get("candidate_p95", 70.0),
-        "p95_improvement_ratio": verif.get("p95_improvement_ratio", exp_res.get("p95_improvement_ratio", 0.30)),
-        "ci_excludes_zero": verif.get("ci_excludes_zero", True),
-        "ci_upper": verif.get("ci_upper", -5.0),
-        "regression_rate": verif.get("regression_rate", exp_res.get("regression_rate", 0.02)),
-        "write_latency_increase_ratio": exp_res.get("write_latency_increase_ratio", 0.04),
-        "storage_increase_ratio": exp_res.get("storage_increase_ratio", 0.08),
-        "skeptic_score": skeptic.get("skeptic_score", 0.15),
+        "sample_size": verif["sample_size"],
+        "baseline_p95": exp_res["baseline_p95"],
+        "candidate_p95": exp_res["candidate_p95"],
+        "p95_improvement_ratio": verif["p95_improvement_ratio"],
+        "ci_excludes_zero": verif["ci_excludes_zero"],
+        "ci_upper": verif["ci_upper"],
+        "regression_rate": verif["regression_rate"],
+        "write_latency_increase_ratio": exp_res["write_latency_increase_ratio"],
+        "storage_increase_ratio": exp_res["storage_increase_ratio"],
+        "skeptic_score": skeptic["skeptic_score"],
     }
 
     verdict = evaluate_policy(payload)
@@ -329,10 +309,13 @@ def deployment_node(state: SimulationState) -> dict[str, Any]:
         "p95_improvement_ratio": exp_res.get("p95_improvement_ratio", 0.0),
         "regression_rate": exp_res.get("regression_rate", 0.0),
         "skeptic_risk_score": skeptic.get("skeptic_score", 0.0),
+        "risk_factors": skeptic.get("risk_factors", []),
         "ml_confidence": ml_pred.get("confidence", 0.0),
         "passed_rules": policy.get("passed_rules", []),
         "violated_rules": policy.get("violated_rules", []),
         "deployment_plan": deployment_plan,
+        "verification_report": verif,
+        "policy_report": policy,
     }
 
     return {"deployment_plan": deployment_plan, "final_report": final_report}

@@ -22,6 +22,8 @@ from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.audit import AuditLog, CanaryRun
 from app.models.experiment import OptimizationExperiment
+from app.db.customer_db import customer_connection_manager
+from app.tools import pg_introspection
 
 logger = get_logger(__name__)
 
@@ -32,6 +34,26 @@ DEFAULT_ROLLBACK_THRESHOLDS = {
     "write_latency_max_increase": 0.20,  # > 20% write latency increase
     "lock_wait_seconds_max": 5.0,  # > 5.0s total lock wait
 }
+
+
+async def collect_canary_metrics(connection: Any) -> dict[str, Any]:
+    """Collect the current canary workload metrics from the customer target."""
+    rows = await pg_introspection.get_query_metrics(connection, limit=500)
+    latencies = sorted(float(row.get("max_exec_time") or 0.0) for row in rows if row.get("max_exec_time") is not None)
+    if not latencies:
+        raise RuntimeError("Customer target returned no query metrics for canary monitoring")
+    activity = await pg_introspection.get_pg_activity(connection)
+    locks = await pg_introspection.get_pg_locks(connection)
+    return {
+        "p50_ms": latencies[len(latencies) // 2],
+        "p95_ms": latencies[min(len(latencies) - 1, int(len(latencies) * 0.95))],
+        "p99_ms": latencies[min(len(latencies) - 1, int(len(latencies) * 0.99))],
+        "query_count": len(rows),
+        "buffer_reads": sum(int(row.get("shared_blks_read") or 0) for row in rows),
+        "buffer_hits": sum(int(row.get("shared_blks_hit") or 0) for row in rows),
+        "active_sessions": len(activity),
+        "lock_wait_count": sum(1 for lock in locks if lock.get("granted") is False),
+    }
 
 
 def check_rollback_condition(
@@ -56,15 +78,20 @@ def check_rollback_condition(
                 f"p95 latency regressed by {p95_increase:.1%} (threshold: {float(cfg['p95_regression_max_ratio']):.1%})",
             )
 
-    curr_error_rate = float(current_metrics.get("error_rate", 0.0))
-    if curr_error_rate > float(cfg["error_rate_max"]):
+    curr_error_rate = current_metrics.get("error_rate")
+    if curr_error_rate is not None and float(curr_error_rate) > float(cfg["error_rate_max"]):
         return (
             True,
             f"Query error rate reached {curr_error_rate:.2%} (threshold: {float(cfg['error_rate_max']):.2%})",
         )
 
-    base_write = float(baseline_metrics.get("write_mean_ms", baseline_metrics.get("baseline_write", 0.0)))
-    curr_write = float(current_metrics.get("write_mean_ms", current_metrics.get("candidate_write", 0.0)))
+    base_write_value = baseline_metrics.get("write_mean_ms", baseline_metrics.get("baseline_write"))
+    curr_write_value = current_metrics.get("write_mean_ms", current_metrics.get("candidate_write"))
+    if base_write_value is not None and curr_write_value is not None:
+        base_write = float(base_write_value)
+        curr_write = float(curr_write_value)
+    else:
+        base_write = curr_write = 0.0
     if base_write > 0 and curr_write > 0:
         write_increase = (curr_write - base_write) / base_write
         if write_increase > float(cfg["write_latency_max_increase"]):
@@ -197,10 +224,11 @@ async def monitor_canary_tick(
     window_minutes = canary_run.observation_window_minutes or get_settings().CANARY_MONITOR_WINDOW_MINUTES
     is_window_elapsed = (now - started_at) >= timedelta(minutes=window_minutes)
 
-    metrics = current_metrics or canary_run.canary_metrics or {}
+    if not current_metrics:
+        return {"status": "ERROR", "error": "Live customer metrics are required for canary monitoring"}
+    metrics = current_metrics
     base_metrics = canary_run.baseline_metrics or {
         "p95_ms": exp.baseline_p95,
-        "write_mean_ms": 10.0,
     }
 
     # Check for threshold breach
@@ -246,7 +274,16 @@ async def monitor_active_canaries_once(session_factory: Any = None) -> list[dict
 
         for run in active_runs:
             try:
-                tick_res = await monitor_canary_tick(run, db)
+                experiment = await db.scalar(
+                    select(OptimizationExperiment).where(OptimizationExperiment.id == run.experiment_id)
+                )
+                if not experiment:
+                    results.append({"status": "ERROR", "canary_run_id": str(run.id), "error": "Experiment not found"})
+                    continue
+                pool = await customer_connection_manager.get_customer_pool(experiment.connection_id, db)
+                async with pool.acquire() as customer:
+                    metrics = await collect_canary_metrics(customer)
+                    tick_res = await monitor_canary_tick(run, db, current_metrics=metrics, customer_connection=customer)
                 results.append(tick_res)
             except Exception as exc:
                 logger.error(f"Canary tick error for run {run.id}: {exc}", exc_info=True)
@@ -289,4 +326,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-

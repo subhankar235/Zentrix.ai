@@ -677,6 +677,25 @@ End-to-end test: candidate → simulate → verify → (mock) approve → canary
 **Expected Result**
 Feature 2 (Safe Simulation & Verification Sandbox) fully functional end-to-end, including automatic rollback.
 
+### Real-Data Runtime Requirements
+
+The completed implementation must run Feature 2 only from real customer and
+shadow data. The API must not inject fixed baseline/candidate metrics, return a
+synthetic verification result for a missing experiment, or use a frontend mock
+fallback. The runtime requires:
+
+- A customer connection owned by the authenticated user.
+- At least one parameter-free `SELECT`/`WITH` query from `pg_stat_statements` for workload replay. Parameterized queries are withheld until a safe parameter capture/replay contract is available.
+- `pg_dump` and `pg_restore` in the backend/worker image.
+- Docker CLI plus access to the Docker daemon socket for ephemeral shadow containers.
+- `SHADOW_DB_IMAGE=postgres:16-alpine` and `SHADOW_DB_HOST=127.0.0.1` for a directly-run backend. Docker Compose overrides the host to `host.docker.internal`.
+
+The measured record is persisted from shadow replay: p50/p95/p99, paired
+regression rate, write latency where writes are present, database-size delta,
+confidence interval, Skeptic findings, and Policy Engine verdict. Missing
+prerequisites result in a failed request/experiment and require operator action;
+they must never be upgraded to `VERIFIED`.
+
 ---
 
 ## Step 24 — Human Approval Gate (Safety Mechanism)

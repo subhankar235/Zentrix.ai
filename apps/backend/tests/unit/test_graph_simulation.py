@@ -15,6 +15,22 @@ def _fixture_candidate():
         "write_latency_increase_ratio": 0.03,
         "storage_increase_ratio": 0.05,
         "skeptic_score": 0.10,
+        "experiment_results": {
+            "status": "COMPLETED",
+            "sample_size": 25,
+            "baseline_p50": 72.0,
+            "baseline_p95": 120.0,
+            "baseline_p99": 156.0,
+            "candidate_p50": 45.0,
+            "candidate_p95": 75.0,
+            "candidate_p99": 98.0,
+            "p95_improvement_ratio": 0.375,
+            "regression_rate": 0.01,
+            "write_latency_increase_ratio": 0.03,
+            "storage_increase_ratio": 0.05,
+            "baseline_latencies": [120.0, 118.0, 122.0, 119.0, 121.0] * 5,
+            "candidate_latencies": [75.0, 73.0, 76.0, 74.0, 75.0] * 5,
+        },
     }
 
 
