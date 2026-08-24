@@ -14,7 +14,7 @@ from sse_starlette.sse import EventSourceResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db_session
+from app.api.deps import get_connection_user, get_db_session
 from app.db.customer_db import customer_connection_manager
 from app.models.approval import Approval
 from app.models.audit import CanaryRun
@@ -43,7 +43,7 @@ router = APIRouter(tags=["Optimization Experiments & Verifications"])
 async def list_experiments(
     connection_id: Optional[uuid.UUID] = None,
     limit: int = 50,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -61,7 +61,7 @@ async def list_experiments(
 @router.get("/experiments/{id}", response_model=OptimizationExperimentOut)
 async def get_experiment(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -86,7 +86,7 @@ async def simulate_recommendation(
     request: SimulationTriggerRequest,
     id: Optional[uuid.UUID] = None,
     connection_id: Optional[uuid.UUID] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -148,7 +148,7 @@ async def simulate_recommendation(
 @router.get("/recommendations/{id}/verification", response_model=ExperimentVerificationOut)
 async def get_recommendation_verification(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -174,7 +174,7 @@ async def get_recommendation_verification(
 async def approve_recommendation(
     id: uuid.UUID,
     approval_in: Optional[ApprovalBase] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -199,7 +199,7 @@ async def approve_recommendation(
 async def reject_recommendation(
     id: uuid.UUID,
     rejection_in: Optional[ApprovalBase] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -225,7 +225,7 @@ async def reject_recommendation(
 @router.post("/experiments/{id}/deploy", response_model=CanaryRunOut, status_code=status.HTTP_201_CREATED)
 async def deploy_canary_experiment(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -260,7 +260,7 @@ async def deploy_canary_experiment(
 @router.get("/deployments/{id}", response_model=CanaryRunOut)
 async def get_deployment_status(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """
@@ -286,7 +286,7 @@ async def get_deployment_status(
 @router.get("/experiments/{id}/canary/stream")
 async def stream_canary_metrics(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> EventSourceResponse:
     """
