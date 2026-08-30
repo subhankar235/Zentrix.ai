@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-08-29T20:54:17.829684+00:00",
+  "request_id": "semantic_pack_007_part_02",
+  "attempt": 1,
+  "elapsed_seconds": 42.597,
+  "error_type": "ResultValidationError",
+  "error": "path_live_canary_monitoring_stream: unknown connected_node_ids ['chunk_55214a1a156daa4a637']",
+  "status_code": null,
+  "request_id_from_api_error": null,
+  "body": null,
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\subhankar nath\\AppData\\Local\\Temp\\unvibecode-engine-pfho3zrv\\engine\\03_shipreadyv2_pass1_full_runner.py\", line 1055, in execute_one_request\n    warnings = validate_result(result, request)\n  File \"C:\\Users\\subhankar nath\\AppData\\Local\\Temp\\unvibecode-engine-pfho3zrv\\engine\\03_shipreadyv2_pass1_full_runner.py\", line 857, in validate_result\n    raise ResultValidationError(\"; \".join(errors[:30]))\nshipready_customer_full_03_6161cb7481e1.ResultValidationError: path_live_canary_monitoring_stream: unknown connected_node_ids ['chunk_55214a1a156daa4a637']\n",
+  "retryable": false
+}

@@ -1,0 +1,110 @@
+{
+  "id": "resp_0fab79ba64574302016a934701625887d2a3e7dc0186d47321",
+  "created_at": 1788036865.0,
+  "error": null,
+  "incomplete_details": null,
+  "instructions": "You are the ShipReadyV2 Business Flaw Decision Editor.\n\nMake one repository-level decision from already-filtered Step 3 candidates.\nDo not repeat Pass 1 classification and do not evaluate every static lens for\nevery path. The supplied normalized paths, graph connections, evidence catalog\nand code excerpts are the investigation foundation.\n\nGOVERNANCE\n\nPublish a business flaw when all of these are established:\n1. a materially reachable path;\n2. an observed code behaviour;\n3. a material business or public-contract effect;\n4. a direct or connected-workflow business downside;\n5. no supplied counterevidence that prevents the outcome.\n\nKeep business-impact false positives out. Never invent money, rewards, legal\nexposure, user volume, frequency or policy. Never turn a missing control by\nitself into a flaw.\n\nThe business rule does not need to be formally documented. Accept a rule that\nis explicit, repository-established, a universal integrity rule, or reasonably\ninferred from the connected workflow. Use WORKFLOW_INFERRED and SUPPORTED when\nthe behaviour and downside are established but the rule is inferred.\n\nUse CONFIRMED_BUSINESS_FLAW with STRONG when the rule and outcome are directly\nestablished. Use EVIDENCE_BACKED_BUSINESS_FLAW with SUPPORTED when behaviour and\nimpact are established and the rule is workflow-inferred.\n\nLANGUAGE\n\nUse confident, conditional, business-readable language:\n    \"When the same request is submitted twice, two records are committed.\"\n    \"Submitting the same request twice causes duplicate processing.\"\n\nDo not use may, might, could, can, possibly, potentially, appears, seems,\nlikely, risk of, or sensitivity in titles, bottom lines, observed behaviour or\nbusiness downside. Conditional language is precise, not hesitant.\n\nDo not reject a candidate because its title does not use a specific template.\nUse any decisive factual title. Technical file, route, symbol and chunk names\nbelong in evidence, not in the customer title or graph labels.\n\nSTATIC LENSES\n\nUse only the G1 lenses that positively apply to the observed flaw. Do not\nreturn a matrix for all lenses. A lens is an investigation angle, never proof.\n\nEVIDENCE\n\nCite only evidence_id values from EVIDENCE_CATALOG. Exact citations are added\nto the report deterministically. Earlier LLM labels are assertions; use code,\nconnected paths and validated evidence. A workflow-inferred business rule can\nreuse path/outcome evidence.\n\nCOUNTEREVIDENCE\n\nPerform a bounded counterevidence check in supplied connected code. It is not\nnecessary to prove repository-wide absence. If a guard or constraint actually\nprevents the claimed outcome, do not publish the flaw.\n\nACCOUNTABILITY\n\nEvery INPUT_CANDIDATE must occur in exactly one place:\n- as source_insight_ids of a published flaw and a PUBLISHED disposition;\n- or in a non-published disposition explaining why.\n\nMerge candidates that describe the same trigger, business rule and downside.\nPublish no more than seven flaws. Do not invent weak findings to reach a count.\n\nGRAPH\n\nReturn 4-8 causal nodes per flaw using business names only. Use\nCODE_ESTABLISHED edges for execution and BUSINESS_CONSEQUENCE for the final\ndownside connection. Do not put filenames, routes, chunk IDs or evidence IDs\nin graph labels.\n\nReturn only JSON matching the supplied strict schema.",
+  "metadata": {},
+  "model": "gpt-5.4-2026-03-05",
+  "object": "response",
+  "output": [
+    {
+      "id": "rs_0fab79ba64574302016a93470231ec87d28687f76fc201933c",
+      "summary": [],
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqk0cNzdqyDsuTgk8aK5v5c0qvO2AeWdb4NLrvbLbqnxzj-mJKw1cRJSaql3h27YlijB8M4b1KxVSi7RouKPdLoBIspnWNbw4pyscSHwpkMlaGTKbmzzOdB6vW4oEAYEVQ-oTiKvzE0QcwhRkMUi0KV5UPePGVuV9YeNvEI_MRzynfcMgxOqhT2c4dP2EwhxDd2AtFVfaNIoqZEGl-q8ZsCJkyOdy-Iw6F2BIErmka7KCAZV1FC6XpkvJf3hupgstfmrEgriMHdSYK-V7dWLmS3FOiRYulwJwLVkh31Z0RtzPa_JfVESaIfJSP31xQ8UEWKytrqtVkVjWo1KBq5Y6GooBHydiFkt6HOPKteDUHx_srvtDGz2AEUbLJ-4QeQbEArrPgMdjG5m2vQtcS1030KcM9OgbtQt-HdsN6ZOR2xJNcZeyB2NBzn2z6eu3nvVYJuFz2wED0GLGH0V9RqQo2pVmz8ho9rPuHc0580wtus_fB8ZldYQTrpZaGpZoOL57IsE14233oggEBZRSNyFAzH0HyivRxTnjvL3gnbqu4V5b_DkBl1Ig7oX7nhO9EbrUj8o5K26UjAKFRFuTE6Dsbv5MAua5xTBfe3xovmLwQofxuKCue6AruFitmr695D1FYewXiATSpUhqLOz1rEexPjs6bT7IpARGdVKq-gmZF7UD9HX22cGZBDKNE91SBy85VeAdqhaKzn8Nu0iQFG7JxqNs1MShC_AQLPzFh6H1IDAzeT44xHEftV2kPijYFy7-gchUx_hhn4kUyd1P5v1c_sGKO2nMeuA9VVhulIc_i95WG4ULXOYY_W3jlBjrZoC1peD6JJBcf9kik38WLu2bELZqhQMdKlLx2qGtgMJyKzOY2F1yhBihHHwui5SaBhJ4-dmAZcjZU8HmGFzSYNLB3HNI_HZpS0Kf-fIqtmgnDBt5rtnFSyXxlvZl5-ItIzZqDRfkroAdud0q0X8N4ylUVC8oMGlC49YeRSwhFoxK64h4u5oDM4a-vx88QoEENJdNYsJT67cpgDfKdUXQfbqHHbI2xXW7bmDxQaj1ZSA8rPZ3yqu41wAS3rW-vt_JRdzhPMze5MguX2k0_qLcUFqAk9ucr9TiziC6cEChvdrFIl6pJdtYQdFTThqtPNEjdonp0BqjY2B7B12ptGcWg0Tp9dcBB9aMy8BRvbP12sJtlyMJXFMjU5SRXhHY3usDHO53nq9Gk2_tt-QUdaCPaJtgBW7AhZiQS_jg7RydCqbM-MlGqiV1XAhpmAWX_Ws3BgS1UHjk5fXEKUH4iIJj_7lOveWI8vavUnfm-dapbgtG3nUCbpzFidtU0PzOrZwfGLe-GmAQ54ngDLvnqIbljlkCD8EvhZuRX_17SoX1PD2PshDvyNbVuAnC0fsH8eCQfckL6o-s_zsR1VKlM_603GJ0metxrJEOf9D46s0b-ojq4BaV_68kkzZyg2Fodw33Epfi1y0pgCs0cDofpxYdPnJdTmoaDDEi5zH7mGJXmHpLv6vbYkJJywuCdl2dMSmrWrWjHQjeEFaHQyZVHBeh_l7TE4-G4HSfJP8G_XlelsqKkAioJNFiZJZ-949l8VjA0kkVAiCIf2HJQGfdb2kecRJ4hxF_kHylWCRA_Goz0WTlnHmzqaJkheFOXt3_LyMAGs801pwWWVYlGJEEqtN7v_h349BTFpy9dsFX97Ys68aLlvOSzUE2EYIiR2aGfQ8La9IMHIeVaSX9RXrVEzEzXFU3-DMaogUMGDuKmwZqYuOjw5SyhtkFNthiJAoLosnSjJ2NWSbb0fQcIjFNGSrmNfJciv5Q-AyQ-hOL-g6VBGoqY37b_negS1B4gWotzan8ldpOa8RAx7XaEMDoJcmkhzpdIore3EZjZ-V4EYhy-gAYVdDuLdK5ysslwLbUpwK1Tb25NoeYwq_JHn4QpPIJNe14zupU2VY3Vsuay3nIL9n3iCOO-J1f5TieUymoPKk3LnglnCmUZjVdU6gew-kB_WLZqVaBI6hTswWI2lIzQTCCf4D1ENwjGVd1iaxTUMUOxHqdzOU6Irghsx7AhoSKvaVIr0AgcoIA5U0q2Iebn53Gj8MA7H_sTNi4kh3RGZpHCjSlol_M2UTsoKvKz3jrtkTZCKGNLYKoJHde3cOzCrrWXzjs4ADqreCUsZyG8rk9FC1Mpb7s-j9-xb38iQXKwHcyV39mURlUX_rDrYZUjC43OYhgcYJIR2kohZDiCueJlK9mrWkeY40FxVg2OFvR4TyMyKA7Ie4S9FbtKH4B7DQox5fWT2CoU0l2RGHNJoVJnBLLnPTSUEJCPgmD-bqg75ia5xV0Miqvsg06P7maNOM4EW4LnRkIe6iJ_XrfChG9bT1rmLayFRoC86VQcn722mOEOa0RpqHCXnR411niPldLHkQCtmJM8Mn7UHtHcpZtmdc2jldYU3z99YkyQeAEBtj-sgMkbMSRC6dTxO3T3qy-bUTpfELF1eBmxomCQtWtTneeJgHAGP8GAdSnt2fIKIidBXajGu6Nw03IZbghfqZlqpg8MSJfzMkMJdrgn3qW5Wqm-ULMneAi-8i6lni4oBFU7unJ9ey-uBR-dDypFufBSYtLIL1CqfmhGE2LdHEjBUReT4a34v9zJMABEITGqEPgvkxGHhYOvNZK2bvSpF2ejLyElDXDqBdEIPDZ1Rj0JwZYBattxjRVIFXVHlm4LJzNTmmgjMBvG8yoQQxzwMVhDBJH2XFYtR3p6AcvliQOLN-1oQlye5x8PE5vhIfDMg580SsTon4yrPMm8NrhkZe7cn6L8EFsD6zHaw3q0HX3x8Fera95Sech8ijQjZL0uMs1rEYPcdTzURIsnzX4fYpEu48YDxhz5RNXNoUdBjg5cTDkPeq7cu84HKGbencOXjSbMUUK9xkwMz0b-wGYeGu2z36CR_5jFA610q4T9EsVPEwOp1Tp3DglCK51iQ81mNhWGBc5C6UHqNLrxDCS-fgxC1IsbHKHexuqSnfRvtVMBTUc7ZzpVKWf5R3r4yCkMUZgBRrpmhQEw1oz5XQ-movvmmhvgtawD5pJkI5RLvsPRBewQAqsttt9OYZy4OPSnevO5ZPesYDasPV40YtJB3KXgING_hbYPylofwlsD2D-ZxRcA6lnnj0Idb90inXAGdfRiZpTSy_AFLVeCfVyS0rPQKfwVLEDdvsvFxaXit_qbxO269pik6Qa-OvIkjJKmzuiallY34CCITaoq0kKQof8oQsfQ1PYsYGvXFrrNrEDMBCcaMbVPx8O5BLHr5peXfsAoCFrc_oe04FZ1w7jyzKt1abSP6CXgAkPjJjZEWcs5czPBXXN2YhKJ3q76jpllCYdqAnIMj6sUfRAHkchiHxOfhjkVCTNll3rwlHh2tNSQ5Z8317CwpLmDLsEj5PBkFS2spY7GnfPaMXU6Mhqmh3OO3Lw2seGnmUYDRqSiavnsCK44QtJOQRElZgwgFKkgm_sGWlIeN9It8JLaaEYFfNNwbw_O7KoSOkaZN5H7bY8EsGzHgnAzYiLy5i_u_pd9w-2-Eu_FoXJxcSbKA4Xg3Vb6tL4EqqVtNA60-JK6sslElnk5U0n6mHvKQgWb0HAs5x1TCtyNZ5UOwT7D7yI86HbuJAS13F0PLJBn8lZfo5aPdkXHkYVKCxhwRqoCjWjcJCJroSF5VEkxxLVceDw4o3lNRY9Y9c0Z10qOKuN_shv-VzYfsIi_8L180CjmKrK9fGJtew7gtXe0wOl3qi4vVgAPb1frlA40D0WOEmVZ4dn4DYRvcFzFnk7uYt9ao7ZdMIc-EwqVj2BZhJ-_9_gktV79f4knz-9a8BFyWaYEVTxXAG5wjR3RedZVOGBBC_g6raIC2cddeSjiCYZwir3BwdVZ_Tl46BuHH_1-haKTBHYUi_Qaz99NIJ52AaXddI8oKfEoJgE2feq4NkD4tpvUtGBD9eQqyxKYbz4aoQTkPlZ75TqXfh6nOvNV67Cfkzs1R72EuspKOH68cV1LiICNMVggneVp2t2jH0o1lvBETxZ8jBwwFyt-MWONpyBWpwyi9O0IXCqwtFySqsJtc26C0cWomKVBOjj5FR6PuMst6XuUM5ALdpHne8anH4DiQzUKcD81gIn3QBzcQmvXPKDr1IpPxtRXWxYvlqhGlbSRwceucI48ILp5MDXuW-4b7UPCf8Qy-D9lAJm5eeaAFOJlzRYI8W8dLfEtxEfROgyE8zhMfPthGalPHf0Y-2B85B2jxIEAIk8yvMEiSi3AhXB0sB2NBbOSTNBiKDTXDheLshgNdmZGoPekBk7Mp0APkiSF6ooSiJ2CXy37VCmuNB6Uz86lAPCCfeFmp8xEvAcZVsw9IHMR8mv56195OcHnoyL4AYvEOvB9PqrvKcJ7H8G6W2FLnc527J-P9oOivUpKnEW2H1I8Hi2_WsgUVhdD8bICrQH1rgLo_MDZyaag5JmrVNqB183lgXlaF-dGgAFhEoxt8qjOvFig_2dEORgDU9VkHSADN8X3_AhkZHBMKWkFUK0MZwLnQxPmGrmPk4Lp63ucweaArcjQS09JDJOlBZmccdRfaCoPP7mlgvkNLbKbO-5SmH8OA3KJxmvlDY7C_Ec2Efe1pDHtlHOBZq4PTzHsjQvaOBxuG_6ROZktwtRPlSYFVrgdvHIDRTPrjEA2hYQnSfnWyO8zqpU9QG8kjYIYcrGi57wC937jKGjt6eK2tcHDmfG7n5Ge2Dr-0ms1NfT3Bbc6FDcgpqod7PcTunO4FNuLH3yvnrKbpymW077Ld6PZ-MogCs1UHFj8cOFbWibQz6nZc9jh5uBdTTz5GF-QwUB_T6D-C-R5JcAFhTIgya-yYsJhowP5qMyvbqrF3bc0rJaKQLVYS8uruMduzdPJtnJvaboDH_i31h7WCPW_jHAzicWSUvi9n6ZO8gsx3v1BjRr2lCySTkXQTZZR7wrM5j-IOcmYvnWm24x5jgvwELDrbFkN5HQqoaErhlH7ppgQJCjGkNhl2ZrZ4dntHiWK6RoX7mkcNkdG4Bd1xnR6IVrME2SutAuJ3XOjLk3QFLt7qpIYZWCSJEbNCTrCHwTiv-WXi8ZAB6su3OfNp-hM4-HvPSpXjaDxuuhVsh4clLDEG0ErfU0tfao2WTEqE0ULf15sRAwejWhy59rcMh63n-m6uNCMkhpmjHVAUDEYmYycGRQnvrsR3nThC698Zp3F7_k6ACObtUke1GqruTxPsRsChHjdd_P5k9cQFDMUN7RYVxhMzIe_k952jzayRq-FDy_nNR8r5w2PBwKxhkhz1kH-dx1Iglc4oytCoy0QIdnuPiIBLmJugvgNTMHi7xzliBPm5u0uhc1XlNZA0MAfuu-8cYHlnnIkoBIA-24XPjFQ5tyNxX7Bsc0qsGmh78kcK_t3jxsFKBrb5ZfajLmIkPYGP0xz5VAJNCBKzy9JceBN5DYJH2kkQ7_pkgBebNsfPkZ7oQAt15NwLjYsqinO0xL6iBPE8zzB_kcd6fWupk0GGQCyyVOXeSQ_EgyFzEQ8LgbbUdnCF9Cg6pG6WLzJoEXnQ9_qMgFZQFOqW561snBEniMCJ5LhDvhw-NYr97T8ok6G5Kq2-ivLCBEMBf3n8mKW_62swWhSM41ufNsTdwrqolPlouA4X9840RaN2dVa7YLOp4OM37vm4486oH2BkD6mjNRh1AsdE4MQLeFTASbuhtBokBrOe52qPsJjjGY9O7cu01fOkLYmiN1V88PXJmuYlnP1QncA8HOG-Q0pP2RC0uOYC7sG-aUixX3IJAKyyWblij_xBlrqN1m1xa_mu2SKw49IUynmVR56dBKqU4KwJM85D_KlgD-D71C7lGHCO3AtTvCFUniUzosbSjdSLdi7PSsZWczCC-FCsKI75ux35OI_ieDJJ4k-KAh7vWUjkIm3vg2fh94Jv-CJN2BMIvrKjg0FwbkvKTf9iGS33kgKCnsmazONdgPI-grT3h78sVjd-zozx0_piLZuC0M1uazR8b3JteUs8h1IU2Rrgx9yxX5ONW_36KPZRjgYpe8booBe4OERGDOdPstcX6gNBuzCu7jgUBFmlJHkC5njV0IY9zO0a0fHkA3IaTh4v-CSuAZYYuKjNMVlR4Pj1q1NJnxUKKns8JH5MLNEgXCJKToLWL8E27uPI4cFHatK71jrpc0A4kSx70ygM8pevYBfEMV9CKvScxMC1NZPJZXI-B3alwKJp2omYQv4pWNCHrRw03kkWMvTdDEzew9d0t9vQC57y1yeMKxbF8LSp0WKhugcmdljmvbNwkquj6xYO7D-96WSg6TufECzUgxlzKycn7I0wHOwLAGCyaoP0KyJYVqHicDRpkyXX1IzfB4nZIT9i5Z_Q-MARVplc_HzB2a3YCNQEbhincw_w3-SzztQ5ez7KCPqb5PggUHArjEUd2RNtKUWmXvL_B86lUYVRSzrZVzSgdtD_SkJh2qYgMynmlT_4LKXfPqXZWnghHMEFVu1BqgVZg_yETu5hbiOEydn-EFXlkyQBD-R98kL-iQTgEllIIqE37haOQguI3bU5eEY1yYTpS68ssTbH0_Pek47eBLG8PnJf_if7_kUzhjZ1ayOHf2-EnczTgqQ4uy3mLhNT1Sr7SWMgbLd4Bqx6bYMquejezeE2lEkzNGV0m2TWbTlyL0-jlNe_z-5IkkoXFNZDqu-tmE3HQufqk5hvNGMycgVpFXRgLAnXB5Kvb4aXOwZl3AcIUNUlNRi6ruycCdEbIWvzT2zdf5pCl_m-QRvUrdnFWqzzowoaRRLDvPJIKmzfL4msBxfpTeQtI3aeSCqVUjEnbQ35yTbhNxojtUxpBkzuHZ5kZxJ2s-coz-RRtRtw6Vh551KA0m9iynkOjzG05stSs72r0IIvQ1S73wdrhSMsA65kDVxHvs3bz4jlFKQmy_kq6WdgwyDk1JUTYPpdMJ6M0_lDWwTKBnzrq6XtpBwFSYP7g9-q5JKt41dFM4-fSey7eAWkac5eDxTdvvKFhkFCKgZaMIt3SzvZa6oObOPO_07VWp8MED6ykRhjgFxU52ZRFN-1hfyhZ9BagadZiHf-OIKzUDLpxf3Sri0baBR4H4HUM2hEsmuFpnVllw9HJMr3tYNz8t3a2p1zkKQ2Rp9RzGdw13RpF0QvezFfbMXC2nVxCwz4xVIL7liItspKPRsULZULhNbyouGrn2ar20iUiymJFvdH7VMjF2XooQtw7qbmKnv4Jp2qBdQVFSqrlVUIT-EnYBzW-CrJcS0zM0z0L_PgtmQ7cP9QVQ_nVPHp0aWzePcy54HP01z_53kjwKpJE3AYkP1PMyKmhjGMXgtgfErt5G0X5ZRjAOFnBqDGH3uOzYqj1PjiTec7jTEVusJ-hujHVOhPq_g4LfGr7SEonEvlKbG6R2PpbOnJtHrH8e1mM6KJG5fSbOG0pbLp_Yyf5-GgL3MVUODkqoVSiBh0Bc7BplxieZHsDm91UNbKVewRqWrpgxzR7ZhTXk3wvoTvXgivwVHLiHPIhz2KMZgRu4Vs1XtYkIxEeF2Mwvxzh3ZBlKhNRTnXL5xdPfAVfy_zA0i0DRX-SKB6KCz4uwelrwN3l6Sa6Tl_DruUrsUyzIKjiv35sY9p3w7XXRAi4Ch0UcpXcZJQ9C514xNs4Sb4HeXAh3vk_eenofSiTmUjI2knsU79dIYggJZ_ThvxRdKX2_mWVv8mJUVxbMqW4aZGD-64QZmOFccFx6xH_T-M8Iiy5w1KNR2sMm3V94d_i3nQnFQTtetu4_nn6ncDPhe3IRCz1UzBPIwLUzM_h9BcGW0WqNo6ErMMcGkH-cY6O7lV7d7UCmi3YP0UUgThjRPajcz1zoCdC_Z5Z-ZT1jHTIbnoJWpR7_Qh2ffS69NtRRHv2Y3oxWnlFsXYUr8_FP9feSlRFzUF2wgMXaqIfUsLCB6kkH9hHsrpWG1DERCyaTJAqax4u5to78awkQjJIBf3ehmQU5t89MQpZXNgN_20Tvo5D26NrlKLdzuwI6XivljezPzanY_IZAp0F94HWFtuR_OtwxVPQ8knlqqexRloj3p3YuINoP64IEvdsse3b2JDCnF5KWFhjiigtFo32aEVoQ22zPEf2sZj36myCVsQkg5YsBqo3Ow8w4ex5EQVq1x96BItGw3xSQtejiav5q35Mps2XMxM3Fgz1wKLJ0H4GMe4I2Q8Z0RwG7nVkJT4kUQ8ag6s51-pw4ZOnalr6se_n6wGdyUnGISEVEKwqEw3uvXu_0wkSLA-UWQk3j-pNgSI52WMAlHMwZXkpq-XRn5Vzk2RE6ibT_VIJ3Jzfl5EkBCWgbkYHS-dJ9Hnwoaww17Gt18XFdVIkjLWApYsHMkp3vhsKHS9wDNWhJjfvnslKkyIq1MvodYW8_3nwPp2i6IADEsh_MNAAO6yOoSP20jffgM3mGjOYl4Fdj78aG6AQR5pS1MSDBpCrczGjYlFo8kIarOoafC9AVQ8FnRM8eR5Vpcm1emMZGAvV53RPcYXRFDUNHG3Kps5xCtC0YWRh1OPPXZn9hw_b0MoL8C92Nd90kqq4Yu_UAHY-BofwzNc_3U56rIlcFOCeoKchNeoD9cNoAlJ3abLBLTPYcbmzrtG4lbvN5kIzFqIVuxwqgx5c-Qqbw=",
+      "status": null
+    },
+    {
+      "id": "msg_0fab79ba64574302016a93470a131487d29f1d48a640c7f292",
+      "content": [
+        {
+          "annotations": [],
+          "text": "{\"schema_version\":\"shipready.customer_business_flaw_report.v2\",\"repository_name\":\"Zentrix.ai\",\"executive_bottom_line\":\"No customer-reportable business flaw was confirmed in the investigated telemetry collector path. The supplied evidence shows a scheduled worker intentionally persists a new telemetry snapshot for each active connection on each collection cycle, but it does not establish that repeat invocation violates a business rule or produces an incorrect business outcome.\",\"published_flaws\":[],\"fix_first_flaw_ids\":[],\"candidate_dispositions\":[{\"source_insight_id\":\"insight_3c28840f4537d161\",\"decision\":\"BUSINESS_IMPACT_NOT_ESTABLISHED\",\"published_flaw_id\":\"\",\"reason\":\"The code establishes that collect_once and collect_connection_telemetry are repeatable and that each run persists telemetry rows, but the connected workflow also establishes that this worker is designed to poll continuously and store a snapshot each cycle. The supplied evidence does not establish that repeating the operation creates an incorrect duplicate business record, violates an idempotency requirement, or causes a material downstream business downside.\"},{\"source_insight_id\":\"insight_a3f87214cf5c571b\",\"decision\":\"CODE_BEHAVIOR_NOT_ESTABLISHED\",\"published_flaw_id\":\"\",\"reason\":\"The supplied path does not establish a prohibited starting state, an invalid resulting state, or a causally proven bad state transition. The evidence shows telemetry capture and persistence, but not an incorrect state-machine transition with a material business effect.\"},{\"source_insight_id\":\"insight_e1f769db59cec924\",\"decision\":\"CODE_BEHAVIOR_NOT_ESTABLISHED\",\"published_flaw_id\":\"\",\"reason\":\"The supplied evidence does not establish a caller-controlled data contract or a connected producer-to-transform-to-sink path that yields an incorrect persisted business outcome. A plan-hash transformation exists, but the causal contract flaw is not proven.\"}],\"decision_summary\":\"After reviewing the supplied Step 3 candidates, connected code, and bounded counterevidence, no publishable business flaw is supported for this repository slice. The strongest candidate proves scheduled, repeatable persistence of telemetry snapshots, but that behavior matches the observed polling workflow rather than contradicting it. The remaining candidates do not establish the required incorrect state transition or contract transformation behavior with material business impact.\"}",
+          "type": "output_text",
+          "logprobs": []
+        }
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+      "phase": "final_answer"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "temperature": 1.0,
+  "tool_choice": "auto",
+  "tools": [],
+  "top_p": 0.98,
+  "background": false,
+  "completed_at": 1788036877.0,
+  "conversation": null,
+  "max_output_tokens": 64000,
+  "max_tool_calls": null,
+  "moderation": null,
+  "previous_response_id": null,
+  "prompt": null,
+  "prompt_cache_key": null,
+  "prompt_cache_options": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "generate_summary": null,
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "status": "completed",
+  "text": {
+    "format": {
+      "name": "shipready_business_flaw_report_v2",
+      "schema_": null,
+      "type": "json_schema",
+      "description": null,
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "top_logprobs": 0,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 64888,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 1420,
+    "output_tokens_details": {
+      "reasoning_tokens": 946
+    },
+    "total_tokens": 66308
+  },
+  "user": null,
+  "billing": {
+    "payer": "developer"
+  },
+  "frequency_penalty": 0.0,
+  "presence_penalty": 0.0,
+  "store": false,
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  }
+}

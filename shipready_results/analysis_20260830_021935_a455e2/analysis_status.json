@@ -1,0 +1,83 @@
+{
+  "schema_version": "shipreadyv2.customer_analysis_status.v9",
+  "runner_version": "shipreadyv2.customer_mvp.v9",
+  "updated_at": "2026-08-29T20:54:38.539624+00:00",
+  "analysis_directory": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2",
+  "repository": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai",
+  "engine_root": "C:\\Users\\subhankar nath\\AppData\\Local\\Temp\\unvibecode-engine-pfho3zrv\\engine",
+  "repository_estimate": {
+    "method": "supported_source_bytes_divided_by_3.2",
+    "source_files": 255,
+    "source_bytes": 1082812,
+    "approximate_tokens": 338379,
+    "unreadable_files": []
+  },
+  "large_repository_policy": {
+    "limit_tokens": 2000000,
+    "is_large_repository": false,
+    "decision": "CONNECTED_CODE_MAP_AND_BUSINESS_REVIEW"
+  },
+  "overall_status": "COMPLETED",
+  "lanes": {
+    "FAST_LANE": {
+      "status": "COMPLETED",
+      "message": "Codebase map and connected code downloads are ready",
+      "started_at": "2026-08-29T20:49:58.136124+00:00",
+      "completed_at": "2026-08-29T20:49:58.136146+00:00",
+      "duration_seconds": 21.48,
+      "run_folder": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937",
+      "artifacts": {
+        "resolved_graph": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_resolved_graph.json",
+        "repository_profile": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\fast_lane_repository_profile.json",
+        "interactive_graph": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\fast_lane_symbol_resolution_graph.html",
+        "browser_context_store": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\fast_lane_context_store.js",
+        "api_context_store": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\fast_lane_context_store.json",
+        "complete_repository_context": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\shipready_complete_repository_context.zip",
+        "timing": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\fast_lane\\Zentrix.ai_shipreadyv2_20260830_021937\\fast_lane_timing.json"
+      },
+      "error": null
+    },
+    "FULL_ANALYSIS": {
+      "status": "COMPLETED",
+      "message": "Full business workflow analysis is ready",
+      "started_at": "2026-08-29T20:54:37.400843+00:00",
+      "completed_at": "2026-08-29T20:54:37.400853+00:00",
+      "duration_seconds": 300.733,
+      "active_stage": null,
+      "completed_stages": [
+        "STEP_01",
+        "STEP_02",
+        "STEP_03",
+        "STEP_04",
+        "STEP_05",
+        "STEP_06"
+      ],
+      "run_folder": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937",
+      "artifacts": {
+        "report_folder": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937",
+        "business_workflow_context": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\business_workflow_context.html",
+        "business_flaw_report": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_customer_business_flaw_report_v2_run_001.html",
+        "business_flaw_graph": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_customer_business_flaw_graph_v2_run_001.svg"
+      },
+      "review_outcome": "FINDINGS_REPORT_READY",
+      "selection_summary": {
+        "selected_count": 1,
+        "candidate_count": 53,
+        "rejected_count": 50,
+        "investigation_gap_count": 2,
+        "repository_name": "Zentrix.ai",
+        "coverage": "PARTIAL",
+        "expected_requests": 11,
+        "completed_requests": 10,
+        "missing_requests": 1
+      },
+      "error": null
+    }
+  },
+  "customer_results": {
+    "connected_code_map": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\customer_results\\01_connected_code_map_for_llm.html",
+    "complete_repository_context": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\customer_results\\complete_repository_context_for_llm.zip",
+    "business_workflow_map": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\customer_results\\02_business_workflow_map.html",
+    "business_risk_findings": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\customer_results\\03_business_risk_findings.html"
+  }
+}

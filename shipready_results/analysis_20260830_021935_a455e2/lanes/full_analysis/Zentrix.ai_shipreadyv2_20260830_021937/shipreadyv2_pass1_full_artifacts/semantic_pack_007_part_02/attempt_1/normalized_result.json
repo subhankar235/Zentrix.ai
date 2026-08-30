@@ -1,0 +1,1573 @@
+{
+  "schema_version": "shipreadyv2.pass1_semantic_skim_result.v2",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "request_id": "semantic_pack_007_part_02",
+  "semantic_pack_id": "semantic_pack_007",
+  "semantic_part": {
+    "sequence": 2,
+    "total": 2
+  },
+  "classification_status": "CLASSIFIED",
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "A frontend diagnostic console for an AI Database Administrator that reviews database incidents, experiments, forecasts, ROI, and live canary outcomes.",
+    "primary_capabilities": [
+      "Approve or reject experiment-driven deployment candidates",
+      "Monitor live canary execution and rollback/commit outcomes",
+      "Query diagnostics, connections, experiments, forecasts, live metrics, ROI, and audit history",
+      "Render shared simulation and theme UI components"
+    ],
+    "primary_repo_native_actors": [
+      "Human approval reviewer",
+      "User of the diagnostic console",
+      "Live canary observer"
+    ],
+    "important_business_objects": [
+      "Experiment",
+      "Diagnosis",
+      "Recommendation",
+      "DatabaseConnection",
+      "CanaryPoint",
+      "Forecast",
+      "RoiEntry",
+      "Audit trail"
+    ],
+    "material_effects": [
+      "Approval decision recorded in audit trail",
+      "Canary deployment starts or is rejected",
+      "Live SSE metrics are appended to the monitoring view",
+      "Connection/diagnostic/experiment data is fetched and refreshed"
+    ],
+    "explicit_requirements_found": [
+      "Approval is only available for VERIFIED or CONDITIONAL experiments",
+      "Approving starts a monitored canary deployment against the live database",
+      "The decision is recorded in the audit trail with identity and exact timestamp",
+      "Rejected candidates are closed without touching production"
+    ],
+    "summary_evidence": [
+      {
+        "chunk_id": "chunk_ea3ab0867fe345e4",
+        "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+        "start_line": 18,
+        "end_line": 28,
+        "symbol_or_node_id": "ApprovalPanel",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Reject-state UI states approval is only available for VERIFIED or CONDITIONAL experiments."
+      },
+      {
+        "chunk_id": "chunk_ea3ab0867fe345e4",
+        "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+        "start_line": 41,
+        "end_line": 45,
+        "symbol_or_node_id": "ApprovalPanel",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Confirmation copy states approving starts a monitored canary deployment against the live database and is permanently recorded in the audit trail."
+      },
+      {
+        "chunk_id": "chunk_431ccdcffc61421d",
+        "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+        "start_line": 33,
+        "end_line": 57,
+        "symbol_or_node_id": "CanaryLivePanel",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Subscribes to SSE for live canary stream, updates status/metrics, and calls onComplete when the run finishes."
+      },
+      {
+        "chunk_id": "chunk_c3d076c6a998d67a",
+        "file_path": "apps/frontend/hooks/use-experiments.ts",
+        "start_line": 24,
+        "end_line": 57,
+        "symbol_or_node_id": "useSimulateMutation/useApproveExperimentMutation/useRejectExperimentMutation",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Experiment simulation, approval, and rejection mutations invalidate experiment queries after success."
+      }
+    ],
+    "summary_confidence": "HIGH"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "path_approval_to_canary_commit_or_rollback",
+      "path_summary": "Human reviewer approves or rejects an experiment candidate, which leads to a monitored canary deployment commit or a closed rejection path.",
+      "entrypoints": [
+        "ApprovalPanel",
+        "useApproveExperimentMutation",
+        "useRejectExperimentMutation"
+      ],
+      "connected_node_ids": [
+        "chunk_ea3ab0867fe345e4",
+        "chunk_c3d076c6a998d67a",
+        "chunk_55214a1a156daa4e"
+      ],
+      "business_context": {
+        "capability": "Experiment approval and deployment control",
+        "actor_goal": "Review a database-change candidate and decide whether it may proceed",
+        "business_object": "Experiment",
+        "affected_actor_or_counterparty": "Live database / production environment",
+        "business_value_or_consequence": [
+          "Allows controlled production change when verified",
+          "Prevents rejected candidates from proceeding to production",
+          "Records the human decision for later audit"
+        ]
+      },
+      "runtime_shapes": [
+        "BFF_BACKEND_FOR_FRONTEND"
+      ],
+      "workload_shapes": [
+        "HUMAN_IN_THE_LOOP_APPROVAL_GATING"
+      ],
+      "repo_specific_intent": "approve or reject an experiment deployment candidate",
+      "intent_family": "APPROVE_REJECT_OR_OVERRIDE",
+      "intent_object": "Experiment",
+      "desired_outcome": "Either launch the monitored canary deployment or close the candidate without deployment",
+      "actors": [
+        {
+          "repo_native_actor": "Human approval reviewer",
+          "business_role": "Reviewer of experiment outcome and deployment candidate",
+          "actor_archetype": "READ_ONLY_STAKEHOLDER_VIEWER",
+          "authentication_context": "Identity is recorded in the audit trail; exact auth mechanism not shown",
+          "lifecycle_status_if_observed": "Active reviewer",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 70,
+              "end_line": 72,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Decision is recorded in the audit trail with identity and exact timestamp."
+            },
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 75,
+              "end_line": 80,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "UI exposes approve and reject actions for the reviewer."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "Experiment",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "UNKNOWN",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 206,
+              "end_line": 228,
+              "symbol_or_node_id": "Experiment",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Experiment object contains approvalState, verdict, outcome, approver, currentStage, rollbackReason, and auditLog."
+            },
+            {
+              "chunk_id": "chunk_c3d076c6a998d67a",
+              "file_path": "apps/frontend/hooks/use-experiments.ts",
+              "start_line": 35,
+              "end_line": 57,
+              "symbol_or_node_id": "useApproveExperimentMutation/useRejectExperimentMutation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Mutations operate on experiment IDs and refresh experiment queries."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "Verdict",
+          "state_type": "APPROVAL_STATUS",
+          "observed_values": [
+            "VERIFIED",
+            "CONDITIONAL",
+            "REJECTED"
+          ],
+          "starting_state": "REJECTED or non-REJECTED candidate",
+          "resulting_state": "Approved or rejected deployment decision path",
+          "source_symbol_or_field": "Verdict",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 23,
+              "end_line": 31,
+              "symbol_or_node_id": "Verdict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Verdict enum includes VERIFIED, CONDITIONAL, REJECTED."
+            },
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 18,
+              "end_line": 28,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Approval UI is only available for VERIFIED or CONDITIONAL experiments."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "ApprovalState",
+          "state_type": "APPROVAL_STATUS",
+          "observed_values": [
+            "PENDING_APPROVAL",
+            "APPROVED",
+            "REJECTED"
+          ],
+          "starting_state": "PENDING_APPROVAL",
+          "resulting_state": "APPROVED or REJECTED",
+          "source_symbol_or_field": "ApprovalState",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 31,
+              "end_line": 31,
+              "symbol_or_node_id": "ApprovalState",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ApprovalState enum defines pending, approved, and rejected states."
+            },
+            {
+              "chunk_id": "chunk_c3d076c6a998d67a",
+              "file_path": "apps/frontend/hooks/use-experiments.ts",
+              "start_line": 35,
+              "end_line": 57,
+              "symbol_or_node_id": "useApproveExperimentMutation/useRejectExperimentMutation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Approval and rejection mutations update experiment-related state through the API."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "DeploymentOutcome",
+          "state_type": "ORDER_STATUS",
+          "observed_values": [
+            "COMMIT",
+            "ROLLBACK",
+            "IN_PROGRESS",
+            "AWAITING_APPROVAL"
+          ],
+          "starting_state": "AWAITING_APPROVAL or IN_PROGRESS",
+          "resulting_state": "COMMIT or ROLLBACK",
+          "source_symbol_or_field": "DeploymentOutcome",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 25,
+              "end_line": 30,
+              "symbol_or_node_id": "DeploymentOutcome",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Outcome enum includes COMMIT, ROLLBACK, IN_PROGRESS, and AWAITING_APPROVAL."
+            },
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 60,
+              "end_line": 62,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Live status determines finalOutcome as COMMIT or ROLLBACK when finished."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "SUBMISSION_TO_APPROVAL_STATE_CHANGE",
+        "APPROVAL_TO_ESCALATION"
+      ],
+      "effect_types": [
+        "AUDIT_EVENT_WRITTEN",
+        "RESOURCE_RECONCILED"
+      ],
+      "material_effects": [
+        "Approval decision is written into the audit trail",
+        "Experiment approval can start a monitored canary deployment",
+        "Rejected candidates are closed without touching production"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Approval is only available for VERIFIED or CONDITIONAL experiments",
+          "source_symbol_or_condition": "verdict === 'REJECTED' branch in ApprovalPanel",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 18,
+              "end_line": 28,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Rejected verdict blocks approval and explains eligibility."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Confirm production change before approving",
+          "source_symbol_or_condition": "confirming state in ApprovalPanel",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 35,
+              "end_line": 57,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Second-step confirmation gate appears before approve action fires."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "A rejected experiment candidate cannot be approved from this panel.",
+          "rule_type": "STATE_PRECONDITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 18,
+              "end_line": 28,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "UI renders a rejection message and does not expose approval actions in rejected state."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Approving a candidate starts a monitored canary deployment against the live database.",
+          "rule_type": "ALLOWED_STATE_TRANSITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 41,
+              "end_line": 45,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Copy explicitly states the deployment consequence of approval."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "The reviewer decision is permanently recorded with identity and timestamp.",
+          "rule_type": "OUTPUT_CONTRACT_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 70,
+              "end_line": 72,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Audit trail recording requirement is explicit in the UI copy."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Approval eligibility is limited to non-rejected candidates",
+        "Experiment decisions are auditable",
+        "A rejected candidate is closed without production deployment"
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Reviewer clicks approve/reject and mutations call the API with experiment identifiers.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 75,
+              "end_line": 80,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "User action buttons drive approval/rejection."
+            },
+            {
+              "chunk_id": "chunk_c3d076c6a998d67a",
+              "file_path": "apps/frontend/hooks/use-experiments.ts",
+              "start_line": 35,
+              "end_line": 57,
+              "symbol_or_node_id": "useApproveExperimentMutation/useRejectExperimentMutation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Experiment ID and optional notes/reason are sent via mutations."
+            }
+          ]
+        },
+        {
+          "fact_name": "human_approval_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The panel explicitly requires human approval and provides approve/reject controls.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 60,
+              "end_line": 80,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Human approval required panel with approve and reject buttons."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Approval state and deployment outcome fields transition through approve/reject and commit/rollback UI states.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 25,
+              "end_line": 31,
+              "symbol_or_node_id": "DeploymentOutcome/ApprovalState",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Outcome and approval state enums define the workflow states."
+            },
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 60,
+              "end_line": 62,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Live status collapses to COMMIT or ROLLBACK on completion."
+            }
+          ]
+        },
+        {
+          "fact_name": "irreversible_effect_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The confirmation copy states the action is irreversible from this screen.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 41,
+              "end_line": 45,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Irreversible-from-this-screen warning is explicit."
+            }
+          ]
+        },
+        {
+          "fact_name": "financial_effect_present",
+          "value": "FALSE",
+          "evidence_status": "OBSERVED",
+          "reason": "No financial path is described in these chunks; the explicit effect is deployment/audit related rather than monetary.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea3ab0867fe345e4",
+              "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+              "start_line": 41,
+              "end_line": 45,
+              "symbol_or_node_id": "ApprovalPanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Describes production change and audit trail, not payment or ledger effects."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "OBSERVED_CONNECTED_CODE_RULE",
+          "USER_DOCUMENTATION_OR_README"
+        ],
+        "requirement_statements": [
+          "Approval is only available for VERIFIED or CONDITIONAL experiments.",
+          "Approving starts a monitored canary deployment against the live database.",
+          "The decision is recorded in the audit trail with identity and exact timestamp.",
+          "Rejected candidates are closed without touching production."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_ea3ab0867fe345e4",
+            "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+            "start_line": 18,
+            "end_line": 28,
+            "symbol_or_node_id": "ApprovalPanel",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Eligibility gate for approval in rejected state."
+          },
+          {
+            "chunk_id": "chunk_ea3ab0867fe345e4",
+            "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+            "start_line": 41,
+            "end_line": 45,
+            "symbol_or_node_id": "ApprovalPanel",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Explicit deployment consequence and audit trail statement."
+          },
+          {
+            "chunk_id": "chunk_ea3ab0867fe345e4",
+            "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+            "start_line": 91,
+            "end_line": 95,
+            "symbol_or_node_id": "RejectedBanner",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Rejected candidate is closed without touching production."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "Backend API implementation for approve/reject is not present in this fragment.",
+          "Exact authorization model for the reviewer is not visible here."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_ea3ab0867fe345e4",
+          "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+          "start_line": 18,
+          "end_line": 28,
+          "symbol_or_node_id": "ApprovalPanel",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Rejected verdict blocks approval and explains eligibility."
+        },
+        {
+          "chunk_id": "chunk_ea3ab0867fe345e4",
+          "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+          "start_line": 41,
+          "end_line": 45,
+          "symbol_or_node_id": "ApprovalPanel",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Approval confirmation explains production and audit consequences."
+        },
+        {
+          "chunk_id": "chunk_ea3ab0867fe345e4",
+          "file_path": "apps/frontend/components/simulation/approval-panel.tsx",
+          "start_line": 70,
+          "end_line": 80,
+          "symbol_or_node_id": "ApprovalPanel",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Human approval required, decision is audited, and controls expose approve/reject actions."
+        },
+        {
+          "chunk_id": "chunk_431ccdcffc61421d",
+          "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+          "start_line": 33,
+          "end_line": 57,
+          "symbol_or_node_id": "CanaryLivePanel",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Live SSE subscription updates canary status and metrics and completes when finished."
+        },
+        {
+          "chunk_id": "chunk_55214a1a156daa4e",
+          "file_path": "apps/frontend/types/types.ts",
+          "start_line": 25,
+          "end_line": 31,
+          "symbol_or_node_id": "DeploymentOutcome/ApprovalState",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Outcome and approval state enums define approval workflow states."
+        }
+      ],
+      "evidence_gaps": [
+        "Backend mutation handlers for approval and rejection are not visible.",
+        "Authorization rules for who may approve are not explicit in this fragment."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_live_canary_monitoring_stream",
+      "path_summary": "The frontend subscribes to a live SSE canary stream, accumulates metrics samples, and shows commit or rollback status when the run ends.",
+      "entrypoints": [
+        "CanaryLivePanel",
+        "subscribeToSse"
+      ],
+      "connected_node_ids": [
+        "chunk_431ccdcffc61421d",
+        "chunk_55214a1a156daa4a637",
+        "chunk_55214a1a156daa4e"
+      ],
+      "business_context": {
+        "capability": "Live canary observability",
+        "actor_goal": "Observe whether a production canary stays within guardrails",
+        "business_object": "Canary run",
+        "affected_actor_or_counterparty": "Production target / live database",
+        "business_value_or_consequence": [
+          "Lets operators confirm safe rollout",
+          "Surfaces rollback reason when thresholds are breached",
+          "Updates live metrics in near real time"
+        ]
+      },
+      "runtime_shapes": [
+        "BFF_BACKEND_FOR_FRONTEND"
+      ],
+      "workload_shapes": [
+        "SYSTEM_HEALTH_METRIC_DOWNSAMPLING"
+      ],
+      "repo_specific_intent": "monitor live canary metrics and decide commit or rollback display",
+      "intent_family": "MONITOR_RECONCILE_OR_RECOVER",
+      "intent_object": "Canary run",
+      "desired_outcome": "Show live status, metrics, and the final commit/rollback result",
+      "actors": [
+        {
+          "repo_native_actor": "Live canary observer",
+          "business_role": "Operator watching rollout metrics",
+          "actor_archetype": "READ_ONLY_STAKEHOLDER_VIEWER",
+          "authentication_context": "Not shown",
+          "lifecycle_status_if_observed": "Active during canary window",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 64,
+              "end_line": 74,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "UI labels the panel as a live canary monitoring window and shows waiting status."
+            },
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 77,
+              "end_line": 94,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Panel displays pass/rollback outcomes and rollback reason."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "CanaryEvent stream",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "experimentId",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 33,
+              "end_line": 57,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Subscribes to /experiments/{experimentId}/canary/stream and ingests event payloads."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "liveStatus",
+          "state_type": "PROCESS_STATUS",
+          "observed_values": [
+            "RUNNING",
+            "ROLLED_BACK"
+          ],
+          "starting_state": "RUNNING",
+          "resulting_state": "COMMIT or ROLLED_BACK",
+          "source_symbol_or_field": "liveStatus",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 29,
+              "end_line": 31,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Initial live status is RUNNING."
+            },
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 55,
+              "end_line": 62,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Non-running status ends the stream; rolled back status changes final outcome."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "CanaryPoint",
+          "state_type": "METRIC_NAME",
+          "observed_values": [
+            "p50_ms",
+            "p95_ms",
+            "p99_ms",
+            "error_rate",
+            "lock_wait_count",
+            "cpu_percent",
+            "throughput"
+          ],
+          "starting_state": "No samples",
+          "resulting_state": "Accumulated live metric samples",
+          "source_symbol_or_field": "CanaryPoint array",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 37,
+              "end_line": 54,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Metric payloads are converted into CanaryPoint samples and appended to state."
+            },
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 195,
+              "end_line": 204,
+              "symbol_or_node_id": "CanaryPoint",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "CanaryPoint schema lists the live metric fields."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "EVENT_TO_WEBHOOK_DELIVERY"
+      ],
+      "effect_types": [
+        "STATUS_FIELD_UPDATED",
+        "METRIC_EMITTED"
+      ],
+      "material_effects": [
+        "Live SSE observations are appended to the monitoring view",
+        "Canary completion changes displayed outcome to COMMIT or ROLLBACK",
+        "Rollback reason is surfaced to the operator"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Only non-empty metric payloads create new samples",
+          "source_symbol_or_condition": "Object.keys(metrics).length",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 40,
+              "end_line": 54,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Points are appended only when metrics are present."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Completion callback fires only when event status changes away from RUNNING",
+          "source_symbol_or_condition": "event.status && event.status !== 'RUNNING'",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 55,
+              "end_line": 56,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "onComplete is called only after a terminal status arrives."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Live canary status is treated as RUNNING until a terminal status arrives.",
+          "rule_type": "STATE_PRECONDITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 30,
+              "end_line": 31,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Initial live status is RUNNING."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "A terminal status switches the panel into a committed or rolled-back outcome display.",
+          "rule_type": "ALLOWED_STATE_TRANSITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 60,
+              "end_line": 94,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "FinalOutcome is derived from liveStatus and shown as COMMIT or ROLLBACK."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Rollback reason is retained and shown if the event stream provides one.",
+          "rule_type": "FAILURE_RECOVERY_OR_COMPENSATION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 37,
+              "end_line": 40,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "rollback_reason from the stream updates liveRollbackReason."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "A live canary run has a running phase and a terminal outcome",
+        "Metric samples are preserved in order as they arrive",
+        "Rollback explanations are retained if provided"
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The panel consumes SSE messages from the canary stream.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 33,
+              "end_line": 57,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Subscribe-to-SSE callback ingests live events."
+            }
+          ]
+        },
+        {
+          "fact_name": "time_freshness_dependency",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Live monitoring depends on fresh SSE events and immediately updates the UI on receipt.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 33,
+              "end_line": 57,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Streamed messages update live status and samples."
+            }
+          ]
+        },
+        {
+          "fact_name": "repeatable_path",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Every incoming event can append another sample, making the path repeat for each SSE message.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 40,
+              "end_line": 54,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Non-empty metric payloads are appended to the existing points array."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The live status transitions from running to a terminal outcome state.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_431ccdcffc61421d",
+              "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+              "start_line": 60,
+              "end_line": 62,
+              "symbol_or_node_id": "CanaryLivePanel",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "finished and finalOutcome are derived from liveStatus."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "The component should ingest live canary SSE events.",
+          "The panel should show samples only when metrics are present.",
+          "Terminal status should complete the monitoring window.",
+          "Rollback reason should be displayed when available."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_431ccdcffc61421d",
+            "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+            "start_line": 33,
+            "end_line": 57,
+            "symbol_or_node_id": "CanaryLivePanel",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "SSE subscription and event handling."
+          },
+          {
+            "chunk_id": "chunk_431ccdcffc61421d",
+            "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+            "start_line": 77,
+            "end_line": 94,
+            "symbol_or_node_id": "CanaryLivePanel",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Commit and rollback completion UI."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "The server-side source of the SSE stream is not shown in this fragment."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_431ccdcffc61421d",
+          "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+          "start_line": 33,
+          "end_line": 57,
+          "symbol_or_node_id": "CanaryLivePanel",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Subscribes to live SSE canary stream and updates status and samples."
+        },
+        {
+          "chunk_id": "chunk_431ccdcffc61421d",
+          "file_path": "apps/frontend/components/simulation/canary-live-panel.tsx",
+          "start_line": 60,
+          "end_line": 94,
+          "symbol_or_node_id": "CanaryLivePanel",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Displays running, commit, and rollback states."
+        },
+        {
+          "chunk_id": "chunk_55214a1a156daa4e",
+          "file_path": "apps/frontend/types/types.ts",
+          "start_line": 195,
+          "end_line": 204,
+          "symbol_or_node_id": "CanaryPoint",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Defines live canary metric fields."
+        }
+      ],
+      "evidence_gaps": [
+        "Upstream event producer for the SSE stream is not visible.",
+        "Any backend persistence for the samples is not visible."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_diagnostics_connections_refresh",
+      "path_summary": "The frontend queries lists and details for connections, diagnostics, recommendations, forecasts, ROI, and live metrics, with periodic refresh for operational monitoring.",
+      "entrypoints": [
+        "useConnectionsQuery",
+        "useDiagnosticsQuery",
+        "useForecastsQuery",
+        "useRoiQuery",
+        "useLiveMetricsQuery"
+      ],
+      "connected_node_ids": [
+        "chunk_82859997a2bea433",
+        "chunk_eab90ee8baf4a637",
+        "chunk_8e856f361842b7ac",
+        "chunk_f0f5942969c23e65",
+        "chunk_09dd7043656662ea",
+        "chunk_0f9e64e7614e7140"
+      ],
+      "business_context": {
+        "capability": "Operational data retrieval and refresh",
+        "actor_goal": "Inspect database connections, diagnostics, forecasts, ROI, and live metrics",
+        "business_object": "Connection / diagnostic / forecast / ROI records",
+        "affected_actor_or_counterparty": "Database operator",
+        "business_value_or_consequence": [
+          "Supports diagnosis and recommendation review",
+          "Keeps dashboards current via polling/refetch",
+          "Allows targeted detail inspection by identifier"
+        ]
+      },
+      "runtime_shapes": [
+        "BFF_BACKEND_FOR_FRONTEND"
+      ],
+      "workload_shapes": [
+        "CONTEXT_CONSTRAINED_SYNTHESIS_SUMMARIZATION"
+      ],
+      "repo_specific_intent": "retrieve operational records and refresh live monitoring data",
+      "intent_family": "VIEW_OR_RETRIEVE_RESOURCE",
+      "intent_object": "connections, diagnostics, experiments, forecasts, ROI, audit records",
+      "desired_outcome": "Present current operational and analytical records to the console",
+      "actors": [
+        {
+          "repo_native_actor": "User of the diagnostic console",
+          "business_role": "Viewer or operator of operational state",
+          "actor_archetype": "READ_ONLY_STAKEHOLDER_VIEWER",
+          "authentication_context": "Not shown in the hooks",
+          "lifecycle_status_if_observed": "Active client-side user",
+          "evidence": [
+            {
+              "chunk_id": "chunk_82859997a2bea433",
+              "file_path": "apps/frontend/hooks/use-connections.ts",
+              "start_line": 8,
+              "end_line": 20,
+              "symbol_or_node_id": "useConnectionsQuery/useConnectionDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Fetches connection lists and details."
+            },
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 8,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Fetches diagnostics list and detail with periodic refresh."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "DatabaseConnection",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_82859997a2bea433",
+              "file_path": "apps/frontend/hooks/use-connections.ts",
+              "start_line": 15,
+              "end_line": 20,
+              "symbol_or_node_id": "useConnectionDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Detail query is keyed by connection id and gated on presence of id."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "Diagnosis",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "id / connectionId",
+          "evidence": [
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 8,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnostics are fetched either globally or for a connection id, with detail keyed by id."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "Forecast / ROI / audit records",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "connectionId or summary key",
+          "evidence": [
+            {
+              "chunk_id": "chunk_8e856f361842b7ac",
+              "file_path": "apps/frontend/hooks/use-forecasts.ts",
+              "start_line": 8,
+              "end_line": 20,
+              "symbol_or_node_id": "useForecastsQuery/useForecastDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast queries are list/detail keyed by connection id."
+            },
+            {
+              "chunk_id": "chunk_f0f5942969c23e65",
+              "file_path": "apps/frontend/hooks/use-roi.ts",
+              "start_line": 6,
+              "end_line": 17,
+              "symbol_or_node_id": "useRoiQuery/useRoiSummaryQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI queries optionally scope to a connection id or summary view."
+            },
+            {
+              "chunk_id": "chunk_0f9e64e7614e7140",
+              "file_path": "apps/frontend/hooks/use-audit.ts",
+              "start_line": 6,
+              "end_line": 10,
+              "symbol_or_node_id": "useAuditQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Audit list is fetched with a limit parameter."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "ConnectionStatus",
+          "state_type": "ENTITY_STATUS",
+          "observed_values": [
+            "Connected",
+            "Testing",
+            "Failed",
+            "Needs Attention"
+          ],
+          "starting_state": "Unknown",
+          "resulting_state": "Fetched connection list/detail state",
+          "source_symbol_or_field": "ConnectionStatus",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 35,
+              "end_line": 40,
+              "symbol_or_node_id": "ConnectionStatus",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection status enum values."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "HealthStatus",
+          "state_type": "ALERT_STATUS",
+          "observed_values": [
+            "Healthy",
+            "Degraded",
+            "Critical"
+          ],
+          "starting_state": "Unknown",
+          "resulting_state": "Dashboard health view",
+          "source_symbol_or_field": "HealthStatus",
+          "evidence": [
+            {
+              "chunk_id": "chunk_55214a1a156daa4e",
+              "file_path": "apps/frontend/types/types.ts",
+              "start_line": 41,
+              "end_line": 41,
+              "symbol_or_node_id": "HealthStatus",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Health status enum values."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_DB_READ_TO_RESPONSE",
+        "REQUEST_TO_RESPONSE_READ_ONLY"
+      ],
+      "effect_types": [
+        "JSON_PAYLOAD_RETURNED"
+      ],
+      "material_effects": [
+        "Connection lists and details are fetched",
+        "Diagnostics and recommendations are refreshed every 30 seconds",
+        "Forecast, ROI, live metrics, and audit lists are retrieved for dashboard display"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Detail queries are only enabled when an identifier exists",
+          "source_symbol_or_condition": "enabled: Boolean(id) / Boolean(connectionId)",
+          "evidence": [
+            {
+              "chunk_id": "chunk_82859997a2bea433",
+              "file_path": "apps/frontend/hooks/use-connections.ts",
+              "start_line": 15,
+              "end_line": 20,
+              "symbol_or_node_id": "useConnectionDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection detail query is gated by id presence."
+            },
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 17,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnosis detail query is gated by id presence."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Live metrics polling is enabled only in live mode and when pollingIntervalMs is positive",
+          "source_symbol_or_condition": "isLiveMode && pollingIntervalMs > 0",
+          "evidence": [
+            {
+              "chunk_id": "chunk_09dd7043656662ea",
+              "file_path": "apps/frontend/hooks/use-live-metrics.ts",
+              "start_line": 7,
+              "end_line": 21,
+              "symbol_or_node_id": "useLiveMetricsQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Polling interval is conditional on live mode and positive interval."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Diagnostics and diagnosis detail views auto-refresh every 30 seconds.",
+          "rule_type": "ORDERING_OR_SEQUENCE_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 8,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Refetch interval is set to 30_000ms."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Live metrics are polled only in live mode and only when a positive interval is configured.",
+          "rule_type": "STATE_PRECONDITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_09dd7043656662ea",
+              "file_path": "apps/frontend/hooks/use-live-metrics.ts",
+              "start_line": 7,
+              "end_line": 21,
+              "symbol_or_node_id": "useLiveMetricsQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Refetch interval depends on live mode and polling interval."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Mutation success invalidates the affected list/detail queries to keep the UI current.",
+          "rule_type": "FAILURE_RECOVERY_OR_COMPENSATION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_82859997a2bea433",
+              "file_path": "apps/frontend/hooks/use-connections.ts",
+              "start_line": 23,
+              "end_line": 43,
+              "symbol_or_node_id": "useCreateConnectionMutation/useTestConnectionMutation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Create/test mutations invalidate query cache entries on success."
+            },
+            {
+              "chunk_id": "chunk_c3d076c6a998d67a",
+              "file_path": "apps/frontend/hooks/use-experiments.ts",
+              "start_line": 24,
+              "end_line": 57,
+              "symbol_or_node_id": "useSimulateMutation/useApproveExperimentMutation/useRejectExperimentMutation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Experiment mutations invalidate experiment caches on success."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Client-side queries are keyed by resource identifiers",
+        "Operational views stay fresh via polling or invalidation",
+        "Live metrics have a dedicated live-mode refresh path"
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Hooks call backend APIs to fetch operational data.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_82859997a2bea433",
+              "file_path": "apps/frontend/hooks/use-connections.ts",
+              "start_line": 8,
+              "end_line": 20,
+              "symbol_or_node_id": "useConnectionsQuery/useConnectionDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection list/detail fetches."
+            },
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 8,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnostics fetches."
+            }
+          ]
+        },
+        {
+          "fact_name": "resource_scope_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Several queries are scoped by connection or diagnosis identifiers.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_82859997a2bea433",
+              "file_path": "apps/frontend/hooks/use-connections.ts",
+              "start_line": 15,
+              "end_line": 20,
+              "symbol_or_node_id": "useConnectionDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection detail uses id scope."
+            },
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 8,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnostics query scoped by connectionId or id."
+            }
+          ]
+        },
+        {
+          "fact_name": "repeatable_path",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Polling and refetch on focus make these retrieval paths repeat over time.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_eab90ee8baf4a637",
+              "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+              "start_line": 8,
+              "end_line": 24,
+              "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Refetch interval and window focus refetch enabled."
+            },
+            {
+              "chunk_id": "chunk_09dd7043656662ea",
+              "file_path": "apps/frontend/hooks/use-live-metrics.ts",
+              "start_line": 17,
+              "end_line": 20,
+              "symbol_or_node_id": "useLiveMetricsQuery",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Live metrics refetch interval can repeat while live mode is active."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Queries should fetch lists and details for connections, diagnostics, forecasts, ROI, and audit entries.",
+          "Detail queries should only run when an identifier exists.",
+          "Diagnostics and live metrics should refresh periodically.",
+          "Mutation success should invalidate cached query data."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_82859997a2bea433",
+            "file_path": "apps/frontend/hooks/use-connections.ts",
+            "start_line": 8,
+            "end_line": 43,
+            "symbol_or_node_id": "useConnectionsQuery/useConnectionDetailQuery/useCreateConnectionMutation/useTestConnectionMutation",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Connection list/detail retrieval and cache invalidation."
+          },
+          {
+            "chunk_id": "chunk_eab90ee8baf4a637",
+            "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+            "start_line": 8,
+            "end_line": 44,
+            "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery/useRecommendationsQuery/useTriggerDiagnosisMutation",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Diagnostics retrieval, recommendations, refresh, and trigger mutation."
+          },
+          {
+            "chunk_id": "chunk_8e856f361842b7ac",
+            "file_path": "apps/frontend/hooks/use-forecasts.ts",
+            "start_line": 8,
+            "end_line": 28,
+            "symbol_or_node_id": "useForecastsQuery/useForecastDetailQuery/useModelPerformanceQuery",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Forecast retrieval."
+          },
+          {
+            "chunk_id": "chunk_f0f5942969c23e65",
+            "file_path": "apps/frontend/hooks/use-roi.ts",
+            "start_line": 6,
+            "end_line": 17,
+            "symbol_or_node_id": "useRoiQuery/useRoiSummaryQuery",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "ROI retrieval."
+          },
+          {
+            "chunk_id": "chunk_09dd7043656662ea",
+            "file_path": "apps/frontend/hooks/use-live-metrics.ts",
+            "start_line": 7,
+            "end_line": 21,
+            "symbol_or_node_id": "useLiveMetricsQuery",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Live metrics retrieval with conditional polling."
+          },
+          {
+            "chunk_id": "chunk_0f9e64e7614e7140",
+            "file_path": "apps/frontend/hooks/use-audit.ts",
+            "start_line": 6,
+            "end_line": 10,
+            "symbol_or_node_id": "useAuditQuery",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Audit list retrieval."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "Server route implementations and access control are not shown here.",
+          "No persistence-layer write path is visible in this fragment."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_82859997a2bea433",
+          "file_path": "apps/frontend/hooks/use-connections.ts",
+          "start_line": 8,
+          "end_line": 43,
+          "symbol_or_node_id": "useConnectionsQuery/useConnectionDetailQuery/useCreateConnectionMutation/useTestConnectionMutation",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Connection list/detail fetches and cache invalidation on mutations."
+        },
+        {
+          "chunk_id": "chunk_eab90ee8baf4a637",
+          "file_path": "apps/frontend/hooks/use-diagnostics.ts",
+          "start_line": 8,
+          "end_line": 44,
+          "symbol_or_node_id": "useDiagnosticsQuery/useDiagnosisDetailQuery/useRecommendationsQuery/useTriggerDiagnosisMutation",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Diagnostics and recommendations fetches with periodic refresh and trigger mutation."
+        },
+        {
+          "chunk_id": "chunk_8e856f361842b7ac",
+          "file_path": "apps/frontend/hooks/use-forecasts.ts",
+          "start_line": 8,
+          "end_line": 28,
+          "symbol_or_node_id": "useForecastsQuery/useForecastDetailQuery/useModelPerformanceQuery",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Forecast list/detail and model performance retrieval."
+        },
+        {
+          "chunk_id": "chunk_f0f5942969c23e65",
+          "file_path": "apps/frontend/hooks/use-roi.ts",
+          "start_line": 6,
+          "end_line": 17,
+          "symbol_or_node_id": "useRoiQuery/useRoiSummaryQuery",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "ROI retrieval and summary retrieval."
+        },
+        {
+          "chunk_id": "chunk_09dd7043656662ea",
+          "file_path": "apps/frontend/hooks/use-live-metrics.ts",
+          "start_line": 7,
+          "end_line": 21,
+          "symbol_or_node_id": "useLiveMetricsQuery",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Live metrics query with conditional polling."
+        },
+        {
+          "chunk_id": "chunk_0f9e64e7614e7140",
+          "file_path": "apps/frontend/hooks/use-audit.ts",
+          "start_line": 6,
+          "end_line": 10,
+          "symbol_or_node_id": "useAuditQuery",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Audit retrieval query."
+        }
+      ],
+      "evidence_gaps": [
+        "Exact server-side endpoints and schemas are not present in this fragment.",
+        "Authentication and authorization boundaries are not explicit here."
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "cross_pack_followups": [
+    {
+      "reason": "Need backend graph-diagnosis implementation to connect frontend approval/experiment paths to server-side state mutation and persistence.",
+      "related_semantic_pack_id": "semantic_pack_002",
+      "related_source_batch_id": "batch_006",
+      "related_chunk_id": "chunk_48c497147bf0d3ff"
+    },
+    {
+      "reason": "Need backend telemetry collector/diagnostics routes to connect the dashboard queries to server-side storage and update effects.",
+      "related_semantic_pack_id": "semantic_pack_001",
+      "related_source_batch_id": "batch_007",
+      "related_chunk_id": "chunk_a275dbb2113c940c"
+    }
+  ],
+  "unsupported_or_nonmaterial_signals": [
+    {
+      "signal": "animated theme toggler",
+      "reason": "This is a UI affordance for theme transitions; it is not a material business path for the diagnostic/experiment workflow.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_9cc59d618448cfe3",
+          "file_path": "apps/frontend/components/ui/animated-theme-toggler.tsx",
+          "start_line": 153,
+          "end_line": 330,
+          "symbol_or_node_id": "AnimatedThemeToggler",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Theme toggle component with view-transition animation and localStorage persistence."
+        }
+      ]
+    },
+    {
+      "signal": "global styling and design tokens",
+      "reason": "These are presentation-layer assets and do not establish a business path or effect.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_b90302b6539f5ddb",
+          "file_path": "apps/frontend/styles/globals.css",
+          "start_line": 1,
+          "end_line": 1,
+          "symbol_or_node_id": "@import url(\"https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap\"",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Font import only."
+        },
+        {
+          "chunk_id": "chunk_5806f7a8e052e613",
+          "file_path": "apps/frontend/styles/globals.css",
+          "start_line": 15,
+          "end_line": 65,
+          "symbol_or_node_id": "@theme inline",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Theme token definitions only."
+        }
+      ]
+    }
+  ]
+}

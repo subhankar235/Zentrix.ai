@@ -1,0 +1,36 @@
+{
+  "status": "PASSED",
+  "warnings": [],
+  "deterministic_repair_count": 2,
+  "deterministic_repairs": [
+    {
+      "repair_type": "SEMANTIC_PART_IDENTITY",
+      "before": {
+        "sequence": 1,
+        "total": 1
+      },
+      "after": {
+        "sequence": 1,
+        "total": 2
+      }
+    },
+    {
+      "repair_type": "REASSIGN_TO_OVERLAPPING_CHUNK",
+      "file_path": "apps/backend/app/api/routes/experiments.py",
+      "before": {
+        "chunk_id": "chunk_1896eec11f882a5b",
+        "start_line": 231,
+        "end_line": 251
+      },
+      "after": {
+        "chunk_id": "chunk_f565bb2862981850",
+        "start_line": 231,
+        "end_line": 251
+      }
+    }
+  ],
+  "evidence_reference_count": 75,
+  "path_count": 3,
+  "activation_fact_count": 22,
+  "risk_trigger_fields_present": false
+}

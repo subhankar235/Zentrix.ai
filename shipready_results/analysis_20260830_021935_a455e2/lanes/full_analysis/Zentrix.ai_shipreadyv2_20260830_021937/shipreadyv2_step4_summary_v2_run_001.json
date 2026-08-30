@@ -1,0 +1,33 @@
+{
+  "status": "SUCCESS",
+  "generated_at": "2026-08-29T20:54:37.383734+00:00",
+  "repository_id": "repository_7c3ef405179ae9ff",
+  "repository_name": "Zentrix.ai",
+  "model": "gpt-5.4",
+  "llm_requests": 1,
+  "input_candidates": 3,
+  "published_flaws": 0,
+  "strong_evidence": 0,
+  "supported_evidence": 0,
+  "structural_hotspots": 3,
+  "governance_repairs": 0,
+  "usage": {
+    "input_tokens": 64888,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 1420,
+    "output_tokens_details": {
+      "reasoning_tokens": 946
+    },
+    "total_tokens": 66308
+  },
+  "elapsed_seconds": 15.89,
+  "outputs": {
+    "customer_html": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_customer_business_flaw_report_v2_run_001.html",
+    "business_graph_svg": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_customer_business_flaw_graph_v2_run_001.svg",
+    "evidence_json": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_customer_business_flaw_report_v2_run_001.json",
+    "candidate_dispositions": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\business_flaw_dispositions_v2_run_001.json"
+  }
+}

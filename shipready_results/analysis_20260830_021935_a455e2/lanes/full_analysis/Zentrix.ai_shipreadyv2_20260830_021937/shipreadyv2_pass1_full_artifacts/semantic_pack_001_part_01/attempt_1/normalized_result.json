@@ -1,0 +1,1167 @@
+{
+  "schema_version": "shipreadyv2.pass1_semantic_skim_result.v2",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "request_id": "semantic_pack_001_part_01",
+  "semantic_pack_id": "semantic_pack_001",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 2
+  },
+  "classification_status": "CLASSIFIED",
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "A FastAPI-based PostgreSQL observability and optimization platform that authenticates users, manages monitored database connections, runs diagnostics/root-cause analysis, generates recommendations, forecasts degradation risk, and computes ROI for optimization experiments.",
+    "primary_capabilities": [
+      "Authenticate users and resolve current user context",
+      "Register, test, list, update, and delete monitored database connections",
+      "Run diagnosis and evidence-graph-backed root cause analysis",
+      "Generate optimization recommendations from persisted diagnoses",
+      "Forecast degradation risk and expose model performance metrics",
+      "Calculate and store ROI for optimization experiments"
+    ],
+    "primary_repo_native_actors": [
+      "User",
+      "current_user",
+      "get_connection_user",
+      "get_current_user",
+      "get_current_active_superuser"
+    ],
+    "important_business_objects": [
+      "DatabaseConnection",
+      "Diagnosis",
+      "EvidenceGraphNode",
+      "EvidenceGraphEdge",
+      "OptimizationExperiment",
+      "QueryMetric",
+      "ForecastRecord",
+      "ModelDriftReport",
+      "RoiRecord"
+    ],
+    "material_effects": [
+      "DatabaseRecordCreated",
+      "DatabaseRecordUpdated",
+      "DatabaseRecordDeleted",
+      "JSONPayloadReturned",
+      "StructuredObjectReturned",
+      "ExternalApiCalled",
+      "WebhookSent"
+    ],
+    "explicit_requirements_found": [
+      "Authentication accepts httpOnly cookie or Bearer token and returns 401 when absent",
+      "Authenticated users must be active; inactive users are rejected with 403",
+      "Database connections are scoped to the owning user unless the caller is a superuser",
+      "Connection test requires read-only validation and may provision a dedicated monitoring role",
+      "Trigger payload connection_id must match the path connection for investigation requests"
+    ],
+    "summary_evidence": [
+      {
+        "chunk_id": "chunk_4511d1ebf2f16041",
+        "file_path": "apps/backend/app/api/deps.py",
+        "start_line": 56,
+        "end_line": 159,
+        "symbol_or_node_id": "get_current_user",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Resolves authenticated user from cookie/Bearer token, decodes JWT, looks up or provisions a User, and rejects missing/invalid/inactive identities."
+      },
+      {
+        "chunk_id": "chunk_44e84363e255cd57",
+        "file_path": "apps/backend/app/api/routes/connections.py",
+        "start_line": 35,
+        "end_line": 222,
+        "symbol_or_node_id": "router",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Implements connection test/register/list/get/update/delete/telemetry endpoints and delegates to connection_service with user-scoped access."
+      },
+      {
+        "chunk_id": "chunk_368745160ced6037",
+        "file_path": "apps/backend/app/api/routes/diagnostics.py",
+        "start_line": 59,
+        "end_line": 215,
+        "symbol_or_node_id": "router",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Implements diagnosis listing, on-demand diagnostic triggering, recommendations, and diagnosis detail retrieval with ownership checks."
+      },
+      {
+        "chunk_id": "chunk_7309175680572066",
+        "file_path": "apps/backend/app/api/routes/forecasts.py",
+        "start_line": 28,
+        "end_line": 75,
+        "symbol_or_node_id": "router",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Exposes forecast generation, model performance retrieval, and SSE forecast progress streaming."
+      },
+      {
+        "chunk_id": "chunk_d6f01a4c6b82fde8",
+        "file_path": "apps/backend/app/api/routes/roi.py",
+        "start_line": 22,
+        "end_line": 67,
+        "symbol_or_node_id": "router",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Exposes ROI summary retrieval and deterministic ROI calculation/persistence for experiments."
+      }
+    ],
+    "summary_confidence": "HIGH"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "path_1_connection_lifecycle_and_validation",
+      "path_summary": "Authenticated user manages a monitored database connection, tests its DSN/permissions, and stores connection state for later telemetry and diagnostics.",
+      "entrypoints": [
+        "apps/backend/app/api/routes/connections.py:test_connection_payload",
+        "apps/backend/app/api/routes/connections.py:register_connection",
+        "apps/backend/app/api/routes/connections.py:update_connection",
+        "apps/backend/app/api/routes/connections.py:delete_connection",
+        "apps/backend/app/api/routes/connections.py:get_connection_telemetry"
+      ],
+      "connected_node_ids": [
+        "chunk_44e84363e255cd57",
+        "chunk_4511d1ebf2f16041",
+        "chunk_fd82ca48c4a4e952",
+        "chunk_472f0ef173a90a98"
+      ],
+      "business_context": {
+        "capability": "Managed database connection onboarding and lifecycle control",
+        "actor_goal": "Validate, register, maintain, and retire a monitored PostgreSQL connection",
+        "business_object": "DatabaseConnection",
+        "affected_actor_or_counterparty": "Monitored target database / connection owner",
+        "business_value_or_consequence": [
+          "Enables safe onboarding of customer databases for monitoring",
+          "Persists encrypted credentials and permission status for later use",
+          "Supports telemetry retrieval and connection maintenance"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER"
+      ],
+      "workload_shapes": [
+        "MULTI_SOURCE_DATA_INGESTION_HYDRATION"
+      ],
+      "repo_specific_intent": "manage monitored database connections",
+      "intent_family": "MODIFY_OR_CONFIGURE_RESOURCE",
+      "intent_object": "DatabaseConnection",
+      "desired_outcome": "A validated, owned, active monitored connection is persisted and available for telemetry/diagnostic use.",
+      "actors": [
+        {
+          "repo_native_actor": "current_user",
+          "business_role": "connection owner or superuser caller",
+          "actor_archetype": "UNKNOWN_ACTOR",
+          "authentication_context": "JWT via httpOnly access_token cookie or Bearer header",
+          "lifecycle_status_if_observed": "active user required",
+          "evidence": [
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 56,
+              "end_line": 159,
+              "symbol_or_node_id": "get_current_user",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Authenticated user is resolved from token and rejected if absent or inactive."
+            },
+            {
+              "chunk_id": "chunk_44e84363e255cd57",
+              "file_path": "apps/backend/app/api/routes/connections.py",
+              "start_line": 35,
+              "end_line": 222,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection endpoints consume get_connection_user/get_current_user to scope actions to the caller."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "DatabaseConnection",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "DatabaseConnection.user_id / current_user.id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_44e84363e255cd57",
+              "file_path": "apps/backend/app/api/routes/connections.py",
+              "start_line": 92,
+              "end_line": 106,
+              "symbol_or_node_id": "register_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Registers a connection for current_user.id."
+            },
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 228,
+              "end_line": 238,
+              "symbol_or_node_id": "get_customer_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Queries DatabaseConnection by id and restricts to current_user.id unless superuser."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "is_active",
+          "state_type": "ACCOUNT_STATUS",
+          "observed_values": [
+            "True",
+            "False"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "active when provisioned; inactive records rejected",
+          "source_symbol_or_field": "User.is_active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 153,
+              "end_line": 159,
+              "symbol_or_node_id": "get_current_user",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Inactive users are rejected with 403."
+            },
+            {
+              "chunk_id": "chunk_fd82ca48c4a4e952",
+              "file_path": "apps/backend/app/schemas/connection.py",
+              "start_line": 42,
+              "end_line": 50,
+              "symbol_or_node_id": "ConnectionOut",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection output exposes is_active as persisted state."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_DB_CREATE",
+        "REQUEST_TO_DB_UPDATE",
+        "REQUEST_TO_DB_DELETE",
+        "REQUEST_TO_EXTERNAL_API_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "DATABASE_RECORD_CREATED",
+        "DATABASE_RECORD_UPDATED",
+        "DATABASE_RECORD_DELETED",
+        "EXTERNAL_API_CALLED",
+        "JSON_PAYLOAD_RETURNED"
+      ],
+      "material_effects": [
+        "Creates or updates a monitored connection record",
+        "Deletes a monitored connection record",
+        "Calls out to a customer database for validation/pool creation",
+        "Returns a connection test or telemetry response"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Authentication token must be present and valid before connection operations proceed.",
+          "source_symbol_or_condition": "get_current_user token extraction and decode",
+          "evidence": [
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 66,
+              "end_line": 88,
+              "symbol_or_node_id": "get_current_user",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Missing or invalid token raises HTTP 401."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Connection ownership is enforced unless the caller is a superuser.",
+          "source_symbol_or_condition": "DatabaseConnection.user_id filter",
+          "evidence": [
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 228,
+              "end_line": 238,
+              "symbol_or_node_id": "get_customer_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Non-superusers are restricted to their own DatabaseConnection rows."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Connection must be active before a customer pool is acquired.",
+          "source_symbol_or_condition": "conn_record.is_active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 240,
+              "end_line": 244,
+              "symbol_or_node_id": "get_customer_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Inactive connections are rejected with 400."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "A connection can be tested with a raw DSN, and a dedicated monitoring role may be provisioned if the initial role is not already read-only and sufficiently privileged.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_44e84363e255cd57",
+              "file_path": "apps/backend/app/api/routes/connections.py",
+              "start_line": 41,
+              "end_line": 89,
+              "symbol_or_node_id": "test_connection_payload",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Test flow validates raw DSN, checks permissions, and attempts monitoring-role provisioning."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Connection rows are created/updated with encrypted connection strings and refreshed permission status after successful validation.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_44e84363e255cd57",
+              "file_path": "apps/backend/app/api/routes/connections.py",
+              "start_line": 49,
+              "end_line": 69,
+              "symbol_or_node_id": "test_connection_payload",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Successful test updates encrypted strings, username, permission_status, and last_checked_at."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Connection ownership is preserved by caller-scoped filtering unless superuser override applies.",
+        "A connection must be active before it is used to acquire a customer pool."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "API endpoints accept connection IDs and connection payloads from callers.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_44e84363e255cd57",
+              "file_path": "apps/backend/app/api/routes/connections.py",
+              "start_line": 35,
+              "end_line": 222,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Multiple request handlers accept connection input."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "USER_DOCUMENTATION_OR_README",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Connection test response includes success, version, permissions, latency, and error fields.",
+          "Connection output includes id, user_id, is_active, permission_status, last_checked_at, created_at, and updated_at."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_fd82ca48c4a4e952",
+            "file_path": "apps/backend/app/schemas/connection.py",
+            "start_line": 42,
+            "end_line": 62,
+            "symbol_or_node_id": "ConnectionOut/ConnectionTestResponse",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Response contracts for connection lifecycle and testing."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "The detailed connection service implementation is not included here, so deeper persistence/validation steps are only partially visible."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_44e84363e255cd57",
+          "file_path": "apps/backend/app/api/routes/connections.py",
+          "start_line": 35,
+          "end_line": 222,
+          "symbol_or_node_id": "router",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Connection lifecycle endpoints and their service delegation."
+        },
+        {
+          "chunk_id": "chunk_4511d1ebf2f16041",
+          "file_path": "apps/backend/app/api/deps.py",
+          "start_line": 56,
+          "end_line": 159,
+          "symbol_or_node_id": "get_current_user",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Authenticated user resolution and active-account guard."
+        },
+        {
+          "chunk_id": "chunk_4511d1ebf2f16041",
+          "file_path": "apps/backend/app/api/deps.py",
+          "start_line": 215,
+          "end_line": 257,
+          "symbol_or_node_id": "get_customer_connection",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Ownership filtering, active-state check, and connection pool acquisition."
+        },
+        {
+          "chunk_id": "chunk_fd82ca48c4a4e952",
+          "file_path": "apps/backend/app/schemas/connection.py",
+          "start_line": 42,
+          "end_line": 62,
+          "symbol_or_node_id": "ConnectionOut/ConnectionTestResponse",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Schema contracts for connection state and test results."
+        }
+      ],
+      "evidence_gaps": [
+        "The underlying connection_service and customer_connection_manager implementations are not part of this fragment.",
+        "Whether connection delete is soft-delete or hard-delete is not directly visible here."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_2_diagnosis_and_recommendation_flow",
+      "path_summary": "A caller requests diagnosis reports or triggers a live investigation to produce a root-cause report and deterministic recommendations for a monitored database connection.",
+      "entrypoints": [
+        "apps/backend/app/api/routes/diagnostics.py:list_diagnoses",
+        "apps/backend/app/api/routes/diagnostics.py:trigger_diagnostic_run",
+        "apps/backend/app/api/routes/diagnostics.py:get_diagnosis_report",
+        "apps/backend/app/api/routes/diagnostics.py:get_diagnosis_recommendations",
+        "apps/backend/app/api/routes/diagnostics.py:trigger_investigation"
+      ],
+      "connected_node_ids": [
+        "chunk_368745160ced6037",
+        "chunk_093d8d6c7af8b382",
+        "chunk_0011a30e049761bc",
+        "chunk_e4d09ee004551c25",
+        "chunk_e6e4f00f18ef6d01"
+      ],
+      "business_context": {
+        "capability": "Root-cause diagnostics and action recommendation generation",
+        "actor_goal": "Inspect diagnoses, trigger a fresh investigation, and retrieve actionable optimization candidates",
+        "business_object": "Diagnosis",
+        "affected_actor_or_counterparty": "Connection owner or superuser reviewer",
+        "business_value_or_consequence": [
+          "Surfaces deterministic evidence graphs for debugging",
+          "Produces candidate optimizations from persisted diagnoses",
+          "Supports operational review and follow-on experiments"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER"
+      ],
+      "workload_shapes": [
+        "GRAPH_STRUCTURAL_ANALYSIS",
+        "SEARCH_KEYWORD_TOKENIZATION_PARSING"
+      ],
+      "repo_specific_intent": "investigate database performance problems and generate recommendations",
+      "intent_family": "OTHER_REPO_SPECIFIC_INTENT",
+      "intent_object": "Diagnosis",
+      "desired_outcome": "A diagnosis report with evidence graph and recommendations is returned for an owned connection.",
+      "actors": [
+        {
+          "repo_native_actor": "current_user",
+          "business_role": "connection owner or superuser reviewer",
+          "actor_archetype": "UNKNOWN_ACTOR",
+          "authentication_context": "JWT via get_connection_user or get_current_user",
+          "lifecycle_status_if_observed": "active user required for standard access",
+          "evidence": [
+            {
+              "chunk_id": "chunk_368745160ced6037",
+              "file_path": "apps/backend/app/api/routes/diagnostics.py",
+              "start_line": 59,
+              "end_line": 167,
+              "symbol_or_node_id": "list_diagnoses/get_diagnosis_report",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnosis listing and retrieval are filtered by current_user ownership unless superuser."
+            },
+            {
+              "chunk_id": "chunk_4511d1ebf2f16041",
+              "file_path": "apps/backend/app/api/deps.py",
+              "start_line": 56,
+              "end_line": 159,
+              "symbol_or_node_id": "get_current_user",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "User authentication and active-account enforcement."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "Diagnosis",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "DatabaseConnection.user_id / Diagnosis.connection_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_368745160ced6037",
+              "file_path": "apps/backend/app/api/routes/diagnostics.py",
+              "start_line": 45,
+              "end_line": 49,
+              "symbol_or_node_id": "_owned_diagnosis_stmt",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnosis access is constrained through the owning DatabaseConnection."
+            },
+            {
+              "chunk_id": "chunk_093d8d6c7af8b382",
+              "file_path": "apps/backend/app/models/diagnosis.py",
+              "start_line": 18,
+              "end_line": 33,
+              "symbol_or_node_id": "Diagnosis.connection_id",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnosis is foreign-keyed to database_connections.id with cascade on delete."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "EvidenceGraphNode/EvidenceGraphEdge",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "Diagnosis.id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_093d8d6c7af8b382",
+              "file_path": "apps/backend/app/models/diagnosis.py",
+              "start_line": 95,
+              "end_line": 225,
+              "symbol_or_node_id": "EvidenceGraphNode/EvidenceGraphEdge",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Evidence graph nodes and edges are persisted as diagnosis-scoped ORM entities."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "status",
+          "state_type": "CASE_STATUS",
+          "observed_values": [
+            "DETECTED",
+            "INVESTIGATING",
+            "CONFIRMED",
+            "RESOLVED",
+            "IGNORED"
+          ],
+          "starting_state": "DETECTED",
+          "resulting_state": "UNKNOWN",
+          "source_symbol_or_field": "Diagnosis.status",
+          "evidence": [
+            {
+              "chunk_id": "chunk_e4d09ee004551c25",
+              "file_path": "apps/backend/app/schemas/diagnosis.py",
+              "start_line": 58,
+              "end_line": 76,
+              "symbol_or_node_id": "DiagnosisBase",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnosis status vocabulary and default value are declared."
+            },
+            {
+              "chunk_id": "chunk_093d8d6c7af8b382",
+              "file_path": "apps/backend/app/models/diagnosis.py",
+              "start_line": 68,
+              "end_line": 72,
+              "symbol_or_node_id": "Diagnosis.status",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Diagnosis records default to DETECTED."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_DB_READ_TO_RESPONSE",
+        "REQUEST_TO_VALIDATION_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "STRUCTURED_OBJECT_RETURNED",
+        "JSON_PAYLOAD_RETURNED"
+      ],
+      "material_effects": [
+        "Returns diagnosis detail payloads including evidence graphs",
+        "Returns recommendation candidates derived from persisted diagnoses",
+        "May trigger a live diagnosis run through the diagnosis service"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Diagnosis access is limited to the owning connection unless the caller is superuser.",
+          "source_symbol_or_condition": "DatabaseConnection.user_id filter in diagnosis queries",
+          "evidence": [
+            {
+              "chunk_id": "chunk_368745160ced6037",
+              "file_path": "apps/backend/app/api/routes/diagnostics.py",
+              "start_line": 45,
+              "end_line": 49,
+              "symbol_or_node_id": "_owned_diagnosis_stmt",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Owned diagnosis statement applies user-based filtering."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Investigation trigger requires a non-empty connection identifier.",
+          "source_symbol_or_condition": "payload.connectionId or payload.connection_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_368745160ced6037",
+              "file_path": "apps/backend/app/api/routes/diagnostics.py",
+              "start_line": 94,
+              "end_line": 97,
+              "symbol_or_node_id": "trigger_diagnostic_run",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Missing connection reference returns HTTP 400."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Investigation request connection_id must match the path diagnosis id when supplied.",
+          "source_symbol_or_condition": "request.connection_id != id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_368745160ced6037",
+              "file_path": "apps/backend/app/api/routes/diagnostics.py",
+              "start_line": 200,
+              "end_line": 202,
+              "symbol_or_node_id": "trigger_investigation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Mismatched connection_id yields HTTP 422."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Recommendations are generated deterministically from persisted diagnoses and their validation plan or live query evidence.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_0011a30e049761bc",
+              "file_path": "apps/backend/app/services/recommendation_service.py",
+              "start_line": 64,
+              "end_line": 137,
+              "symbol_or_node_id": "recommendations_for_diagnosis",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Recommendation generation uses diagnosis root cause, validation_plan, and top query evidence."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Index/statistics/vacuum recommendation type is chosen from the diagnosis primary_root_cause.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_0011a30e049761bc",
+              "file_path": "apps/backend/app/services/recommendation_service.py",
+              "start_line": 80,
+              "end_line": 100,
+              "symbol_or_node_id": "recommendations_for_diagnosis",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Primary root cause drives candidate_type and SQL generation."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "A diagnosis belongs to exactly one monitored connection.",
+        "Diagnosis detail responses include an evidence graph with nodes and edges."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Endpoints accept connection identifiers, diagnosis IDs, and investigation payloads.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_368745160ced6037",
+              "file_path": "apps/backend/app/api/routes/diagnostics.py",
+              "start_line": 59,
+              "end_line": 215,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Multiple diagnosis-related request handlers accept caller input."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Diagnosis status has a lifecycle vocabulary and defaults to DETECTED.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_093d8d6c7af8b382",
+              "file_path": "apps/backend/app/models/diagnosis.py",
+              "start_line": 68,
+              "end_line": 72,
+              "symbol_or_node_id": "Diagnosis.status",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Persisted diagnosis status field with default state."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Diagnosis detail and recommendation schemas define structured response payloads.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_e4d09ee004551c25",
+              "file_path": "apps/backend/app/schemas/diagnosis.py",
+              "start_line": 90,
+              "end_line": 124,
+              "symbol_or_node_id": "DiagnosisDetailOut/RecommendationOut",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Structured response models for diagnosis details and recommendations."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Diagnosis detail responses include an evidence graph.",
+          "Recommendation responses must be diagnosis-backed candidates with rationale and candidate SQL."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_e4d09ee004551c25",
+            "file_path": "apps/backend/app/schemas/diagnosis.py",
+            "start_line": 99,
+            "end_line": 124,
+            "symbol_or_node_id": "DiagnosisDetailOut/RecommendationOut",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Contracts for diagnosis detail and recommendation payloads."
+          },
+          {
+            "chunk_id": "chunk_0011a30e049761bc",
+            "file_path": "apps/backend/app/services/recommendation_service.py",
+            "start_line": 64,
+            "end_line": 137,
+            "symbol_or_node_id": "recommendations_for_diagnosis",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Deterministic generation of diagnosis-backed recommendations."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "The live diagnosis implementation is outside this fragment, so only the trigger interface is visible.",
+          "The exact graph semantics of node/edge types are schema-level here, not end-to-end execution evidence."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_368745160ced6037",
+          "file_path": "apps/backend/app/api/routes/diagnostics.py",
+          "start_line": 59,
+          "end_line": 215,
+          "symbol_or_node_id": "router",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Diagnosis listing, retrieval, triggering, and recommendation endpoints."
+        },
+        {
+          "chunk_id": "chunk_093d8d6c7af8b382",
+          "file_path": "apps/backend/app/models/diagnosis.py",
+          "start_line": 18,
+          "end_line": 225,
+          "symbol_or_node_id": "Diagnosis/EvidenceGraphNode/EvidenceGraphEdge",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Diagnosis record, evidence graph, and lifecycle fields."
+        },
+        {
+          "chunk_id": "chunk_0011a30e049761bc",
+          "file_path": "apps/backend/app/services/recommendation_service.py",
+          "start_line": 64,
+          "end_line": 137,
+          "symbol_or_node_id": "recommendations_for_diagnosis",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Deterministic recommendation generation from diagnoses."
+        },
+        {
+          "chunk_id": "chunk_e4d09ee004551c25",
+          "file_path": "apps/backend/app/schemas/diagnosis.py",
+          "start_line": 53,
+          "end_line": 124,
+          "symbol_or_node_id": "DiagnosisDetailOut/RecommendationOut",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Response contracts for diagnosis detail and recommendations."
+        }
+      ],
+      "evidence_gaps": [
+        "The diagnosis service implementation invoked by trigger_diagnostic_run and trigger_investigation is not included here.",
+        "No persisted example of a completed diagnosis transition is visible in this fragment."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_3_forecast_and_roi_analytics",
+      "path_summary": "A caller retrieves forecast/model-performance analytics or computes ROI for a monitored connection or experiment, producing structured analytics outputs.",
+      "entrypoints": [
+        "apps/backend/app/api/routes/forecasts.py:get_connection_forecast",
+        "apps/backend/app/api/routes/forecasts.py:get_models_performance",
+        "apps/backend/app/api/routes/forecasts.py:stream_forecast_progress",
+        "apps/backend/app/api/routes/roi.py:get_connection_roi_summary",
+        "apps/backend/app/api/routes/roi.py:calculate_and_save_experiment_roi"
+      ],
+      "connected_node_ids": [
+        "chunk_7309175680572066",
+        "chunk_d6f01a4c6b82fde8",
+        "chunk_624a1c8e473e4543",
+        "chunk_27691a516d7604d5"
+      ],
+      "business_context": {
+        "capability": "Forecasting, performance reporting, and ROI translation",
+        "actor_goal": "Estimate degradation risk, inspect model performance, and calculate savings from optimization experiments",
+        "business_object": "ForecastRecord / ModelDriftReport / RoiRecord",
+        "affected_actor_or_counterparty": "Connection owner, experiment reviewer, or operator using optimization analytics",
+        "business_value_or_consequence": [
+          "Highlights degradation risk and suggested strategies",
+          "Exposes model error and drift metrics",
+          "Converts measured deltas into dollar savings and persists ROI records"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER"
+      ],
+      "workload_shapes": [
+        "TIME_SERIES_HORIZON_FORECASTING",
+        "CART_QUOTE_PRICING_CALCULATION"
+      ],
+      "repo_specific_intent": "forecast degradation risk and calculate ROI",
+      "intent_family": "PREDICT_SCORE_CLASSIFY_OR_RECOMMEND",
+      "intent_object": "ForecastRecord",
+      "desired_outcome": "Structured forecast, performance, and ROI analytics are returned or persisted for a connection or experiment.",
+      "actors": [
+        {
+          "repo_native_actor": "current_user",
+          "business_role": "authenticated analytics consumer",
+          "actor_archetype": "UNKNOWN_ACTOR",
+          "authentication_context": "JWT via get_current_user",
+          "lifecycle_status_if_observed": "active user required",
+          "evidence": [
+            {
+              "chunk_id": "chunk_7309175680572066",
+              "file_path": "apps/backend/app/api/routes/forecasts.py",
+              "start_line": 28,
+              "end_line": 75,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast endpoints require get_current_user."
+            },
+            {
+              "chunk_id": "chunk_d6f01a4c6b82fde8",
+              "file_path": "apps/backend/app/api/routes/roi.py",
+              "start_line": 22,
+              "end_line": 67,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI endpoints require get_current_user."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "ForecastRecord / ModelDriftReport / RoiRecord",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "connection_id or experiment_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_624a1c8e473e4543",
+              "file_path": "apps/backend/app/schemas/forecast.py",
+              "start_line": 41,
+              "end_line": 76,
+              "symbol_or_node_id": "ForecastResponse/ModelPerformanceResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast and performance response models."
+            },
+            {
+              "chunk_id": "chunk_27691a516d7604d5",
+              "file_path": "apps/backend/app/schemas/roi.py",
+              "start_line": 35,
+              "end_line": 52,
+              "symbol_or_node_id": "RoiRecordOut/RoiSummaryResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI record and summary response models."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "degradation_probability",
+          "state_type": "PREDICTION_SCORE",
+          "observed_values": [],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "forecasted probability returned",
+          "source_symbol_or_field": "ForecastRecordBase.degradation_probability",
+          "evidence": [
+            {
+              "chunk_id": "chunk_624a1c8e473e4543",
+              "file_path": "apps/backend/app/schemas/forecast.py",
+              "start_line": 19,
+              "end_line": 49,
+              "symbol_or_node_id": "ForecastRecordBase/ForecastResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast schema carries degradation probability and output curve."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "estimated_monthly_savings_usd",
+          "state_type": "LEDGER_BALANCE",
+          "observed_values": [],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "calculated savings persisted or returned",
+          "source_symbol_or_field": "RoiRecordBase.estimated_monthly_savings_usd",
+          "evidence": [
+            {
+              "chunk_id": "chunk_27691a516d7604d5",
+              "file_path": "apps/backend/app/schemas/roi.py",
+              "start_line": 12,
+              "end_line": 52,
+              "symbol_or_node_id": "RoiRecordBase/RoiSummaryResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI schemas include savings fields and summary totals."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_MODEL_SCORE_RESPONSE",
+        "REQUEST_TO_DB_READ_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "STRUCTURED_OBJECT_RETURNED",
+        "JSON_PAYLOAD_RETURNED",
+        "DATABASE_RECORD_CREATED",
+        "DATABASE_RECORD_UPDATED"
+      ],
+      "material_effects": [
+        "Returns degradation forecast payloads and SSE progress events",
+        "Returns model-performance reports including drift metrics",
+        "Calculates and stores ROI records from experiment deltas"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Forecast and ROI handlers require authenticated user context.",
+          "source_symbol_or_condition": "Depends(get_current_user)",
+          "evidence": [
+            {
+              "chunk_id": "chunk_7309175680572066",
+              "file_path": "apps/backend/app/api/routes/forecasts.py",
+              "start_line": 28,
+              "end_line": 66,
+              "symbol_or_node_id": "get_connection_forecast/stream_forecast_progress",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast endpoints depend on get_current_user."
+            },
+            {
+              "chunk_id": "chunk_d6f01a4c6b82fde8",
+              "file_path": "apps/backend/app/api/routes/roi.py",
+              "start_line": 22,
+              "end_line": 67,
+              "symbol_or_node_id": "get_connection_roi_summary/calculate_and_save_experiment_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI endpoints depend on get_current_user."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Forecast responses expose a degradation probability curve and suggested strategies.",
+          "rule_type": "OUTPUT_CONTRACT_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_624a1c8e473e4543",
+              "file_path": "apps/backend/app/schemas/forecast.py",
+              "start_line": 41,
+              "end_line": 49,
+              "symbol_or_node_id": "ForecastResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast response includes curve and suggested_strategies."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "ROI calculation uses caller-supplied pricing tier and query frequency parameters.",
+          "rule_type": "CALCULATION_OR_THRESHOLD_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d6f01a4c6b82fde8",
+              "file_path": "apps/backend/app/api/routes/roi.py",
+              "start_line": 48,
+              "end_line": 63,
+              "symbol_or_node_id": "calculate_and_save_experiment_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI calculation endpoint accepts pricing_tier and frequency_per_day."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Forecast and ROI outputs are connection/experiment keyed analytics artifacts.",
+        "Model performance response aggregates MAE, RMSE, calibration score, and drift reports."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Forecast and ROI endpoints accept IDs and query parameters.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_7309175680572066",
+              "file_path": "apps/backend/app/api/routes/forecasts.py",
+              "start_line": 28,
+              "end_line": 75,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Forecast endpoints accept connectionId and query_id."
+            },
+            {
+              "chunk_id": "chunk_d6f01a4c6b82fde8",
+              "file_path": "apps/backend/app/api/routes/roi.py",
+              "start_line": 22,
+              "end_line": 67,
+              "symbol_or_node_id": "router",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "ROI endpoints accept connectionId, experimentId, pricing tier, and frequency."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Forecast responses include a probability curve and suggested strategies.",
+          "ROI calculation persists a record and returns structured ROI output."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_624a1c8e473e4543",
+            "file_path": "apps/backend/app/schemas/forecast.py",
+            "start_line": 41,
+            "end_line": 76,
+            "symbol_or_node_id": "ForecastResponse/ModelPerformanceResponse",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Forecast and model-performance response contracts."
+          },
+          {
+            "chunk_id": "chunk_27691a516d7604d5",
+            "file_path": "apps/backend/app/schemas/roi.py",
+            "start_line": 22,
+            "end_line": 52,
+            "symbol_or_node_id": "RoiRecordOut/RoiSummaryResponse",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "ROI record and summary contracts."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "The underlying forecast_service and roi_service implementations are not included here.",
+          "The exact mapping from forecast/ROI to persisted records is only partially visible at the route/schema layer."
+        ],
+        "confidence": "MEDIUM"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_7309175680572066",
+          "file_path": "apps/backend/app/api/routes/forecasts.py",
+          "start_line": 28,
+          "end_line": 75,
+          "symbol_or_node_id": "router",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Forecast generation, model performance, and SSE streaming routes."
+        },
+        {
+          "chunk_id": "chunk_d6f01a4c6b82fde8",
+          "file_path": "apps/backend/app/api/routes/roi.py",
+          "start_line": 22,
+          "end_line": 67,
+          "symbol_or_node_id": "router",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "ROI summary and calculation routes."
+        },
+        {
+          "chunk_id": "chunk_624a1c8e473e4543",
+          "file_path": "apps/backend/app/schemas/forecast.py",
+          "start_line": 41,
+          "end_line": 76,
+          "symbol_or_node_id": "ForecastResponse/ModelPerformanceResponse",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Forecast and model performance response schemas."
+        },
+        {
+          "chunk_id": "chunk_27691a516d7604d5",
+          "file_path": "apps/backend/app/schemas/roi.py",
+          "start_line": 12,
+          "end_line": 52,
+          "symbol_or_node_id": "RoiRecordBase/RoiSummaryResponse",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "ROI record and summary schemas."
+        }
+      ],
+      "evidence_gaps": [
+        "The service implementations are not present, so persistence and computation internals are not directly visible.",
+        "The returned forecast/performance payload shapes are schema-level rather than service-level evidence."
+      ],
+      "confidence": "MEDIUM"
+    }
+  ],
+  "cross_pack_followups": [
+    {
+      "reason": "The canary/experiment monitoring worker is referenced by the experiments route but lives in a separate semantic pack; its lifecycle and effect path should be merged later.",
+      "related_semantic_pack_id": "semantic_pack_006",
+      "related_source_batch_id": "batch_023",
+      "related_chunk_id": "chunk_134f45fabc77d9f6"
+    },
+    {
+      "reason": "ROI model persistence and experiment linkage are referenced here but the ORM model is in another semantic pack.",
+      "related_semantic_pack_id": "semantic_pack_005",
+      "related_source_batch_id": "batch_020",
+      "related_chunk_id": "chunk_14c8a5f497042852"
+    },
+    {
+      "reason": "Forecast record and model drift ORM details are referenced here but their model definitions are in another semantic pack.",
+      "related_semantic_pack_id": "semantic_pack_003",
+      "related_source_batch_id": "batch_017",
+      "related_chunk_id": "chunk_14c8a5f497042852"
+    }
+  ],
+  "unsupported_or_nonmaterial_signals": []
+}

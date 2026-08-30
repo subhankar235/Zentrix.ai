@@ -1,0 +1,1388 @@
+{
+  "schema_version": "shipreadyv2.pass1_semantic_skim_result.v2",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "request_id": "semantic_pack_002_part_01",
+  "semantic_pack_id": "semantic_pack_002",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 2
+  },
+  "classification_status": "CLASSIFIED",
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "A database performance diagnosis and simulation platform with authentication, customer connection management, structured observability, and shadow replay / hypothetical index analysis workflows.",
+    "primary_capabilities": [
+      "User authentication and session token issuance",
+      "Encrypted customer database connection onboarding and pooling",
+      "Read-only PostgreSQL introspection and hypothetical index evaluation",
+      "Shadow database replay and paired verification workflows",
+      "Structured logging with correlation context"
+    ],
+    "primary_repo_native_actors": [
+      "User",
+      "DBA",
+      "admin",
+      "viewer",
+      "customer database connection",
+      "shadow lab worker"
+    ],
+    "important_business_objects": [
+      "User",
+      "DatabaseConnection",
+      "TokenResponse",
+      "QueryMetric",
+      "TableMetric",
+      "OptimizationExperiment",
+      "AuditLog",
+      "CanaryRun"
+    ],
+    "material_effects": [
+      "DATABASE_RECORD_CREATED",
+      "JSON_PAYLOAD_RETURNED",
+      "CACHE_ENTRY_WRITTEN",
+      "EXTERNAL_API_CALLED",
+      "LEDGER_ENTRY_POSTED"
+    ],
+    "explicit_requirements_found": [
+      "Authentication endpoints register users, authenticate credentials, set an httpOnly secure cookie, and return a JWT token.",
+      "Customer database credentials are encrypted at rest and decrypted just-in-time for use.",
+      "HypoPG planner-cost signals are explicitly labeled as theoretical and not verified runtime performance.",
+      "Read-only SQL validation restricts introspection queries to a single read-only SELECT/WITH statement."
+    ],
+    "summary_evidence": [
+      {
+        "chunk_id": "chunk_c2cfb96c2f264dba",
+        "file_path": "apps/backend/app/api/routes/auth.py",
+        "start_line": 20,
+        "end_line": 106,
+        "symbol_or_node_id": "signup/login/logout",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Defines signup, login, logout endpoints; creates users, verifies credentials, issues JWTs, and sets/deletes auth cookies."
+      },
+      {
+        "chunk_id": "chunk_f0510fd48336ff75",
+        "file_path": "apps/backend/app/core/security.py",
+        "start_line": 16,
+        "end_line": 181,
+        "symbol_or_node_id": "hash_password/verify_password/create_access_token/decode_access_token/encrypt_connection_string/decrypt_connection_string",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Implements bcrypt password hashing, JWT creation/verification, and Fernet encryption/decryption for connection strings."
+      },
+      {
+        "chunk_id": "chunk_3dc55a70bad98636",
+        "file_path": "apps/backend/app/db/customer_db.py",
+        "start_line": 58,
+        "end_line": 227,
+        "symbol_or_node_id": "CustomerConnectionManager.get_customer_pool",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Manages isolated per-connection asyncpg pools, decrypts DSNs just in time, repairs stale credentials, and closes pools."
+      },
+      {
+        "chunk_id": "chunk_12ee5b4de6e31bcb",
+        "file_path": "apps/backend/app/tools/hypopg_tool.py",
+        "start_line": 31,
+        "end_line": 213,
+        "symbol_or_node_id": "evaluate_hypothetical_index",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Validates CREATE INDEX statements, creates/drops hypothetical indexes, compares planner costs, and labels output as PLANNER_COST_SIGNAL."
+      },
+      {
+        "chunk_id": "chunk_4bbc8dac500a0afd",
+        "file_path": "apps/backend/app/core/logging.py",
+        "start_line": 21,
+        "end_line": 209,
+        "symbol_or_node_id": "set_correlation_context/StructuredJSONFormatter/log_agent_execution",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Maintains correlation context and formats structured logs with request/agent/experiment/connection identifiers and redaction."
+      }
+    ],
+    "summary_confidence": "HIGH"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "path_auth_account_session",
+      "path_summary": "User signup/login/logout/me flow that creates accounts, authenticates credentials, issues a JWT-backed session, and returns the current profile.",
+      "entrypoints": [
+        "POST /auth/signup",
+        "POST /auth/register",
+        "POST /auth/login",
+        "POST /auth/logout",
+        "GET /auth/me"
+      ],
+      "connected_node_ids": [
+        "chunk_c2cfb96c2f264dba",
+        "chunk_f0510fd48336ff75",
+        "chunk_efb0e8c9b8bd3908"
+      ],
+      "business_context": {
+        "capability": "authentication and profile access",
+        "actor_goal": "register an account, authenticate, and access the current user profile",
+        "business_object": "User / TokenResponse",
+        "affected_actor_or_counterparty": "User",
+        "business_value_or_consequence": [
+          "creates a new user account",
+          "returns an authenticated token response",
+          "sets or clears the auth cookie",
+          "exposes the authenticated user profile"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER"
+      ],
+      "workload_shapes": [
+        "FORM_LIFECYCLE_VALIDATION_ENGINE",
+        "TOKEN_REFRESH_ROTATION_VERIFICATION"
+      ],
+      "repo_specific_intent": "register user account, authenticate credentials, and retrieve current user profile",
+      "intent_family": "AUTHENTICATE_OR_ESTABLISH_IDENTITY",
+      "intent_object": "User",
+      "desired_outcome": "a validated account and active authenticated session with profile access",
+      "actors": [
+        {
+          "repo_native_actor": "User",
+          "business_role": "account holder",
+          "actor_archetype": "REGISTERED_FREE_USER",
+          "authentication_context": "submits email/password credentials and later uses a JWT cookie or bearer token",
+          "lifecycle_status_if_observed": "created, authenticated, active, or deactivated",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 20,
+              "end_line": 116,
+              "symbol_or_node_id": "signup/login/logout/get_me",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Route handlers accept user credentials, create accounts, verify login, and return the current authenticated user."
+            },
+            {
+              "chunk_id": "chunk_efb0e8c9b8bd3908",
+              "file_path": "apps/backend/app/schemas/user.py",
+              "start_line": 18,
+              "end_line": 49,
+              "symbol_or_node_id": "UserCreate/UserLogin/UserOut/TokenResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Defines the request/response shapes for registration, login, and authenticated user output."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "User",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "user.id / user.email",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 29,
+              "end_line": 47,
+              "symbol_or_node_id": "signup",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Checks for an existing user by email before creating a new record."
+            },
+            {
+              "chunk_id": "chunk_f0510fd48336ff75",
+              "file_path": "apps/backend/app/core/security.py",
+              "start_line": 40,
+              "end_line": 69,
+              "symbol_or_node_id": "create_access_token",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "JWT subject is the user identifier and extra claims include role and email."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "ACCOUNT_STATUS",
+          "state_type": "ACCOUNT_STATUS",
+          "observed_values": [
+            "is_active=True",
+            "is_active=False"
+          ],
+          "starting_state": "unknown",
+          "resulting_state": "active or rejected/deactivated access",
+          "source_symbol_or_field": "User.is_active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 38,
+              "end_line": 47,
+              "symbol_or_node_id": "signup",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Newly created users are marked active before being persisted."
+            },
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 71,
+              "end_line": 75,
+              "symbol_or_node_id": "login",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Inactive users are rejected at login."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "SESSION_STATUS",
+          "state_type": "SESSION_STATUS",
+          "observed_values": [
+            "cookie set",
+            "cookie deleted"
+          ],
+          "starting_state": "no auth cookie",
+          "resulting_state": "authenticated session cookie or cleared cookie",
+          "source_symbol_or_field": "COOKIE_AUTH_NAME",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 77,
+              "end_line": 90,
+              "symbol_or_node_id": "login",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Login sets an httpOnly secure cookie with the JWT."
+            },
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 100,
+              "end_line": 106,
+              "symbol_or_node_id": "logout",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Logout deletes the auth cookie."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_RESPONSE_READ_ONLY",
+        "REQUEST_TO_DB_CREATE"
+      ],
+      "effect_types": [
+        "DATABASE_RECORD_CREATED",
+        "JSON_PAYLOAD_RETURNED",
+        "REDIRECT_RESPONSE_RETURNED"
+      ],
+      "material_effects": [
+        "creates a persisted user record",
+        "returns a token response and user profile",
+        "sets or clears the authentication cookie"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Reject signup when a user already exists for the submitted email.",
+          "source_symbol_or_condition": "existing_user",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 29,
+              "end_line": 36,
+              "symbol_or_node_id": "signup",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Existing email lookup triggers HTTP 400."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Reject login when credentials do not match or the account is inactive.",
+          "source_symbol_or_condition": "not user or not verify_password(...) / not user.is_active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 60,
+              "end_line": 75,
+              "symbol_or_node_id": "login",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Login validates credentials and active status before issuing the token."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "A registration request must use a unique email address.",
+          "rule_type": "BUSINESS_INVARIANT",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 29,
+              "end_line": 36,
+              "symbol_or_node_id": "signup",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "The handler queries by email and rejects duplicates."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Authenticated sessions are represented by a signed JWT and an httpOnly cookie.",
+          "rule_type": "OUTPUT_CONTRACT_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 77,
+              "end_line": 90,
+              "symbol_or_node_id": "login",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "The token is returned in the response and stored in a cookie with security attributes."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "User emails are unique at signup.",
+        "Inactive accounts cannot authenticate through the login endpoint.",
+        "JWT claims include subject, role, and email for authenticated sessions."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The endpoints accept user-submitted credentials and profile data.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 20,
+              "end_line": 116,
+              "symbol_or_node_id": "signup/login/logout/get_me",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "HTTP handlers consume request models and dependencies."
+            }
+          ]
+        },
+        {
+          "fact_name": "authenticated_actor_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The /me endpoint requires get_current_user.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 109,
+              "end_line": 116,
+              "symbol_or_node_id": "get_me",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Current user dependency is required to access the profile endpoint."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Signup creates a user record and login/logout update session cookie state.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 38,
+              "end_line": 47,
+              "symbol_or_node_id": "signup",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Persists a new user."
+            },
+            {
+              "chunk_id": "chunk_c2cfb96c2f264dba",
+              "file_path": "apps/backend/app/api/routes/auth.py",
+              "start_line": 77,
+              "end_line": 106,
+              "symbol_or_node_id": "login/logout",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Sets and clears auth cookie."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Response models define token and user output shapes.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_efb0e8c9b8bd3908",
+              "file_path": "apps/backend/app/schemas/user.py",
+              "start_line": 45,
+              "end_line": 49,
+              "symbol_or_node_id": "TokenResponse",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "TokenResponse schema specifies the authenticated response contract."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "API_SCHEMA_OR_CONTRACT",
+          "EXPLICIT_REQUIREMENT_OR_ACCEPTANCE_CRITERION",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Registering or logging in should produce the documented token/user response shape.",
+          "Authentication should set a secure httpOnly cookie per the route implementation comment.",
+          "The current-user endpoint should resolve the authenticated identity."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_c2cfb96c2f264dba",
+            "file_path": "apps/backend/app/api/routes/auth.py",
+            "start_line": 20,
+            "end_line": 116,
+            "symbol_or_node_id": "signup/login/logout/get_me",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Implements the auth endpoints and cookie behavior."
+          },
+          {
+            "chunk_id": "chunk_efb0e8c9b8bd3908",
+            "file_path": "apps/backend/app/schemas/user.py",
+            "start_line": 45,
+            "end_line": 49,
+            "symbol_or_node_id": "TokenResponse",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Defines the token response contract."
+          }
+        ],
+        "conflicts_or_gaps": [],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_c2cfb96c2f264dba",
+          "file_path": "apps/backend/app/api/routes/auth.py",
+          "start_line": 20,
+          "end_line": 116,
+          "symbol_or_node_id": "signup/login/logout/get_me",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Core authentication routes for registration, login, logout, and current-user retrieval."
+        },
+        {
+          "chunk_id": "chunk_f0510fd48336ff75",
+          "file_path": "apps/backend/app/core/security.py",
+          "start_line": 16,
+          "end_line": 69,
+          "symbol_or_node_id": "hash_password/verify_password/create_access_token",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Password hashing, verification, and JWT creation used by auth routes."
+        },
+        {
+          "chunk_id": "chunk_efb0e8c9b8bd3908",
+          "file_path": "apps/backend/app/schemas/user.py",
+          "start_line": 18,
+          "end_line": 49,
+          "symbol_or_node_id": "UserCreate/UserLogin/UserOut/TokenResponse",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Request and response schemas for the auth flow."
+        }
+      ],
+      "evidence_gaps": [
+        "No connected evidence here for the dependency implementation behind get_current_user.",
+        "No connected evidence here for broader account management beyond these auth endpoints."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_customer_connection_pooling",
+      "path_summary": "Customer database onboarding and pool management flow that decrypts stored DSNs, builds asyncpg pools, and repairs credentials when pool creation fails.",
+      "entrypoints": [
+        "get_customer_dsn",
+        "get_customer_pool",
+        "acquire_connection",
+        "close_customer_pool",
+        "close_all_pools"
+      ],
+      "connected_node_ids": [
+        "chunk_3dc55a70bad98636",
+        "chunk_f0510fd48336ff75",
+        "chunk_625ed08cd2f3a04e"
+      ],
+      "business_context": {
+        "capability": "customer database connection management",
+        "actor_goal": "obtain an active connection pool to a monitored customer PostgreSQL database",
+        "business_object": "DatabaseConnection / asyncpg.Pool",
+        "affected_actor_or_counterparty": "DBA or service operating on a customer database",
+        "business_value_or_consequence": [
+          "provides isolated per-connection pools",
+          "decrypts credentials only when needed",
+          "repairs stale monitoring credentials when possible",
+          "shuts pools down cleanly"
+        ]
+      },
+      "runtime_shapes": [
+        "DATABASE_ENGINE_SERVER",
+        "OBJECT_UTILITY_MODULE_PACKAGE"
+      ],
+      "workload_shapes": [
+        "MULTI_SOURCE_DATA_INGESTION_HYDRATION",
+        "TIME_SERIES_HORIZON_FORECASTING"
+      ],
+      "repo_specific_intent": "decrypt customer connection details, initialize or repair a pool, and hand out a live database connection",
+      "intent_family": "OTHER_REPO_SPECIFIC_INTENT",
+      "intent_object": "DatabaseConnection / asyncpg.Pool",
+      "desired_outcome": "an active, isolated connection pool for monitored customer PostgreSQL access",
+      "actors": [
+        {
+          "repo_native_actor": "DBA",
+          "business_role": "connection operator / monitoring operator",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "uses application database access and encrypted connection material",
+          "lifecycle_status_if_observed": "operates active monitored connection records",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 68,
+              "end_line": 91,
+              "symbol_or_node_id": "CustomerConnectionManager.get_customer_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Resolves a connection record from the app DB and returns a decrypted DSN."
+            },
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 93,
+              "end_line": 186,
+              "symbol_or_node_id": "CustomerConnectionManager.get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates and caches a pool for the selected customer connection."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "DatabaseConnection",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "DatabaseConnection.id / DatabaseConnection.user_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 74,
+              "end_line": 82,
+              "symbol_or_node_id": "get_customer_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Looks up a specific DatabaseConnection by connection_id and checks active status."
+            },
+            {
+              "chunk_id": "chunk_c94e4f9d9d0cebdb",
+              "file_path": "apps/backend/tests/unit/test_security_hardening.py",
+              "start_line": 139,
+              "end_line": 168,
+              "symbol_or_node_id": "test_tenant_isolation_model_contract",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Shows DatabaseConnection rows tied to distinct user_id values."
+            }
+          ],
+          "confidence": "MEDIUM"
+        },
+        {
+          "repo_resource_type": "asyncpg.Pool",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "connection_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 58,
+              "end_line": 67,
+              "symbol_or_node_id": "CustomerConnectionManager.__init__",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Maintains a pool cache keyed by connection UUID."
+            },
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 103,
+              "end_line": 112,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns cached active pools or initializes under a lock."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "CONNECTION_STATE",
+          "state_type": "CONNECTION_STATE",
+          "observed_values": [
+            "cached active pool",
+            "closed pool",
+            "repaired pool",
+            "newly created pool"
+          ],
+          "starting_state": "no active pool or stale pool",
+          "resulting_state": "usable asyncpg pool",
+          "source_symbol_or_field": "CustomerConnectionManager._pools",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 103,
+              "end_line": 112,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses cached pool when open and rechecks inside the lock."
+            },
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 155,
+              "end_line": 176,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates a pool and, on failure, attempts credential repair and retries."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "ACCOUNT_STATUS",
+          "state_type": "ACCOUNT_STATUS",
+          "observed_values": [
+            "is_active"
+          ],
+          "starting_state": "inactive or missing connection record",
+          "resulting_state": "active connection record required",
+          "source_symbol_or_field": "DatabaseConnection.is_active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 74,
+              "end_line": 79,
+              "symbol_or_node_id": "get_customer_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Raises if the connection record is missing or inactive."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_EXTERNAL_API_TO_RESPONSE",
+        "REQUEST_TO_DB_READ_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "EXTERNAL_API_CALLED",
+        "DATABASE_RECORD_UPDATED",
+        "JSON_PAYLOAD_RETURNED"
+      ],
+      "material_effects": [
+        "decrypts a stored connection string",
+        "creates or reuses an asyncpg pool",
+        "may repair and persist updated encrypted connection credentials",
+        "yields a dedicated pooled connection"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Reject missing or inactive customer connections before producing a DSN or pool.",
+          "source_symbol_or_condition": "if not record or not record.is_active / if not conn_record",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 74,
+              "end_line": 79,
+              "symbol_or_node_id": "get_customer_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection record must exist and be active."
+            },
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 114,
+              "end_line": 120,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Raises when the connection record cannot be found."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Re-use an open cached pool instead of creating a new one.",
+          "source_symbol_or_condition": "if connection_id in self._pools and not pool._closed",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 103,
+              "end_line": 112,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Checks the cache before entering the lock and again inside the lock."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Customer database credentials are decrypted just in time and are never intended to remain plaintext in storage.",
+          "rule_type": "PRIVACY_REDACTION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 122,
+              "end_line": 124,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Decrypts the stored connection string immediately before pool creation."
+            },
+            {
+              "chunk_id": "chunk_f0510fd48336ff75",
+              "file_path": "apps/backend/app/core/security.py",
+              "start_line": 162,
+              "end_line": 181,
+              "symbol_or_node_id": "encrypt_connection_string/decrypt_connection_string",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Implements Fernet encryption/decryption for connection strings."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Pool creation is serialized with a lock to avoid duplicate initialization races.",
+          "rule_type": "ORDERING_OR_SEQUENCE_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 109,
+              "end_line": 113,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses async lock and double-check pattern around pool initialization."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "If pool creation fails and setup credentials exist, the code attempts credential repair and persists the repaired connection string.",
+          "rule_type": "FAILURE_RECOVERY_OR_COMPENSATION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 159,
+              "end_line": 176,
+              "symbol_or_node_id": "get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Retries pool creation after repairing encrypted connection material."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Only active connection records can be used to derive a customer DSN.",
+        "A cached pool that is not closed may be reused.",
+        "Customer credentials are decrypted only at the point of pool setup or repair."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Connection identifiers and DB session are provided by the caller.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 68,
+              "end_line": 99,
+              "symbol_or_node_id": "get_customer_dsn/get_customer_pool",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Methods accept connection_id and db session inputs."
+            }
+          ]
+        },
+        {
+          "fact_name": "resource_scope_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The resource is scoped by connection_id and tied to a specific DatabaseConnection record.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_3dc55a70bad98636",
+              "file_path": "apps/backend/app/db/customer_db.py",
+              "start_line": 74,
+              "end_line": 82,
+              "symbol_or_node_id": "get_customer_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Looks up a specific database connection record by ID."
+            }
+          ]
+        },
+        {
+          "fact_name": "ownership_or_tenant_boundary",
+          "value": "TRUE",
+          "evidence_status": "INFERRED",
+          "reason": "The connection record is keyed by connection_id and tests show separate user_id ownership for distinct connections.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c94e4f9d9d0cebdb",
+              "file_path": "apps/backend/tests/unit/test_security_hardening.py",
+              "start_line": 139,
+              "end_line": 168,
+              "symbol_or_node_id": "test_tenant_isolation_model_contract",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Demonstrates DatabaseConnection rows associated with different users."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "OBSERVED_CONNECTED_CODE_RULE",
+          "AUTHORITATIVE_EXISTING_TEST",
+          "USER_DOCUMENTATION_OR_README"
+        ],
+        "requirement_statements": [
+          "Connection strings must be encrypted at rest and decrypted only when needed.",
+          "Customer pools should be isolated per connection ID.",
+          "Inactive or missing connections must not be used to build a pool."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_3dc55a70bad98636",
+            "file_path": "apps/backend/app/db/customer_db.py",
+            "start_line": 58,
+            "end_line": 227,
+            "symbol_or_node_id": "CustomerConnectionManager",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Implements connection pooling, validation, decryption, and cleanup."
+          },
+          {
+            "chunk_id": "chunk_f0510fd48336ff75",
+            "file_path": "apps/backend/app/core/security.py",
+            "start_line": 162,
+            "end_line": 181,
+            "symbol_or_node_id": "encrypt_connection_string/decrypt_connection_string",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Supports the encryption-at-rest requirement."
+          },
+          {
+            "chunk_id": "chunk_c94e4f9d9d0cebdb",
+            "file_path": "apps/backend/tests/unit/test_security_hardening.py",
+            "start_line": 18,
+            "end_line": 49,
+            "symbol_or_node_id": "test_connection_strings_encrypted_at_rest",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Test evidence for encrypted-at-rest and just-in-time decryption behavior."
+          }
+        ],
+        "conflicts_or_gaps": [],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_3dc55a70bad98636",
+          "file_path": "apps/backend/app/db/customer_db.py",
+          "start_line": 58,
+          "end_line": 227,
+          "symbol_or_node_id": "CustomerConnectionManager",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Connection manager implementation with pool caching, credential repair, and cleanup."
+        },
+        {
+          "chunk_id": "chunk_f0510fd48336ff75",
+          "file_path": "apps/backend/app/core/security.py",
+          "start_line": 162,
+          "end_line": 181,
+          "symbol_or_node_id": "encrypt_connection_string/decrypt_connection_string",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Fernet encryption/decryption used by the connection manager."
+        },
+        {
+          "chunk_id": "chunk_c94e4f9d9d0cebdb",
+          "file_path": "apps/backend/tests/unit/test_security_hardening.py",
+          "start_line": 18,
+          "end_line": 49,
+          "symbol_or_node_id": "test_connection_strings_encrypted_at_rest",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Confirms encrypted-at-rest and just-in-time decryption behavior."
+        }
+      ],
+      "evidence_gaps": [
+        "No direct line-by-line evidence here for the _provision_monitoring_dsn helper imported during repair.",
+        "No direct evidence here for the caller that consumes acquire_connection."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_hypopg_planner_cost_evaluation",
+      "path_summary": "Read-only SQL and CREATE INDEX validation flow that evaluates hypothetical PostgreSQL indexes, compares planner cost, and emits a planner-cost signal for candidate ranking.",
+      "entrypoints": [
+        "validate_index_statement",
+        "check_hypopg_installed",
+        "create_hypothetical_index",
+        "drop_hypothetical_index",
+        "reset_hypothetical_indexes",
+        "list_hypothetical_indexes",
+        "evaluate_hypothetical_index",
+        "filter_candidates"
+      ],
+      "connected_node_ids": [
+        "chunk_12ee5b4de6e31bcb",
+        "chunk_9b88da5139218846",
+        "chunk_c94e4f9d9d0cebdb",
+        "chunk_997a339725294d77"
+      ],
+      "business_context": {
+        "capability": "hypothetical index analysis",
+        "actor_goal": "compare candidate indexes and rank those that improve planner cost",
+        "business_object": "CREATE INDEX statement / planner cost signal",
+        "affected_actor_or_counterparty": "DBA or optimization operator",
+        "business_value_or_consequence": [
+          "filters candidate indexes by estimated cost reduction",
+          "labels outputs as theoretical rather than verified runtime performance",
+          "cleans up hypothetical indexes after evaluation"
+        ]
+      },
+      "runtime_shapes": [
+        "OBJECT_UTILITY_MODULE_PACKAGE",
+        "DATABASE_ENGINE_SERVER"
+      ],
+      "workload_shapes": [
+        "SEARCH_KEYWORD_TOKENIZATION_PARSING",
+        "FACETED_FILTERING_AGGREGATION"
+      ],
+      "repo_specific_intent": "validate a candidate index statement, create a temporary hypothetical index, compare EXPLAIN costs, and rank better candidates",
+      "intent_family": "SEARCH_FILTER_OR_DISCOVER",
+      "intent_object": "candidate index statements",
+      "desired_outcome": "a sorted set of promising index candidates based on planner-cost reduction",
+      "actors": [
+        {
+          "repo_native_actor": "DBA",
+          "business_role": "optimization operator",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "operates against a customer or shadow PostgreSQL connection",
+          "lifecycle_status_if_observed": "runs planner-cost analysis on candidate indexes",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 145,
+              "end_line": 213,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Compares baseline and candidate costs, flags improvements, and marks the result theoretical."
+            },
+            {
+              "chunk_id": "chunk_c94e4f9d9d0cebdb",
+              "file_path": "apps/backend/tests/unit/test_security_hardening.py",
+              "start_line": 120,
+              "end_line": 137,
+              "symbol_or_node_id": "test_hypopg_and_candidate_sql_sanitization",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Shows validated candidate DDL entering the HypoPG path."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "candidate index statement",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "session-local hypothetical index",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 24,
+              "end_line": 36,
+              "symbol_or_node_id": "validate_index_statement",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Validates CREATE INDEX syntax before evaluation."
+            },
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 55,
+              "end_line": 59,
+              "symbol_or_node_id": "create_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "States that the index exists only within the current database session."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "QUERY_TEXT",
+          "state_type": "QUERY_TEXT",
+          "observed_values": [
+            "read-only SELECT",
+            "WITH query"
+          ],
+          "starting_state": "caller-supplied SQL",
+          "resulting_state": "validated read-only query",
+          "source_symbol_or_field": "_validate_read_query",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9b88da5139218846",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 43,
+              "end_line": 56,
+              "symbol_or_node_id": "_validate_read_query",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Allows only one read-only statement and rejects write keywords."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "PROCESSING_STATUS",
+          "state_type": "PROCESSING_STATUS",
+          "observed_values": [
+            "CREATED",
+            "is_improvement",
+            "PLANNER_COST_SIGNAL"
+          ],
+          "starting_state": "baseline plan",
+          "resulting_state": "candidate plan evaluated and cleaned up",
+          "source_symbol_or_field": "evaluate_hypothetical_index",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 167,
+              "end_line": 213,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates a hypothetical index, re-explains the query, drops the index, and returns a planner-cost result."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_VALIDATION_TO_RESPONSE",
+        "REQUEST_TO_EXTERNAL_API_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "STRUCTURED_OBJECT_RETURNED",
+        "THRESHOLD_DECISION_PRODUCED",
+        "RESOURCE_RECONCILED"
+      ],
+      "material_effects": [
+        "validates index and SQL inputs",
+        "creates and drops session-local hypothetical indexes",
+        "returns planner-cost metrics and improvement flags",
+        "filters and ranks candidate index statements"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Only one read-only SQL statement is allowed for EXPLAIN-based evaluation.",
+          "source_symbol_or_condition": "_validate_read_query",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9b88da5139218846",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 43,
+              "end_line": 56,
+              "symbol_or_node_id": "_validate_read_query",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Rejects multi-statement or write-capable SQL."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Index statements must match CREATE INDEX syntax before being used.",
+          "source_symbol_or_condition": "validate_index_statement",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 31,
+              "end_line": 36,
+              "symbol_or_node_id": "validate_index_statement",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Raises ValueError for non-index SQL."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Hypothetical indexes are always dropped after candidate evaluation.",
+          "source_symbol_or_condition": "finally drop_hypothetical_index",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 172,
+              "end_line": 181,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Ensures cleanup in a finally block."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Planner cost estimates are explicitly not treated as verified runtime performance.",
+          "rule_type": "OUTPUT_CONTRACT_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 151,
+              "end_line": 156,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Docstring states the estimate is theoretical only."
+            },
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 206,
+              "end_line": 212,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Result includes signal_type PLANNER_COST_SIGNAL and a disclaimer."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Candidate indexes are only retained when they improve the planner and meet a minimum cost reduction threshold.",
+          "rule_type": "CALCULATION_OR_THRESHOLD_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 216,
+              "end_line": 247,
+              "symbol_or_node_id": "filter_candidates",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Filters by is_improvement and minimum cost reduction, then sorts descending."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Hypothetical indexes are session-local and should not persist on disk.",
+        "Only read-only SQL is allowed for EXPLAIN-based evaluation.",
+        "Invalid CREATE INDEX statements are rejected before evaluation."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The flow consumes caller-supplied SQL and candidate index statements.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 145,
+              "end_line": 159,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Consumes query and index_statement arguments."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The function returns a structured dict with costs, indexes, and signal type.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 195,
+              "end_line": 213,
+              "symbol_or_node_id": "evaluate_hypothetical_index",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns a structured result object."
+            }
+          ]
+        },
+        {
+          "fact_name": "external_dependency_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The code calls PostgreSQL and the hypopg extension through asyncpg.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 39,
+              "end_line": 48,
+              "symbol_or_node_id": "check_hypopg_installed",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Queries pg_extension for hypopg availability."
+            },
+            {
+              "chunk_id": "chunk_12ee5b4de6e31bcb",
+              "file_path": "apps/backend/app/tools/hypopg_tool.py",
+              "start_line": 62,
+              "end_line": 95,
+              "symbol_or_node_id": "create_hypothetical_index/drop_hypothetical_index/reset_hypothetical_indexes",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Invokes hypopg_create_index, hypopg_drop_index, and hypopg_reset."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "AUTHORITATIVE_EXISTING_TEST",
+          "OBSERVED_CONNECTED_CODE_RULE",
+          "USER_DOCUMENTATION_OR_README"
+        ],
+        "requirement_statements": [
+          "Planner-cost signals must be clearly distinguished from verified runtime performance.",
+          "Candidate SQL must be syntactically valid and read-only before planner evaluation.",
+          "Hypothetical indexes should be cleaned up after use."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_12ee5b4de6e31bcb",
+            "file_path": "apps/backend/app/tools/hypopg_tool.py",
+            "start_line": 1,
+            "end_line": 8,
+            "symbol_or_node_id": "module_docstring",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Module docstring states planner-cost signals are theoretical only."
+          },
+          {
+            "chunk_id": "chunk_9b88da5139218846",
+            "file_path": "apps/backend/app/tools/pg_introspection.py",
+            "start_line": 43,
+            "end_line": 56,
+            "symbol_or_node_id": "_validate_read_query",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Restricts SQL to read-only statements."
+          },
+          {
+            "chunk_id": "chunk_ccc5d8194c907c1d",
+            "file_path": "apps/backend/tests/unit/test_hypopg_tool.py",
+            "start_line": 104,
+            "end_line": 139,
+            "symbol_or_node_id": "test_hypopg_lifecycle_and_evaluation/test_filter_candidates_ranks_by_cost_reduction",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Tests lifecycle cleanup and ranking by cost reduction."
+          }
+        ],
+        "conflicts_or_gaps": [],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_12ee5b4de6e31bcb",
+          "file_path": "apps/backend/app/tools/hypopg_tool.py",
+          "start_line": 31,
+          "end_line": 247,
+          "symbol_or_node_id": "validate_index_statement/evaluate_hypothetical_index/filter_candidates",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Core hypothetical index validation, evaluation, cleanup, and ranking logic."
+        },
+        {
+          "chunk_id": "chunk_9b88da5139218846",
+          "file_path": "apps/backend/app/tools/pg_introspection.py",
+          "start_line": 43,
+          "end_line": 56,
+          "symbol_or_node_id": "_validate_read_query",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Read-only SQL guard used by HypoPG evaluation."
+        },
+        {
+          "chunk_id": "chunk_ccc5d8194c907c1d",
+          "file_path": "apps/backend/tests/unit/test_hypopg_tool.py",
+          "start_line": 77,
+          "end_line": 139,
+          "symbol_or_node_id": "test_validate_index_statement/test_hypopg_lifecycle_and_evaluation/test_filter_candidates_ranks_by_cost_reduction",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Confirms validation, planner-cost evaluation, cleanup, and candidate ranking."
+        }
+      ],
+      "evidence_gaps": [
+        "No direct production caller is shown in this fragment for these HypoPG utilities.",
+        "No direct evidence here for the downstream shadow replay that validates a candidate after planner-cost filtering."
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "cross_pack_followups": [
+    {
+      "reason": "Need connected evidence for the downstream shadow replay and statistical verification stage after planner-cost filtering.",
+      "related_semantic_pack_id": "semantic_pack_002",
+      "related_source_batch_id": "batch_038",
+      "related_chunk_id": "chunk_329fec60080e5dd2"
+    },
+    {
+      "reason": "Need the production caller that invokes evaluate_hypothetical_index/filter_candidates in the end-to-end optimization workflow.",
+      "related_semantic_pack_id": "semantic_pack_002",
+      "related_source_batch_id": "batch_021",
+      "related_chunk_id": "chunk_f20b5c23667da0c3"
+    }
+  ],
+  "unsupported_or_nonmaterial_signals": [
+    {
+      "signal": "graph_diagnosis LangGraph root-cause routing",
+      "reason": "Only module context and names are present here; no enough connected production entrypoint/effect path for the diagnosis workflow in this part.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_48c497147bf0d3ff",
+          "file_path": "apps/backend/app/agents/graph_diagnosis.py",
+          "start_line": 1,
+          "end_line": 33,
+          "symbol_or_node_id": "graph_diagnosis module context",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Shows module purpose and imports but not the full runnable graph in this fragment."
+        }
+      ]
+    },
+    {
+      "signal": "Unified CLI dispatcher for workers",
+      "reason": "This fragment shows command-line dispatch names, but the concrete worker effect paths are better represented by the worker implementation chunks and are not mapped separately here to avoid duplication.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_3683a3d4eaafbe64",
+          "file_path": "apps/backend/app/workers/__main__.py",
+          "start_line": 24,
+          "end_line": 73,
+          "symbol_or_node_id": "parse_args/run_selected_worker",
+          "evidence_level": "E2_CONNECTED_CODE",
+          "evidence_summary": "Dispatches to worker mains by CLI choice."
+        }
+      ]
+    }
+  ]
+}

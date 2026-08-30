@@ -1,0 +1,16 @@
+{
+  "status": "SUCCESS",
+  "generated_at": "2026-08-29T20:54:20.865674+00:00",
+  "scan_completeness": "PARTIAL",
+  "expected_requests": 11,
+  "completed_requests": 10,
+  "normalized_paths": 26,
+  "components": 1,
+  "repository_wide_conclusions_allowed": false,
+  "outputs": {
+    "normalized_business_paths": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\normalized_business_paths.json",
+    "business_workflow_context_html": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\business_workflow_context.html",
+    "business_path_coverage": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\business_path_coverage.json",
+    "audit_log": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\business_path_compiler_audit.jsonl"
+  }
+}

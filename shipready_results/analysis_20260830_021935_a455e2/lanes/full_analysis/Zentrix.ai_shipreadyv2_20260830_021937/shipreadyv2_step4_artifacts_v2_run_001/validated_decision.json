@@ -1,0 +1,46 @@
+{
+  "runner_version": "shipready-step4-business-flaw-v3.0-structural-hotspots",
+  "model": "gpt-5.4",
+  "input_sha256": "9071736a0a5bb8885735a0fc14425a664ece143d8846abfc560b8a9601fdabc1",
+  "usage": {
+    "input_tokens": 64888,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 1420,
+    "output_tokens_details": {
+      "reasoning_tokens": 946
+    },
+    "total_tokens": 66308
+  },
+  "result": {
+    "schema_version": "shipready.customer_business_flaw_report.v2",
+    "repository_name": "Zentrix.ai",
+    "executive_bottom_line": "No business flaw passed the business-impact gate in the analyzed paths.",
+    "published_flaws": [],
+    "fix_first_flaw_ids": [],
+    "candidate_dispositions": [
+      {
+        "source_insight_id": "insight_3c28840f4537d161",
+        "decision": "BUSINESS_IMPACT_NOT_ESTABLISHED",
+        "published_flaw_id": "",
+        "reason": "The code establishes that collect_once and collect_connection_telemetry are repeatable and that each run persists telemetry rows, but the connected workflow also establishes that this worker is designed to poll continuously and store a snapshot each cycle. The supplied evidence does not establish that repeating the operation creates an incorrect duplicate business record, violates an idempotency requirement, or causes a material downstream business downside."
+      },
+      {
+        "source_insight_id": "insight_a3f87214cf5c571b",
+        "decision": "CODE_BEHAVIOR_NOT_ESTABLISHED",
+        "published_flaw_id": "",
+        "reason": "The supplied path does not establish a prohibited starting state, an invalid resulting state, or a causally proven bad state transition. The evidence shows telemetry capture and persistence, but not an incorrect state-machine transition with a material business effect."
+      },
+      {
+        "source_insight_id": "insight_e1f769db59cec924",
+        "decision": "CODE_BEHAVIOR_NOT_ESTABLISHED",
+        "published_flaw_id": "",
+        "reason": "The supplied evidence does not establish a caller-controlled data contract or a connected producer-to-transform-to-sink path that yields an incorrect persisted business outcome. A plan-hash transformation exists, but the causal contract flaw is not proven."
+      }
+    ],
+    "decision_summary": "After reviewing the supplied Step 3 candidates, connected code, and bounded counterevidence, no publishable business flaw is supported for this repository slice. The strongest candidate proves scheduled, repeatable persistence of telemetry snapshots, but that behavior matches the observed polling workflow rather than contradicting it. The remaining candidates do not establish the required incorrect state transition or contract transformation behavior with material business impact."
+  },
+  "repairs": []
+}

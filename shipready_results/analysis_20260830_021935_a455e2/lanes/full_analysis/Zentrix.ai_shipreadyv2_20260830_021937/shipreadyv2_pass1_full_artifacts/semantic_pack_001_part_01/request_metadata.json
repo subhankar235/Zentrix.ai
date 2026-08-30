@@ -1,0 +1,46 @@
+{
+  "request_id": "semantic_pack_001_part_01",
+  "semantic_pack_id": "semantic_pack_001",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 2
+  },
+  "model": "gpt-5.4-mini",
+  "reasoning_effort": "low",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "assembled_input_tokens": 53301,
+  "assembled_input_sha256": "99775584792d25085d1fc7578107df3d7ee2621966b391b357e91da2d7c54609",
+  "chunk_count": 19,
+  "chunk_ids": [
+    "chunk_4511d1ebf2f16041",
+    "chunk_44e84363e255cd57",
+    "chunk_368745160ced6037",
+    "chunk_134f45fabc77d9f6",
+    "chunk_7309175680572066",
+    "chunk_d6f01a4c6b82fde8",
+    "chunk_472f0ef173a90a98",
+    "chunk_14c8a5f497042852",
+    "chunk_093d8d6c7af8b382",
+    "chunk_e6e4f00f18ef6d01",
+    "chunk_2b6f45e20c96d178",
+    "chunk_fd82ca48c4a4e952",
+    "chunk_e4d09ee004551c25",
+    "chunk_b17f224f636d5350",
+    "chunk_624a1c8e473e4543",
+    "chunk_27691a516d7604d5",
+    "chunk_63406ba661edc35c",
+    "chunk_0011a30e049761bc",
+    "chunk_6830785102ddd386"
+  ],
+  "source_token_accounting": {
+    "tokenizer": "tiktoken:cl100k_base",
+    "shared_context_tokens": 9600,
+    "assembly_separator_tokens": 9,
+    "request_payload_tokens": 43251,
+    "assembled_input_tokens": 52860,
+    "target_assembled_input_tokens": 66000,
+    "maximum_assembled_input_tokens": 70000,
+    "safety_margin_tokens": 1000,
+    "remaining_before_maximum": 17140
+  }
+}

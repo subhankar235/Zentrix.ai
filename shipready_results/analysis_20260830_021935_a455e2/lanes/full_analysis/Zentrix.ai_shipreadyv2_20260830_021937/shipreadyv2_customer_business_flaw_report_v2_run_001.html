@@ -1,0 +1,496 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShipReady Business Flaw Report</title>
+<style>body{margin:0;background:#f8fafc;color:#0f172a;font:16px/1.55 Inter,Segoe UI,Arial,sans-serif}main{max-width:1180px;margin:auto;padding:38px 24px 80px}h1{font-size:36px;margin:0 0 8px}h2{font-size:25px}h3{font-size:16px;margin-bottom:6px}p,li,td,dd{overflow-wrap:anywhere}.summary,.flaw,.structural-review{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin:20px 0;box-shadow:0 8px 30px rgba(15,23,42,.05)}.critical{border-left:7px solid #991b1b}.high{border-left:7px solid #c2410c}.medium{border-left:7px solid #a16207}.badge,.structural-badge{display:inline-block;background:#0f172a;color:white;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}.structural-badge{background:#4338ca}.bottom{font-size:19px;font-weight:600}.metrics{display:flex;gap:14px;flex-wrap:wrap}.metric{background:#e2e8f0;border-radius:12px;padding:12px 16px;min-width:120px}.metric strong{display:block;font-size:25px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.grid section{background:#f1f5f9;padding:14px;border-radius:10px}dl{display:grid;grid-template-columns:190px 1fr;gap:8px 16px}dt{font-weight:700}dd{margin:0}.graph-scroll{width:100%;overflow-x:auto;padding-bottom:8px}.path-graph{display:block;width:1500px;max-width:none;height:auto;background:white;border:1px solid #e2e8f0;border-radius:16px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #e2e8f0;padding:8px}summary{cursor:pointer;font-weight:700}.hotspot-card{margin-top:16px;padding:18px;background:#f8fafc;border:1px solid #dbe3f5;border-left:5px solid #4f46e5;border-radius:12px}.hotspot-card>h3{font-size:19px;margin:9px 0}.hotspot-code{margin-top:12px;padding:12px;background:#0f172a;border-radius:10px;overflow:hidden}.code-location{margin-bottom:8px;color:#c4b5fd;font-size:12px;font-weight:700}pre{margin:0;overflow:auto;color:#e2e8f0;font:12px/1.5 Consolas,monospace;white-space:pre}.hotspot-details{margin-top:14px}@media(max-width:760px){main{padding:24px 12px 50px}h1{font-size:29px}.grid{grid-template-columns:1fr}dl{grid-template-columns:1fr}.summary,.flaw,.structural-review{padding:17px}.path-graph{width:1200px}pre{font-size:11px}}</style></head>
+<body><main><h1>Zentrix.ai business flaw report</h1><p>Business-heavy findings reconstructed from connected code paths.</p>
+<section class="summary"><h2>Bottom line</h2><p class="bottom">No business flaw passed the business-impact gate in the analyzed paths.</p><div class="metrics"><div class="metric"><strong>0</strong>flaws</div><div class="metric"><strong>0</strong>strong evidence</div><div class="metric"><strong>0</strong>supported evidence</div></div></section>
+<h2>Business paths</h2><div class="graph-scroll"><img class="path-graph" src="shipreadyv2_customer_business_flaw_graph_v2_run_001.svg" alt="Business flaw paths"></div><h2>Business flaws</h2><article class="flaw"><h2>No business flaw passed the business-impact gate.</h2></article>
+
+<section class="structural-review">
+  <h2>Additional code areas worth reviewing</h2>
+  <p>These code areas met strict structural rules for concentrated complexity or strong code connections. They are review priorities, not confirmed business flaws.</p>
+  
+<article class="hotspot-card">
+  <div class="structural-badge">STRUCTURAL REVIEW</div>
+  <h3>1. Complex decision function in client.ts</h3>
+  <p>A heavily branched decision function is used on an important execution surface.</p>
+  <h3>Why it was selected</h3><ul><li>request: 20 decisions with nesting depth 9</li></ul>
+  <h3>Connected source files</h3><ul><li>apps/frontend/lib/api/audit.ts</li><li>apps/frontend/lib/api/auth.ts</li><li>apps/frontend/lib/api/connections.ts</li><li>apps/frontend/lib/api/diagnostics.ts</li><li>apps/frontend/lib/api/experiments.ts</li><li>apps/frontend/lib/api/forecasts.ts</li><li>apps/frontend/lib/api/monitoring.ts</li><li>apps/frontend/lib/api/roi.ts</li><li>apps/frontend/lib/api/sse.ts</li></ul>
+  <details class="hotspot-details"><summary>View the relevant code</summary><div class="hotspot-code"><div class="code-location">apps/frontend/lib/api/client.ts · lines 43–151 · request</div><pre><code>    43 | export async function request&lt;T&gt;(endpoint: string, options: RequestOptions = {}): Promise&lt;T&gt; {
+    44 |   const { params, headers, ...customConfig } = options;
+    45 | 
+    46 |   let url = endpoint.startsWith(&#x27;http&#x27;)
+    47 |     ? endpoint
+    48 |     : `${API_BASE_URL}${endpoint.startsWith(&#x27;/&#x27;) ? endpoint : `/${endpoint}`}`;
+    49 | 
+    50 |   if (params) {
+    51 |     const searchParams = new URLSearchParams();
+    52 |     Object.entries(params).forEach(([key, value]) =&gt; {
+    53 |       if (value !== undefined &amp;&amp; value !== null) {
+    54 |         searchParams.append(key, String(value));
+    55 |       }
+    56 |     });
+    57 |     const queryString = searchParams.toString();
+    58 |     if (queryString) {
+    59 |       url += (url.includes(&#x27;?&#x27;) ? &#x27;&amp;&#x27; : &#x27;?&#x27;) + queryString;
+    60 |     }
+    61 |   }
+    62 | 
+    63 |   const defaultHeaders: Record&lt;string, string&gt; = {
+    64 |     &#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
+    65 |   };
+    66 | 
+    67 |   // Retrieve token dynamically from Clerk Auth bridge or fallback
+    68 |   let token=&lt;redacted&gt; | null = null;
+    69 | 
+    70 |   if (globalAuthTokenGetter) {
+    71 |     try {
+    72 |       token=&lt;redacted&gt; globalAuthTokenGetter();
+    73 |     } catch (err) {
+    74 |       console.warn(&#x27;[apiClient] Error retrieving session token from auth getter:&#x27;, err);
+    75 |     }
+    76 |   }
+    77 | 
+    78 |   if (!token &amp;&amp; typeof window !== &#x27;undefined&#x27;) {
+    79 |     const clerk = (window as unknown as { Clerk?: { session?: { getToken: () =&gt; Promise&lt;string | null&gt; } } }).Clerk;
+    80 |     if (clerk?.session) {
+    81 |       try {
+    82 |         token=&lt;redacted&gt; clerk.session.getToken();
+    83 |       } catch {
+    84 |         // Continue to fallback
+    85 |       }
+    86 |     }
+    87 |     if (!token) {
+    88 |       token=&lt;redacted&gt;&#x27;zentrix_auth_token&#x27;);
+    89 |     }
+    90 |   }
+    91 | 
+    92 |   if (token) {
+    93 |     defaultHeaders[&#x27;Authorization&#x27;] = `Bearer ${token}`;
+    94 |   }
+    95 | 
+    96 |   const config: RequestInit = {
+    97 |     method: &#x27;GET&#x27;,
+    98 |     credentials: &#x27;include&#x27;,
+    99 |     headers: {
+   100 |       ...defaultHeaders,
+   101 |       ...headers,
+   102 |     },
+   103 |     ...customConfig,
+   104 |   };
+   105 | 
+   106 |   try {
+   107 |     const response = await fetch(url, config);
+   108 | 
+   109 |     if (!response.ok) {
+   110 |       let errorData: ApiErrorResponse | null = null;
+   111 |       try {
+   112 |         errorData = await response.json();
+   113 |       } catch {
+   114 |         // Not JSON
+   115 |       }
+   116 | 
+   117 |       let message = `API error ${response.status}: ${response.statusText}`;
+   118 |       if (errorData?.detail) {
+   119 |         if (typeof errorData.detail === &#x27;string&#x27;) {
+   120 |           message = errorData.detail;
+   121 |         } else if (Array.isArray(errorData.detail)) {
+   122 |           message = errorData.detail
+   123 |             .map((e: unknown) =&gt; {
+   124 |               if (typeof e === &#x27;object&#x27; &amp;&amp; e !== null) {
+   125 |                 const item = e as Record&lt;string, unknown&gt;;
+   126 |                 return String(item.msg || item.message || JSON.stringify(e));
+   127 |               }
+   128 |               return String(e);
+   129 |             })
+   130 |             .join(&#x27;, &#x27;);
+   131 |         }
+   132 |       } else if (errorData?.message) {
+   133 |         message = errorData.message;
+   134 |       }
+   135 | 
+   136 |       throw new ApiError(message, response.status, errorData);
+   137 |     }
+   138 | 
+   139 |     if (response.status === 204) {
+   140 |       return {} as T;
+   141 |     }
+   142 | 
+   143 |     return (await response.json()) as T;
+   144 |   } catch (err: unknown) {
+   145 |     if (err instanceof ApiError) {
+   146 |       throw err;
+   147 |     }
+   148 |     const message = err instanceof Error ? err.message : &#x27;Network error&#x27;;
+   149 |     throw new ApiError(message, 0, err);
+   150 |   }
+   151 | }</code></pre></div></details>
+</article>
+<article class="hotspot-card">
+  <div class="structural-badge">STRUCTURAL REVIEW</div>
+  <h3>2. Tightly connected module: main.py</h3>
+  <p>Changes can propagate across several connected source files.</p>
+  <h3>Why it was selected</h3><ul><li>12 incoming and 6 outgoing source connections</li></ul>
+  <h3>Connected source files</h3><ul><li>apps/backend/app/api/router.py</li><li>apps/backend/app/core/config.py</li><li>apps/backend/app/core/exceptions.py</li><li>apps/backend/app/core/logging.py</li><li>apps/backend/app/db/customer_db.py</li><li>apps/backend/app/db/session.py</li><li>apps/backend/tests/integration/test_api_skeleton.py</li><li>apps/backend/tests/integration/test_approval_gate.py</li><li>apps/backend/tests/integration/test_audit_flow.py</li><li>apps/backend/tests/integration/test_auth_flow.py</li><li>apps/backend/tests/integration/test_connection_service.py</li><li>apps/backend/tests/integration/test_connections_flow.py</li><li>apps/backend/tests/integration/test_diagnosis_flow.py</li><li>apps/backend/tests/integration/test_e2e_full_lifecycle.py</li><li>apps/backend/tests/integration/test_forecast_flow.py</li><li>apps/backend/tests/integration/test_global_error_handling.py</li><li>apps/backend/tests/integration/test_roi_flow.py</li><li>apps/backend/tests/integration/test_simulation_flow.py</li></ul>
+  <details class="hotspot-details"><summary>View the relevant code</summary><div class="hotspot-code"><div class="code-location">apps/backend/app/main.py · lines 1–232 · Relevant source section</div><pre><code>     1 | &quot;&quot;&quot;Main FastAPI Application Entry Point for Zentrix.ai.
+     2 | 
+     3 | Reference: ARCHITECTURE.md §4 (app/main.py), §10 &amp; PRD.md §12
+     4 | &quot;&quot;&quot;
+     5 | 
+     6 | import site
+     7 | import sys
+     8 | from pathlib import Path
+     9 | 
+    10 | # ── Bootstrap Paths &amp; Site Packages for Subprocesses / Windows Reloader ──────
+    11 | _backend_root = Path(__file__).resolve().parent.parent
+    12 | if str(_backend_root) not in sys.path:
+    13 |     sys.path.insert(0, str(_backend_root))
+    14 | 
+    15 | _venv_site = _backend_root / &quot;.venv&quot; / &quot;Lib&quot; / &quot;site-packages&quot;
+    16 | if _venv_site.exists() and str(_venv_site) not in sys.path:
+    17 |     site.addsitedir(str(_venv_site))
+    18 | 
+    19 | _user_site = site.getusersitepackages()
+    20 | if _user_site and _user_site not in sys.path and Path(_user_site).exists():
+    21 |     site.addsitedir(_user_site)
+    22 | 
+    23 | from contextlib import asynccontextmanager
+    24 | from typing import Any, AsyncGenerator
+    25 | from fastapi import FastAPI, HTTPException, Request, status
+    26 | from fastapi.exceptions import RequestValidationError
+    27 | from fastapi.middleware.cors import CORSMiddleware
+    28 | from fastapi.responses import JSONResponse
+    29 | from starlette.exceptions import HTTPException as StarletteHTTPException
+    30 | 
+    31 | from app.api.router import api_router
+    32 | from app.core.config import get_settings
+    33 | from app.core.exceptions import ZentrixException, format_error_response
+    34 | from app.core.logging import get_logger, setup_logging
+    35 | from app.db.session import check_db_health, dispose_db_engine
+    36 | 
+    37 | settings = get_settings()
+    38 | logger = get_logger(__name__)
+    39 | 
+    40 | 
+    41 | @asynccontextmanager
+    42 | async def lifespan(app: FastAPI) -&gt; AsyncGenerator[None, None]:
+    43 |     &quot;&quot;&quot;Application startup and shutdown lifespan context manager.&quot;&quot;&quot;
+    44 |     # ── Startup ──
+    45 |     setup_logging(environment=settings.ENVIRONMENT)
+    46 |     logger.info(
+    47 |         f&quot;Starting Zentrix.ai API in {settings.ENVIRONMENT} mode&quot;,
+    48 |         extra={&quot;environment&quot;: settings.ENVIRONMENT, &quot;api_prefix&quot;: settings.API_V1_PREFIX},
+    49 |     )
+    50 | 
+    51 |     # Verify database connection
+    52 |     db_healthy = await check_db_health()
+    53 |     if db_healthy:
+    54 |         logger.info(&quot;Application database connection verified successfully&quot;)
+    55 |     else:
+    56 |         logger.warning(&quot;Application database connection check returned non-healthy status on startup&quot;)
+    57 | 
+    58 |     yield
+    59 | 
+    60 |     # ── Shutdown ──
+    61 |     logger.info(&quot;Shutting down Zentrix.ai API, releasing connection pools...&quot;)
+    62 |     from app.db.customer_db import customer_connection_manager
+    63 |     await customer_connection_manager.close_all_pools()
+    64 |     await dispose_db_engine()
+    65 |     logger.info(&quot;Zentrix.ai API shutdown complete&quot;)
+    66 | 
+    67 | 
+    68 | app = FastAPI(
+    69 |     title=settings.PROJECT_NAME,
+    70 |     version=&quot;1.0.0&quot;,
+    71 |     description=&quot;Autonomous Agentic Database Tuning &amp; Performance Verification Engine&quot;,
+    72 |     docs_url=&quot;/docs&quot;,
+    73 |     redoc_url=&quot;/redoc&quot;,
+    74 |     openapi_url=f&quot;{settings.API_V1_PREFIX}/openapi.json&quot;,
+    75 |     lifespan=lifespan,
+    76 | )
+    77 | 
+    78 | # ── CORS Middleware ──────────────────────────────────────────────────────────
+    79 | app.add_middleware(
+    80 |     CORSMiddleware,
+    81 |     allow_origins=settings.CORS_ORIGINS,
+    82 |     allow_credentials=True,
+    83 |     allow_methods=[&quot;*&quot;],
+    84 |     allow_headers=[&quot;*&quot;],
+    85 | )
+    86 | 
+    87 | 
+    88 | # ── Global Exception Handlers (Step 32) ──────────────────────────────────────
+    89 | 
+    90 | @app.exception_handler(ZentrixException)
+       | … middle lines omitted from this display …
+   143 |         status_code=status.HTTP_404_NOT_FOUND,
+   144 |         content=format_error_response(
+   145 |             code=&quot;NOT_FOUND&quot;,
+   146 |             message=str(exc),
+   147 |             status_code=status.HTTP_404_NOT_FOUND,
+   148 |         ),
+   149 |     )
+   150 | 
+   151 | 
+   152 | @app.exception_handler(ValueError)
+   153 | async def value_error_handler(request: Request, exc: ValueError) -&gt; JSONResponse:
+   154 |     &quot;&quot;&quot;Handles client argument/value validation errors (400).&quot;&quot;&quot;
+   155 |     logger.warning(f&quot;Value error on {request.method} {request.url.path}: {exc}&quot;)
+   156 |     return JSONResponse(
+   157 |         status_code=status.HTTP_400_BAD_REQUEST,
+   158 |         content=format_error_response(
+   159 |             code=&quot;BAD_REQUEST&quot;,
+   160 |             message=str(exc),
+   161 |             status_code=status.HTTP_400_BAD_REQUEST,
+   162 |         ),
+   163 |     )
+   164 | 
+   165 | 
+   166 | @app.exception_handler(StarletteHTTPException)
+   167 | async def http_exception_handler(request: Request, exc: StarletteHTTPException) -&gt; JSONResponse:
+   168 |     &quot;&quot;&quot;Handles standard HTTP exceptions.&quot;&quot;&quot;
+   169 |     code_map = {
+   170 |         401: &quot;UNAUTHENTICATED&quot;,
+   171 |         403: &quot;FORBIDDEN&quot;,
+   172 |         404: &quot;NOT_FOUND&quot;,
+   173 |         405: &quot;METHOD_NOT_ALLOWED&quot;,
+   174 |         409: &quot;CONFLICT&quot;,
+   175 |         422: &quot;UNPROCESSABLE_ENTITY&quot;,
+   176 |         500: &quot;INTERNAL_SERVER_ERROR&quot;,
+   177 |         503: &quot;SERVICE_UNAVAILABLE&quot;,
+   178 |     }
+   179 |     return JSONResponse(
+   180 |         status_code=exc.status_code,
+   181 |         content=format_error_response(
+   182 |             code=code_map.get(exc.status_code, &quot;HTTP_ERROR&quot;),
+   183 |             message=str(exc.detail),
+   184 |             status_code=exc.status_code,
+   185 |         ),
+   186 |     )
+   187 | 
+   188 | 
+   189 | @app.exception_handler(Exception)
+   190 | async def generic_exception_handler(request: Request, exc: Exception) -&gt; JSONResponse:
+   191 |     &quot;&quot;&quot;Catch-all for unhandled internal exceptions (500).&quot;&quot;&quot;
+   192 |     logger.exception(f&quot;Unhandled exception on {request.method} {request.url.path}: {exc}&quot;)
+   193 |     return JSONResponse(
+   194 |         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+   195 |         content=format_error_response(
+   196 |             code=&quot;INTERNAL_SERVER_ERROR&quot;,
+   197 |             message=&quot;An unexpected internal error occurred. Our engineers have been alerted.&quot;,
+   198 |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+   199 |         ),
+   200 |     )
+   201 | 
+   202 | 
+   203 | # ── Health Check Endpoints ───────────────────────────────────────────────────
+   204 | 
+   205 | @app.get(&quot;/&quot;, tags=[&quot;Health&quot;])
+   206 | async def root() -&gt; dict[str, Any]:
+   207 |     &quot;&quot;&quot;Root endpoint returning service identity and status.&quot;&quot;&quot;
+   208 |     return {
+   209 |         &quot;name&quot;: settings.PROJECT_NAME,
+   210 |         &quot;version&quot;: &quot;1.0.0&quot;,
+   211 |         &quot;status&quot;: &quot;online&quot;,
+   212 |         &quot;environment&quot;: settings.ENVIRONMENT,
+   213 |         &quot;docs_url&quot;: &quot;/docs&quot;,
+   214 |     }
+   215 | 
+   216 | 
+   217 | @app.get(&quot;/health&quot;, tags=[&quot;Health&quot;])
+   218 | async def health_check() -&gt; JSONResponse:
+   219 |     &quot;&quot;&quot;Service health check verifying application database reachability.&quot;&quot;&quot;
+   220 |     db_healthy = await check_db_health()
+   221 |     return JSONResponse(
+   222 |         status_code=status.HTTP_200_OK if db_healthy else status.HTTP_503_SERVICE_UNAVAILABLE,
+   223 |         content={
+   224 |             &quot;status&quot;: &quot;healthy&quot; if db_healthy else &quot;degraded&quot;,
+   225 |             &quot;database&quot;: &quot;connected&quot; if db_healthy else &quot;disconnected&quot;,
+   226 |             &quot;environment&quot;: settings.ENVIRONMENT,
+   227 |         },
+   228 |     )
+   229 | 
+   230 | 
+   231 | # ── Mount API Routers ────────────────────────────────────────────────────────
+   232 | app.include_router(api_router, prefix=settings.API_V1_PREFIX)</code></pre></div></details>
+</article>
+<article class="hotspot-card">
+  <div class="structural-badge">STRUCTURAL REVIEW</div>
+  <h3>3. Large concentrated module: mock-data.ts</h3>
+  <p>A large amount of behavior is concentrated in one module.</p>
+  <h3>Why it was selected</h3><ul><li>893 source lines and 16 functions/classes</li></ul>
+  
+  <details class="hotspot-details"><summary>View the relevant code</summary><div class="hotspot-code"><div class="code-location">apps/frontend/lib/mock-data.ts · lines 704–877 · Relevant source section</div><pre><code>   704 | 
+   705 | export const forecasts: Record&lt;string, Forecast&gt; = {
+   706 |     &#x27;prod-orders-db&#x27;: {
+   707 |         connectionId: &#x27;prod-orders-db&#x27;,
+   708 |         headline: &#x27;61% probability of index-effectiveness degradation within 5 days&#x27;,
+   709 |         thresholdDay: 5,
+   710 |         thresholdProbability: 0.61,
+   711 |         curve: forecastCurve(0.82, 5),
+   712 |         suggestions: [
+   713 |             {
+   714 |                 id: &#x27;fc-rec-1&#x27;,
+   715 |                 type: &#x27;STATISTICS&#x27;,
+   716 |                 title: &#x27;Schedule nightly ANALYZE on orders after ETL&#x27;,
+   717 |                 rationale: &#x27;Preempt the recurring statistics drift that drives plan flips after the bulk import.&#x27;,
+   718 |                 predictedImpact: &#x27;Prevents ~2 plan-flip incidents/week&#x27;,
+   719 |                 uncertaintyPct: 11,
+   720 |                 risk: &#x27;Low&#x27;,
+   721 |             },
+   722 |             {
+   723 |                 id: &#x27;fc-rec-2&#x27;,
+   724 |                 type: &#x27;INDEX&#x27;,
+   725 |                 title: &#x27;Pre-create covering index before Q4 traffic ramp&#x27;,
+   726 |                 rationale: &#x27;Forecast shows index pressure crossing threshold as order volume grows into Q4.&#x27;,
+   727 |                 predictedImpact: &#x27;Maintains p95 under 150 ms at 2x load&#x27;,
+   728 |                 uncertaintyPct: 18,
+   729 |                 risk: &#x27;Medium&#x27;,
+   730 |             },
+   731 |         ],
+   732 |         calibration: [
+   733 |             { predicted: 55, actual: 52, samples: 210 },
+   734 |             { predicted: 65, actual: 61, samples: 188 },
+   735 |             { predicted: 75, actual: 77, samples: 164 },
+   736 |             { predicted: 85, actual: 83, samples: 142 },
+   737 |             { predicted: 95, actual: 93, samples: 96 },
+   738 |         ],
+   739 |         mae: [
+   740 |             { version: &#x27;v0.1&#x27;, mae: 0.214 },
+   741 |             { version: &#x27;v0.2&#x27;, mae: 0.171 },
+   742 |             { version: &#x27;v0.3&#x27;, mae: 0.158 },
+   743 |             { version: &#x27;v0.4&#x27;, mae: 0.132 },
+   744 |             { version: &#x27;v0.5&#x27;, mae: 0.121 },
+   745 |             { version: &#x27;v0.6&#x27;, mae: 0.104 },
+   746 |         ],
+   747 |         bandit: [
+   748 |             { strategy: &#x27;Statistics refresh&#x27;, reward: 0.82, pulls: 41 },
+   749 |             { strategy: &#x27;Index creation&#x27;, reward: 0.74, pulls: 33 },
+   750 |             { strategy: &#x27;Query rewrite&#x27;, reward: 0.69, pulls: 22 },
+   751 |             { strategy: &#x27;Vacuum tuning&#x27;, reward: 0.58, pulls: 18 },
+   752 |             { strategy: &#x27;Config change&#x27;, reward: 0.44, pulls: 14 },
+   753 |             { strategy: &#x27;Do nothing&#x27;, reward: 0.21, pulls: 9 },
+   754 |         ],
+   755 |     },
+   756 |     &#x27;analytics-warehouse&#x27;: {
+   757 |         connectionId: &#x27;analytics-warehouse&#x27;,
+   758 |         headline: &#x27;38% probability of scan-cost degradation within 7 days&#x27;,
+   759 |         thresholdDay: 7,
+   760 |         thresholdProbability: 0.38,
+   761 |         curve: forecastCurve(0.58, 8),
+   762 |         suggestions: [
+   763 |             {
+   764 |                 id: &#x27;fc-rec-3&#x27;,
+   765 |                 type: &#x27;INDEX&#x27;,
+   766 |                 title: &#x27;Add partitioning on fact_events by event_date&#x27;,
+   767 |                 rationale: &#x27;Range partitioning bounds scan cost as the table grows past 300M rows.&#x27;,
+   768 |                 predictedImpact: &#x27;Caps mean latency growth at ~5%/quarter&#x27;,
+   769 |                 uncertaintyPct: 22,
+   770 |                 risk: &#x27;High&#x27;,
+   771 |             },
+   772 |         ],
+   773 |         calibration: [
+   774 |             { predicted: 55, actual: 49, samples: 120 },
+   775 |             { predicted: 65, actual: 66, samples: 104 },
+   776 |             { predicted: 75, actual: 71, samples: 88 },
+   777 |             { predicted: 85, actual: 88, samples: 61 },
+   778 |             { predicted: 95, actual: 90, samples: 40 },
+   779 |         ],
+   780 |         mae: [
+   781 |             { version: &#x27;v0.1&#x27;, mae: 0.242 },
+   782 |             { version: &#x27;v0.2&#x27;, mae: 0.205 },
+   783 |             { version: &#x27;v0.3&#x27;, mae: 0.221 },
+   784 |             { version: &#x27;v0.4&#x27;, mae: 0.169 },
+   785 |             { version: &#x27;v0.5&#x27;, mae: 0.148 },
+   786 |         ],
+   787 |         bandit: [
+   788 |             { strategy: &#x27;Index creation&#x27;, reward: 0.79, pulls: 28 },
+   789 |             { strategy: &#x27;Config change&#x27;, reward: 0.61, pulls: 19 },
+   790 |             { strategy: &#x27;Query rewrite&#x27;, reward: 0.55, pulls: 15 },
+   791 |             { strategy: &#x27;Vacuum tuning&#x27;, reward: 0.4, pulls: 11 },
+   792 |             { strategy: &#x27;Do nothing&#x27;, reward: 0.24, pulls: 7 },
+   793 |         ],
+   794 |     },
+   795 |     &#x27;staging-db&#x27;: {
+   796 |         connectionId: &#x27;staging-db&#x27;,
+   797 |         headline: &#x27;9% probability of degradation within 14 days — low risk&#x27;,
+   798 |         thresholdDay: 14,
+   799 |         thresholdProbability: 0.09,
+   800 |         curve: forecastCurve(0.14, 12),
+   801 |         suggestions: [],
+   802 |         calibration: [
+   803 |             { predicted: 55, actual: 57, samples: 44 },
+   804 |             { predicted: 65, actual: 63, samples: 38 },
+   805 |             { predicted: 75, actual: 79, samples: 26 },
+   806 |             { predicted: 85, actual: 82, samples: 19 },
+   807 |             { predicted: 95, actual: 96, samples: 12 },
+   808 |         ],
+   809 |         mae: [
+   810 |             { version: &#x27;v0.1&#x27;, mae: 0.198 },
+   811 |             { version: &#x27;v0.2&#x27;, mae: 0.166 },
+   812 |             { version: &#x27;v0.3&#x27;, mae: 0.151 },
+   813 |             { version: &#x27;v0.4&#x27;, mae: 0.139 },
+   814 |             { version: &#x27;v0.5&#x27;, mae: 0.118 },
+   815 |         ],
+   816 |         bandit: [
+   817 |             { strategy: &#x27;Do nothing&#x27;, reward: 0.71, pulls: 20 },
+   818 |             { strategy: &#x27;Statistics refresh&#x27;, reward: 0.52, pulls: 12 },
+   819 |             { strategy: &#x27;Index creation&#x27;, reward: 0.48, pulls: 8 },
+   820 |         ],
+   821 |     },
+   822 | }
+   823 | 
+   824 | export const roiEntries: RoiEntry[] = [
+   825 |     {
+   826 |         id: &#x27;roi-1&#x27;,
+   827 |         connectionId: &#x27;prod-orders-db&#x27;,
+   828 |         description: &#x27;Batch reconciliation job with SKIP LOCKED&#x27;,
+   829 |         improvement: &#x27;-93% lock wait time&#x27;,
+   830 |         monthlySavingsUsd: 186,
+   831 |         committedAtISO: ago(1 * day + 2 * hr),
+   832 |     },
+   833 |     {
+   834 |         id: &#x27;roi-2&#x27;,
+   835 |         connectionId: &#x27;prod-orders-db&#x27;,
+   836 |         description: &#x27;Autovacuum tuning + one-time VACUUM on sessions&#x27;,
+   837 |         improvement: &#x27;-46% scan cost&#x27;,
+   838 |         monthlySavingsUsd: 94,
+   839 |         committedAtISO: ago(2 * day + 1 * hr),
+   840 |     },
+   841 |     {
+   842 |         id: &#x27;roi-3&#x27;,
+   843 |         connectionId: &#x27;prod-orders-db&#x27;,
+   844 |         description: &#x27;Increase shared_buffers to 8GB&#x27;,
+   845 |         improvement: &#x27;-18% p95 latency&#x27;,
+   846 |         monthlySavingsUsd: 240,
+   847 |         committedAtISO: ago(4 * day + 22 * hr),
+   848 |     },
+   849 |     {
+   850 |         id: &#x27;roi-4&#x27;,
+   851 |         connectionId: &#x27;staging-db&#x27;,
+   852 |         description: &#x27;Rewrite N+1 order lookup into a single JOIN&#x27;,
+   853 |         improvement: &#x27;-86% mean latency&#x27;,
+   854 |         monthlySavingsUsd: null, // cost model not configured for staging
+   855 |         committedAtISO: ago(6 * day + 21 * hr),
+   856 |     },
+   857 |     {
+   858 |         id: &#x27;roi-5&#x27;,
+   859 |         connectionId: &#x27;analytics-warehouse&#x27;,
+   860 |         description: &#x27;Right-size instance after query optimization&#x27;,
+   861 |         improvement: &#x27;-1 instance size&#x27;,
+   862 |         monthlySavingsUsd: 512,
+   863 |         committedAtISO: ago(9 * day),
+   864 |     },
+   865 | ]
+   866 | 
+   867 | export const activity: ActivityItem[] = [
+   868 |     { id: &#x27;a1&#x27;, timeISO: ago(20 * min), connectionId: &#x27;prod-orders-db&#x27;, message: &#x27;Statistics refresh on orders approved by maya.chen — canary in progress&#x27;, kind: &#x27;approve&#x27; },
+   869 |     { id: &#x27;a2&#x27;, timeISO: ago(35 * min), connectionId: &#x27;analytics-warehouse&#x27;, message: &#x27;New VERIFIED experiment awaiting approval: index on fact_events&#x27;, kind: &#x27;diagnose&#x27; },
+   870 |     { id: &#x27;a3&#x27;, timeISO: ago(2 * hr + 12 * min), connectionId: &#x27;prod-orders-db&#x27;, message: &#x27;Plan-flip regression detected on orders lookup (94% confidence)&#x27;, kind: &#x27;diagnose&#x27; },
+   871 |     { id: &#x27;a4&#x27;, timeISO: ago(3 * hr), connectionId: &#x27;analytics-warehouse&#x27;, message: &#x27;Forecast risk crossed threshold — scan-cost degradation likely&#x27;, kind: &#x27;forecast&#x27; },
+   872 |     { id: &#x27;a5&#x27;, timeISO: ago(1 * day + 2 * hr), connectionId: &#x27;prod-orders-db&#x27;, message: &#x27;Reconciliation batching committed — lock waits down 93%&#x27;, kind: &#x27;commit&#x27; },
+   873 |     { id: &#x27;a6&#x27;, timeISO: ago(3 * day + 5 * hr), connectionId: &#x27;analytics-warehouse&#x27;, message: &#x27;Drop-index change auto-rolled back — read regression detected&#x27;, kind: &#x27;rollback&#x27; },
+   874 | ]
+   875 | 
+   876 | // ---- Lightweight accessors (a stand-in for a typed API client) ----
+   877 | </code></pre></div></details>
+</article>
+</section></main></body></html>

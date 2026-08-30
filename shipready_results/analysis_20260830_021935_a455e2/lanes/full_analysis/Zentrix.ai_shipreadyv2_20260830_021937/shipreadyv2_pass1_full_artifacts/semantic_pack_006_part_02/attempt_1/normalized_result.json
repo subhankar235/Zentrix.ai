@@ -1,0 +1,1304 @@
+{
+  "schema_version": "shipreadyv2.pass1_semantic_skim_result.v2",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "request_id": "semantic_pack_006_part_02",
+  "semantic_pack_id": "semantic_pack_006",
+  "semantic_part": {
+    "sequence": 2,
+    "total": 2
+  },
+  "classification_status": "CLASSIFIED",
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "AI-powered Postgres/database intelligence for evidence collection, diagnostics, forecasting, and guarded optimization approval.",
+    "primary_capabilities": [
+      "Collect read-only PostgreSQL telemetry and plan statistics",
+      "Extract query and table performance features",
+      "Train and run a query-performance delta predictor",
+      "Render diagnostics, forecasts, and ROI dashboards",
+      "Gate authentication and protected app access"
+    ],
+    "primary_repo_native_actors": [
+      "Read-only collector",
+      "Diagnostic specialist agents",
+      "Supervisor",
+      "ML scientist",
+      "Authenticated DBA user"
+    ],
+    "important_business_objects": [
+      "pg_stat_statements",
+      "pg_stat_activity",
+      "pg_locks",
+      "pg_stats",
+      "plan_metrics",
+      "delta_predictor.joblib",
+      "OptimizationExperiment records",
+      "Connection",
+      "ForecastResponse",
+      "RoiEntry"
+    ],
+    "material_effects": [
+      "JSON payload returned",
+      "Structured object returned",
+      "MODEL_INFERENCE_PERFORMED",
+      "MODEL_ARTIFACT_WRITTEN",
+      "RUN_HISTORY_RECORDED",
+      "Read-only PostgreSQL evidence fetched"
+    ],
+    "explicit_requirements_found": [
+      "Read-only to start; every write is policy-gated, human-approved and reversible.",
+      "Every query is a fixed SELECT/EXPLAIN statement; caller supplied values are bound parameters and identifiers are validated before being interpolated.",
+      "At least eight chronological experiment rows are required for training.",
+      "Validation fraction must be between 0.1 and 0.5 and ensemble size at least 3."
+    ],
+    "summary_evidence": [
+      {
+        "chunk_id": "chunk_8b97fbcb56c3e7c5",
+        "file_path": "apps/frontend/app/layout.tsx",
+        "start_line": 8,
+        "end_line": 10,
+        "symbol_or_node_id": "RootLayout.metadata",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Metadata describes the app as AI-powered database intelligence that collects deterministic evidence, diagnoses root causes with specialist agents, and statistically verifies fixes."
+      },
+      {
+        "chunk_id": "chunk_73de7745b1f5a7b6",
+        "file_path": "apps/backend/app/tools/pg_introspection.py",
+        "start_line": 3,
+        "end_line": 6,
+        "symbol_or_node_id": "module_docstring",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Module docstring states this is the only customer-database boundary for diagnosis and forecasting code and that queries are fixed SELECT/EXPLAIN with validated identifiers and bound parameters."
+      },
+      {
+        "chunk_id": "chunk_177c6060104e847e",
+        "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+        "start_line": 58,
+        "end_line": 97,
+        "symbol_or_node_id": "train",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Training function fits a LightGBM ensemble, persists a joblib artifact, logs MLflow metrics, and returns validation metrics and target names."
+      },
+      {
+        "chunk_id": "chunk_f4ec186cacac684f",
+        "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+        "start_line": 20,
+        "end_line": 52,
+        "symbol_or_node_id": "predict",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Inference function loads the model artifact, produces per-target estimates and confidence intervals, and returns an outcome label and model version."
+      },
+      {
+        "chunk_id": "chunk_32be977cdbf9f439",
+        "file_path": "apps/frontend/app/(app)/diagnostics/page.tsx",
+        "start_line": 43,
+        "end_line": 57,
+        "symbol_or_node_id": "DiagnosticsPage.handleTrigger",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "UI action dispatches diagnostics and reports that AI agents gather evidence from query plans and lock telemetry."
+      }
+    ],
+    "summary_confidence": "HIGH"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "path_delta_predictor_training_and_scoring",
+      "path_summary": "chronological experiment rows are transformed into feature/target matrices, used to train a LightGBM ensemble, persisted as an artifact, and later loaded for per-row delta prediction with confidence intervals",
+      "entrypoints": [
+        "train(rows, artifact_path, random_state, ensemble_size, validation_fraction)",
+        "predict(row, model_path, z_value)"
+      ],
+      "connected_node_ids": [
+        "chunk_75d5946f438e6615",
+        "chunk_f4ec186cacac684f",
+        "chunk_177c6060104e847e"
+      ],
+      "business_context": {
+        "capability": "query-performance delta modeling",
+        "actor_goal": "learn and score the expected effect of a candidate optimization from historical experiment rows",
+        "business_object": "OptimizationExperiment rows / delta_predictor.joblib",
+        "affected_actor_or_counterparty": "DBA or optimization operator",
+        "business_value_or_consequence": [
+          "quantifies expected latency/CPU/I/O deltas",
+          "produces model-backed confidence intervals for a candidate change",
+          "stores a reusable model artifact for later scoring"
+        ]
+      },
+      "runtime_shapes": [
+        "ML_BATCH_INFERENCE_JOB",
+        "ML_MODEL_TRAINING_PIPELINE"
+      ],
+      "workload_shapes": [
+        "MULTIVARIATE_REGRESSION_SCORING",
+        "PREDICTIVE_RECOMMENDATION_INFERENCE"
+      ],
+      "repo_specific_intent": "train and apply a delta predictor for query-performance change estimates",
+      "intent_family": "PREDICT_SCORE_CLASSIFY_OR_RECOMMEND",
+      "intent_object": "query-performance deltas",
+      "desired_outcome": "produce target delta estimates, confidence intervals, and an outcome label from historical experiment data",
+      "actors": [
+        {
+          "repo_native_actor": "ML scientist",
+          "business_role": "builds and consumes the delta predictor",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "UNKNOWN",
+          "lifecycle_status_if_observed": "internal service/tool actor",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 58,
+              "end_line": 97,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Train consumes rows, validates row count/fraction/ensemble size, fits ensemble models, writes an artifact, and returns metrics."
+            },
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 20,
+              "end_line": 52,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Predict loads the artifact and returns per-target deltas with intervals and outcome label."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "OptimizationExperiment row set / model artifact",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "UNKNOWN",
+          "evidence": [
+            {
+              "chunk_id": "chunk_75d5946f438e6615",
+              "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+              "start_line": 3,
+              "end_line": 6,
+              "symbol_or_node_id": "module_docstring",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Rows may come from OptimizationExperiment records or the optimization laboratory; adapter accepts both flat rows and baseline/candidate mappings."
+            },
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 84,
+              "end_line": 95,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Artifact includes models, feature_names, target_names, residual scales, model version, and validation metrics, then is dumped to disk."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "outcome_label",
+          "state_type": "SCHEDULED_RUN_TIME",
+          "observed_values": [
+            "GOOD",
+            "BAD",
+            "NEUTRAL",
+            "REGRESSION"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "outcome label assigned from explicit label or latency delta thresholding",
+          "source_symbol_or_field": "outcome_label",
+          "evidence": [
+            {
+              "chunk_id": "chunk_75d5946f438e6615",
+              "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+              "start_line": 161,
+              "end_line": 175,
+              "symbol_or_node_id": "outcome_label",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Explicit outcome labels are normalized or inferred from delta_latency thresholds into GOOD/BAD/NEUTRAL/REGRESSION."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "residual_scales",
+          "state_type": "MODEL_VERSION",
+          "observed_values": [
+            "vector aligned to TARGET_NAMES"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "training residual scale stored in artifact",
+          "source_symbol_or_field": "train.artifact.residual_scales",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 83,
+              "end_line": 89,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Residual scales are computed from training residuals and stored in the persisted artifact."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "BATCH_DATA_TO_MODEL_PREDICTION_FILE",
+        "FEATURE_BUILD_TO_MODEL_INFERENCE"
+      ],
+      "effect_types": [
+        "MODEL_ARTIFACT_WRITTEN",
+        "PREDICTION_SCORE_PRODUCED"
+      ],
+      "material_effects": [
+        "Persists a delta predictor artifact to disk",
+        "Produces per-target delta estimates and confidence intervals",
+        "Derives an outcome label for the candidate row"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "training requires at least eight chronological experiment rows",
+          "source_symbol_or_condition": "len(rows) < 8",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 66,
+              "end_line": 72,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Train rejects too few rows and validates validation_fraction and ensemble_size bounds."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "prediction requires positive z_value",
+          "source_symbol_or_condition": "z_value <= 0",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 20,
+              "end_line": 24,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Predict raises ValueError if z_value is not positive."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "validation_fraction must be between 0.1 and 0.5 and ensemble_size at least 3",
+          "source_symbol_or_condition": "validation_fraction / ensemble_size checks",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 67,
+              "end_line": 72,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Train enforces minimum row count, validation fraction bounds, and ensemble size lower bound."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "The training set must contain at least eight chronological experiment rows.",
+          "rule_type": "CALCULATION_OR_THRESHOLD_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 66,
+              "end_line": 72,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Explicit row-count guard before fitting."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Outcome labels default from delta_latency thresholds when no explicit label is provided.",
+          "rule_type": "CALCULATION_OR_THRESHOLD_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_75d5946f438e6615",
+              "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+              "start_line": 161,
+              "end_line": 175,
+              "symbol_or_node_id": "outcome_label",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Outcome label is computed from baseline latency and delta thresholds when explicit labels are absent."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Residual uncertainty is incorporated into confidence intervals together with ensemble variance.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 29,
+              "end_line": 41,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Predict combines residual_scales and ensemble variance to form conservative intervals and confidence scores."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Training logs metrics and artifacts to MLflow when available, but exceptions are swallowed so artifact generation still completes.",
+          "rule_type": "FAILURE_RECOVERY_OR_COMPENSATION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 100,
+              "end_line": 110,
+              "symbol_or_node_id": "_log_mlflow",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "MLflow logging is wrapped in try/except and returns on any exception."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Feature and target matrices share a stable ordering defined by FEATURE_NAMES and TARGET_NAMES.",
+        "A delta predictor artifact contains models, residual scales, feature names, target names, and a model version."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Both training and prediction consume caller-supplied rows or rows plus a model path.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 58,
+              "end_line": 97,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "train(rows, ...) consumes supplied experiment rows."
+            },
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 20,
+              "end_line": 52,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "predict(row, model_path, ...) consumes a supplied row and optional artifact path."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Prediction returns a structured dictionary with named fields and nested intervals; training returns a structured result dict.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 44,
+              "end_line": 52,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Predict returns deltas, predictions, confidence intervals, confidence, target_confidence, outcome_label, and model_version."
+            },
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 93,
+              "end_line": 97,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Train returns artifact_path, row count, feature names, targets, and validation metrics."
+            }
+          ]
+        },
+        {
+          "fact_name": "model_or_llm_decision",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "A learned ensemble makes delta estimates and outcome labels.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 28,
+              "end_line": 45,
+              "symbol_or_node_id": "_fit_ensemble",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "LightGBMRegressor ensemble is fitted per target."
+            },
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 29,
+              "end_line": 43,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Predictions are produced by averaging ensemble member outputs and labeling the outcome."
+            }
+          ]
+        },
+        {
+          "fact_name": "failure_retry_or_compensation",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "MLflow logging failures are ignored so the core artifact write can still succeed.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 100,
+              "end_line": 110,
+              "symbol_or_node_id": "_log_mlflow",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Logging errors are caught and discarded."
+            }
+          ]
+        },
+        {
+          "fact_name": "time_freshness_dependency",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Training uses a temporal holdout split and requires chronological rows.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 75,
+              "end_line": 83,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Rows are split by order into training and validation sets using a temporal holdout."
+            }
+          ]
+        },
+        {
+          "fact_name": "repeatable_path",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The same feature and target transforms are shared by training and inference.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_75d5946f438e6615",
+              "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+              "start_line": 89,
+              "end_line": 158,
+              "symbol_or_node_id": "extract_features/build_feature_matrix/build_target_matrix",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Feature and target extraction functions define the stable transform used by both train and predict."
+            }
+          ]
+        },
+        {
+          "fact_name": "multiple_ordered_effects",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Training persists an artifact and logs metrics; prediction emits intervals and labels.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_177c6060104e847e",
+              "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+              "start_line": 84,
+              "end_line": 97,
+              "symbol_or_node_id": "train",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Artifact persistence and validation logging occur in sequence."
+            },
+            {
+              "chunk_id": "chunk_f4ec186cacac684f",
+              "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+              "start_line": 44,
+              "end_line": 52,
+              "symbol_or_node_id": "predict",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Prediction returns multiple structured outputs after model evaluation."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "EXPLICIT_REQUIREMENT_OR_ACCEPTANCE_CRITERION",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "At least eight chronological experiment rows are required for training.",
+          "Validation fraction must be between 0.1 and 0.5.",
+          "Ensemble size must be at least 3.",
+          "Outcome labels can be explicit or inferred from latency delta thresholds."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_177c6060104e847e",
+            "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+            "start_line": 66,
+            "end_line": 72,
+            "symbol_or_node_id": "train",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Enforces row-count, validation_fraction, and ensemble_size requirements."
+          },
+          {
+            "chunk_id": "chunk_75d5946f438e6615",
+            "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+            "start_line": 161,
+            "end_line": 175,
+            "symbol_or_node_id": "outcome_label",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Outcome labeling rule is implemented directly in code."
+          }
+        ],
+        "conflicts_or_gaps": [],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_75d5946f438e6615",
+          "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+          "start_line": 18,
+          "end_line": 59,
+          "symbol_or_node_id": "TARGET_NAMES/FEATURE_NAMES/OUTCOME_LABELS",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Defines target names, feature names, and possible outcome labels."
+        },
+        {
+          "chunk_id": "chunk_75d5946f438e6615",
+          "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+          "start_line": 89,
+          "end_line": 158,
+          "symbol_or_node_id": "extract_features/build_feature_matrix/build_target_matrix",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Normalizes rows into stable feature and target matrices and derives target deltas."
+        },
+        {
+          "chunk_id": "chunk_f4ec186cacac684f",
+          "file_path": "apps/backend/app/ml/delta_predictor/predict.py",
+          "start_line": 20,
+          "end_line": 52,
+          "symbol_or_node_id": "predict",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Loads artifact and returns predictions with confidence intervals and outcome label."
+        },
+        {
+          "chunk_id": "chunk_177c6060104e847e",
+          "file_path": "apps/backend/app/ml/delta_predictor/train.py",
+          "start_line": 58,
+          "end_line": 97,
+          "symbol_or_node_id": "train",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Trains ensemble models, validates them, persists artifact, and returns metrics."
+        },
+        {
+          "chunk_id": "chunk_8b97fbcb56c3e7c5",
+          "file_path": "apps/frontend/app/layout.tsx",
+          "start_line": 8,
+          "end_line": 10,
+          "symbol_or_node_id": "RootLayout.metadata",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Describes the product as AI-powered database intelligence with deterministic evidence and statistical verification."
+        }
+      ],
+      "evidence_gaps": [
+        "No supplied evidence establishes the upstream source of training rows beyond OptimizationExperiment/optimization laboratory references.",
+        "No supplied evidence shows the API route or UI entrypoint that triggers training or scoring from the browser."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_read_only_pg_introspection_to_diagnostics",
+      "path_summary": "diagnostic and forecasting code reads PostgreSQL telemetry and explain plans through a validated read-only boundary to produce plan features, lock graphs, table stats, and query metrics",
+      "entrypoints": [
+        "get_explain_plan(connection, query, *args)",
+        "get_query_metrics(connection, limit)",
+        "get_pg_stats(connection, schema, table)",
+        "get_table_stats(connection, schema, table)",
+        "get_pg_activity(connection)",
+        "get_pg_locks(connection)",
+        "get_wait_events(connection)"
+      ],
+      "connected_node_ids": [
+        "chunk_73de7745b1f5a7b6",
+        "chunk_ea6afcd3d264078d",
+        "chunk_b90ad8372930f278",
+        "chunk_7ba903b0aa4a2802",
+        "chunk_ce1d7788a84deb92",
+        "chunk_c3c47626e2f4d95e",
+        "chunk_109b9feacf9f78e1",
+        "chunk_9bbb9f230a990a6e"
+      ],
+      "business_context": {
+        "capability": "read-only Postgres evidence collection",
+        "actor_goal": "collect database internals safely for diagnosis and forecasting",
+        "business_object": "customer database telemetry and plan data",
+        "affected_actor_or_counterparty": "DBA / diagnostics workflow",
+        "business_value_or_consequence": [
+          "supports root-cause analysis and forecasting",
+          "avoids production writes while gathering evidence",
+          "normalizes query and table statistics for downstream agents"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER",
+        "OBJECT_UTILITY_MODULE_PACKAGE"
+      ],
+      "workload_shapes": [
+        "MULTI_SOURCE_DATA_INGESTION_HYDRATION",
+        "GRAPH_STRUCTURAL_ANALYSIS"
+      ],
+      "repo_specific_intent": "read and normalize PostgreSQL telemetry, plans, and activity for diagnostics",
+      "intent_family": "MONITOR_RECONCILE_OR_RECOVER",
+      "intent_object": "PostgreSQL telemetry and execution plans",
+      "desired_outcome": "produce normalized evidence for diagnosis, plan comparison, and forecast features without writing to the database",
+      "actors": [
+        {
+          "repo_native_actor": "diagnostic specialist agents",
+          "business_role": "consume collected evidence and infer root causes",
+          "actor_archetype": "FIRST_PARTY_AI_AGENT_ORCHESTRATOR",
+          "authentication_context": "via backend database client boundary",
+          "lifecycle_status_if_observed": "internal analysis runtime",
+          "evidence": [
+            {
+              "chunk_id": "chunk_73de7745b1f5a7b6",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 3,
+              "end_line": 6,
+              "symbol_or_node_id": "module_docstring",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Docstring says this boundary is used by diagnosis and forecasting code."
+            },
+            {
+              "chunk_id": "chunk_32be977cdbf9f439",
+              "file_path": "apps/frontend/app/(app)/diagnostics/page.tsx",
+              "start_line": 43,
+              "end_line": 57,
+              "symbol_or_node_id": "DiagnosticsPage.handleTrigger",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "UI says AI agents gather evidence from query plans and lock telemetry."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_actor": "query/forecast collector",
+          "business_role": "fetches Postgres stats and plans",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "asyncpg connection to customer database",
+          "lifecycle_status_if_observed": "read-only collector",
+          "evidence": [
+            {
+              "chunk_id": "chunk_73de7745b1f5a7b6",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 1,
+              "end_line": 6,
+              "symbol_or_node_id": "module_docstring",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "States the module is the only customer-database boundary and every query is fixed SELECT/EXPLAIN with bound parameters and validated identifiers."
+            },
+            {
+              "chunk_id": "chunk_ea6afcd3d264078d",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 109,
+              "end_line": 119,
+              "symbol_or_node_id": "get_explain_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Runs EXPLAIN ANALYZE JSON within a readonly transaction and returns flattened features with query hash."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "customer database telemetry",
+          "scope_type": "EXTERNAL_SYSTEM_RESOURCE",
+          "ownership_key_or_tenant_key": "database connection / schema / table",
+          "evidence": [
+            {
+              "chunk_id": "chunk_73de7745b1f5a7b6",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 3,
+              "end_line": 6,
+              "symbol_or_node_id": "module_docstring",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Customer-database boundary with validated identifiers and bound parameters."
+            },
+            {
+              "chunk_id": "chunk_c3c47626e2f4d95e",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 240,
+              "end_line": 255,
+              "symbol_or_node_id": "get_table_stats",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Reads pg_stat_user_tables with optional schema/table filters."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "plan_metrics / evidence tables",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "UNKNOWN",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f82bcfa6ba2e659f",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 122,
+              "end_line": 130,
+              "symbol_or_node_id": "get_plan_history",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Reads plan_metrics history keyed by connection_id and query_id."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "plan_hash",
+          "state_type": "VERSION_COUNTER",
+          "observed_values": [
+            "previous_plan_hash",
+            "current_plan_hash"
+          ],
+          "starting_state": "previous_plan_hash",
+          "resulting_state": "current_plan_hash",
+          "source_symbol_or_field": "compare_plan.plan_hash",
+          "evidence": [
+            {
+              "chunk_id": "chunk_109b9feacf9f78e1",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 177,
+              "end_line": 187,
+              "symbol_or_node_id": "compare_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Compares previous and current plan hashes and computes deltas."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "dead_tuple_ratio",
+          "state_type": "THRESHOLD_VALUE",
+          "observed_values": [
+            "computed from n_dead_tup / (n_live_tup + n_dead_tup)"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "derived table bloat ratio",
+          "source_symbol_or_field": "estimate_bloat.dead_tuple_ratio",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9464e14d884cea77",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 270,
+              "end_line": 272,
+              "symbol_or_node_id": "estimate_bloat",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Derives dead_tuple_ratio from live and dead tuple counts."
+            },
+            {
+              "chunk_id": "chunk_75d5946f438e6615",
+              "file_path": "apps/backend/app/ml/delta_predictor/features.py",
+              "start_line": 115,
+              "end_line": 117,
+              "symbol_or_node_id": "extract_features",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses dead_tuple_ratio as a model feature."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "query metrics",
+          "state_type": "EVALUATION_METRIC",
+          "observed_values": [
+            "calls",
+            "total_exec_time",
+            "mean_exec_time",
+            "rows",
+            "shared_blks_hit",
+            "shared_blks_read"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "normalized query metrics returned",
+          "source_symbol_or_field": "get_query_metrics",
+          "evidence": [
+            {
+              "chunk_id": "chunk_7ba903b0aa4a2802",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 148,
+              "end_line": 170,
+              "symbol_or_node_id": "get_query_metrics",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Reads pg_stat_statements and excludes internal/security-sensitive queries."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_DB_READ_TO_RESPONSE",
+        "REQUEST_TO_EXTERNAL_API_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "JSON_PAYLOAD_RETURNED",
+        "STRUCTURED_OBJECT_RETURNED",
+        "EXTERNAL_API_READ"
+      ],
+      "material_effects": [
+        "Returns normalized query statistics, table statistics, lock/activity data, and explain-plan features",
+        "Computes plan hashes, cardinality error, buffer statistics, and lock graphs for downstream diagnosis"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "read query text must be validated before EXPLAIN execution",
+          "source_symbol_or_condition": "_validate_read_query / _READ_QUERY / _WRITE_KEYWORDS",
+          "evidence": [
+            {
+              "chunk_id": "chunk_73de7745b1f5a7b6",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 21,
+              "end_line": 25,
+              "symbol_or_node_id": "_READ_QUERY/_WRITE_KEYWORDS",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Read query validation rejects write keywords."
+            },
+            {
+              "chunk_id": "chunk_ea6afcd3d264078d",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 109,
+              "end_line": 115,
+              "symbol_or_node_id": "get_explain_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "get_explain_plan validates then issues EXPLAIN in a readonly transaction."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "identifiers are validated before interpolation and values are bound as parameters",
+          "source_symbol_or_condition": "_IDENTIFIER and parameterized fetch calls",
+          "evidence": [
+            {
+              "chunk_id": "chunk_73de7745b1f5a7b6",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 4,
+              "end_line": 6,
+              "symbol_or_node_id": "module_docstring",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Module docstring states caller values are bound parameters and identifiers are validated before interpolation."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "diagnostic queries exclude pg_stat_statements and sensitive account/role/password queries",
+          "source_symbol_or_condition": "query filters in get_query_metrics",
+          "evidence": [
+            {
+              "chunk_id": "chunk_7ba903b0aa4a2802",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 160,
+              "end_line": 170,
+              "symbol_or_node_id": "get_query_metrics",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Query filters remove internal monitoring and credential-related statements from statistics output."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Only fixed SELECT/EXPLAIN statements are executed against the customer database boundary.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_73de7745b1f5a7b6",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 3,
+              "end_line": 6,
+              "symbol_or_node_id": "module_docstring",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Explicit fixed-query boundary statement."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Readonly transaction is used for explain-plan collection.",
+          "rule_type": "STATE_PRECONDITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea6afcd3d264078d",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 109,
+              "end_line": 115,
+              "symbol_or_node_id": "get_explain_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "EXPLAIN runs inside connection.transaction(readonly=True)."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Plan features flatten nested JSON into node types, join types, row counts, buffer hits, buffer reads, and table names.",
+          "rule_type": "OUTPUT_CONTRACT_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_b90ad8372930f278",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 59,
+              "end_line": 106,
+              "symbol_or_node_id": "_plan_features",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Extracts and aggregates explain-plan fields into a flat dict."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Cardinality error is defined as log1p(actual_rows) minus log1p(estimated_rows).",
+          "rule_type": "CALCULATION_OR_THRESHOLD_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_72f1b71e2f081dc1",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 190,
+              "end_line": 193,
+              "symbol_or_node_id": "calculate_cardinality_error",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Direct formula implementation."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Query and table statistics remain read-only evidence sources for diagnosis and forecasting.",
+        "Plan comparison is hash-based and delta-based, not semantic free-text comparison."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Queries, schema/table filters, and connection objects are supplied by callers.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea6afcd3d264078d",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 109,
+              "end_line": 119,
+              "symbol_or_node_id": "get_explain_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Accepts caller query and args."
+            },
+            {
+              "chunk_id": "chunk_c3c47626e2f4d95e",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 240,
+              "end_line": 255,
+              "symbol_or_node_id": "get_table_stats",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Accepts optional schema/table filters."
+            }
+          ]
+        },
+        {
+          "fact_name": "authenticated_actor_present",
+          "value": "UNKNOWN",
+          "evidence_status": "UNKNOWN",
+          "reason": "No caller identity evidence is shown in this fragment.",
+          "evidence": []
+        },
+        {
+          "fact_name": "resource_scope_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Schema, table, and connection-scoped reads are present.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c3c47626e2f4d95e",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 240,
+              "end_line": 255,
+              "symbol_or_node_id": "get_table_stats",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Filters by schema/table and reads table statistics."
+            },
+            {
+              "chunk_id": "chunk_f82bcfa6ba2e659f",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 122,
+              "end_line": 130,
+              "symbol_or_node_id": "get_plan_history",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Reads plan history by connection_id and query_id."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Plan comparison and feature derivation convert raw database state into normalized analysis state.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_109b9feacf9f78e1",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 177,
+              "end_line": 187,
+              "symbol_or_node_id": "compare_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Derives plan_changed and metric deltas."
+            },
+            {
+              "chunk_id": "chunk_b90ad8372930f278",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 59,
+              "end_line": 106,
+              "symbol_or_node_id": "_plan_features",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Transforms nested explain JSON into flat metrics."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Functions return normalized dict/list structures for downstream code.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_ea6afcd3d264078d",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 116,
+              "end_line": 119,
+              "symbol_or_node_id": "get_explain_plan",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns feature dict with query_hash."
+            },
+            {
+              "chunk_id": "chunk_c3c47626e2f4d95e",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 248,
+              "end_line": 255,
+              "symbol_or_node_id": "get_table_stats",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns normalized rows from table statistics."
+            }
+          ]
+        },
+        {
+          "fact_name": "external_dependency_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The code depends on live PostgreSQL system catalogs and statistics views.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_7ba903b0aa4a2802",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 160,
+              "end_line": 170,
+              "symbol_or_node_id": "get_query_metrics",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Reads pg_stat_statements and pg_database."
+            },
+            {
+              "chunk_id": "chunk_c3c47626e2f4d95e",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 248,
+              "end_line": 255,
+              "symbol_or_node_id": "get_table_stats",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Reads pg_stat_user_tables and size functions."
+            }
+          ]
+        },
+        {
+          "fact_name": "time_freshness_dependency",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Several reads are explicitly based on current database state and ordering by recent activity.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_0a8659875f273179",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 196,
+              "end_line": 204,
+              "symbol_or_node_id": "get_pg_activity",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Orders by query_start and excludes the current backend."
+            },
+            {
+              "chunk_id": "chunk_7ba903b0aa4a2802",
+              "file_path": "apps/backend/app/tools/pg_introspection.py",
+              "start_line": 148,
+              "end_line": 170,
+              "symbol_or_node_id": "get_query_metrics",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns current customer database query statistics ordered by total execution time."
+            }
+          ]
+        },
+        {
+          "fact_name": "failure_retry_or_compensation",
+          "value": "FALSE",
+          "evidence_status": "UNKNOWN",
+          "reason": "The fragment shows no explicit retry path for introspection reads; absence is not asserted.",
+          "evidence": []
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "EXPLICIT_REQUIREMENT_OR_ACCEPTANCE_CRITERION",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Every query is a fixed SELECT/EXPLAIN statement.",
+          "Caller supplied values are bound parameters and identifiers are validated before being interpolated.",
+          "Read-only transaction is used for explain-plan collection."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_73de7745b1f5a7b6",
+            "file_path": "apps/backend/app/tools/pg_introspection.py",
+            "start_line": 3,
+            "end_line": 6,
+            "symbol_or_node_id": "module_docstring",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "States the query and parameter safety contract."
+          },
+          {
+            "chunk_id": "chunk_ea6afcd3d264078d",
+            "file_path": "apps/backend/app/tools/pg_introspection.py",
+            "start_line": 109,
+            "end_line": 115,
+            "symbol_or_node_id": "get_explain_plan",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Uses readonly transaction for EXPLAIN ANALYZE JSON."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "No upstream API route is shown for these helpers, so the full request/response boundary is only partially visible."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_73de7745b1f5a7b6",
+          "file_path": "apps/backend/app/tools/pg_introspection.py",
+          "start_line": 1,
+          "end_line": 6,
+          "symbol_or_node_id": "module_docstring",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Module-level boundary and safety contract for diagnosis/forecasting queries."
+        },
+        {
+          "chunk_id": "chunk_ea6afcd3d264078d",
+          "file_path": "apps/backend/app/tools/pg_introspection.py",
+          "start_line": 109,
+          "end_line": 119,
+          "symbol_or_node_id": "get_explain_plan",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Readonly EXPLAIN collection and feature extraction."
+        },
+        {
+          "chunk_id": "chunk_7ba903b0aa4a2802",
+          "file_path": "apps/backend/app/tools/pg_introspection.py",
+          "start_line": 148,
+          "end_line": 170,
+          "symbol_or_node_id": "get_query_metrics",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Normalizes query metrics from pg_stat_statements and filters sensitive/internal statements."
+        },
+        {
+          "chunk_id": "chunk_b90ad8372930f278",
+          "file_path": "apps/backend/app/tools/pg_introspection.py",
+          "start_line": 59,
+          "end_line": 106,
+          "symbol_or_node_id": "_plan_features",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Flattens EXPLAIN JSON into plan metrics and table names."
+        },
+        {
+          "chunk_id": "chunk_32be977cdbf9f439",
+          "file_path": "apps/frontend/app/(app)/diagnostics/page.tsx",
+          "start_line": 43,
+          "end_line": 57,
+          "symbol_or_node_id": "DiagnosticsPage.handleTrigger",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "UI action describes diagnostics as evidence gathering from query plans and lock telemetry."
+        }
+      ],
+      "evidence_gaps": [
+        "No explicit API route or service wrapper is shown for the introspection helpers.",
+        "No direct evidence shows how collected metrics are persisted or transported to the UI beyond the helper return values."
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "cross_pack_followups": [
+    {
+      "reason": "Remote evidence may show the API route or service layer that orchestrates training/scoring from backend helpers.",
+      "related_semantic_pack_id": "semantic_pack_006",
+      "related_source_batch_id": "batch_071",
+      "related_chunk_id": "chunk_177c6060104e847e"
+    },
+    {
+      "reason": "Remote evidence may show the route or controller that calls the read-only introspection helpers from the diagnostics workflow.",
+      "related_semantic_pack_id": "semantic_pack_006",
+      "related_source_batch_id": "batch_071",
+      "related_chunk_id": "chunk_ea6afcd3d264078d"
+    }
+  ],
+  "unsupported_or_nonmaterial_signals": [
+    {
+      "signal": "frontend auth and theme providers",
+      "reason": "Present in the repository fragment but not material to the database-intelligence paths classified above.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_59be9a0aae99c48b",
+          "file_path": "apps/frontend/components/providers/clerk-auth-sync.tsx",
+          "start_line": 8,
+          "end_line": 41,
+          "symbol_or_node_id": "ClerkAuthSync",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Synchronizes Clerk auth state into client stores and API token getter."
+        },
+        {
+          "chunk_id": "chunk_6991eca73ffbdfb1",
+          "file_path": "apps/frontend/components/landing/theme-provider.tsx",
+          "start_line": 6,
+          "end_line": 19,
+          "symbol_or_node_id": "ThemeProvider",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Manages local dark theme state via localStorage and document classes."
+        }
+      ]
+    }
+  ]
+}

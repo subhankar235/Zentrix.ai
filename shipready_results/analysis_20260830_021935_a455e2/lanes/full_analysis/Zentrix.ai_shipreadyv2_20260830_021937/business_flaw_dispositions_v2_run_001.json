@@ -1,0 +1,24 @@
+{
+  "repository_id": "repository_7c3ef405179ae9ff",
+  "candidate_dispositions": [
+    {
+      "source_insight_id": "insight_3c28840f4537d161",
+      "decision": "BUSINESS_IMPACT_NOT_ESTABLISHED",
+      "published_flaw_id": "",
+      "reason": "The code establishes that collect_once and collect_connection_telemetry are repeatable and that each run persists telemetry rows, but the connected workflow also establishes that this worker is designed to poll continuously and store a snapshot each cycle. The supplied evidence does not establish that repeating the operation creates an incorrect duplicate business record, violates an idempotency requirement, or causes a material downstream business downside."
+    },
+    {
+      "source_insight_id": "insight_a3f87214cf5c571b",
+      "decision": "CODE_BEHAVIOR_NOT_ESTABLISHED",
+      "published_flaw_id": "",
+      "reason": "The supplied path does not establish a prohibited starting state, an invalid resulting state, or a causally proven bad state transition. The evidence shows telemetry capture and persistence, but not an incorrect state-machine transition with a material business effect."
+    },
+    {
+      "source_insight_id": "insight_e1f769db59cec924",
+      "decision": "CODE_BEHAVIOR_NOT_ESTABLISHED",
+      "published_flaw_id": "",
+      "reason": "The supplied evidence does not establish a caller-controlled data contract or a connected producer-to-transform-to-sink path that yields an incorrect persisted business outcome. A plan-hash transformation exists, but the causal contract flaw is not proven."
+    }
+  ],
+  "governance_repairs": []
+}

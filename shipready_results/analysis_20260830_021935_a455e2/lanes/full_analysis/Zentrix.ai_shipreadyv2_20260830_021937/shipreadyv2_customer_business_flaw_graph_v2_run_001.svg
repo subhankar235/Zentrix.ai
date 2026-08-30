@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="250" viewBox="0 0 1500 250">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+<style>.title{font:700 24px Arial;fill:#0f172a}.lane{font:700 16px Arial;fill:#0f172a}.node{font:600 14px Arial;fill:#0f172a}.meta{font:12.5px Arial;fill:#475569}.edge{stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}.impact{stroke:#dc2626;stroke-width:3;marker-end:url(#arrow)}</style></defs>
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="40" y="40" class="title">Zentrix.ai — business flaw paths</text>
+<text x="40" y="95" class="lane">No business flaw passed the business-impact gate.</text>
+</svg>

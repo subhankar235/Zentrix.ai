@@ -1,0 +1,1087 @@
+{
+  "schema_version": "shipreadyv2.pass1_semantic_skim_result.v2",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "request_id": "semantic_pack_005_part_01",
+  "semantic_pack_id": "semantic_pack_005",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 1
+  },
+  "classification_status": "CLASSIFIED",
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "Database optimization analysis and canary workflow platform for PostgreSQL targets, combining telemetry analysis, shadow simulation, policy gating, audit logging, and deterministic ROI translation.",
+    "primary_capabilities": [
+      "Run shadow workload simulations for optimization candidates",
+      "Predict optimization impact and uncertainty",
+      "Verify candidate improvements with statistical tests",
+      "Gate deployment through deterministic policy evaluation",
+      "Persist audit logs and canary run history",
+      "Compute deterministic ROI from verified experiment deltas",
+      "Aggregate live PostgreSQL telemetry metrics"
+    ],
+    "primary_repo_native_actors": [
+      "OptimizationExperiment",
+      "DatabaseConnection",
+      "User",
+      "AuditLog",
+      "CanaryRun"
+    ],
+    "important_business_objects": [
+      "optimization_experiments",
+      "database_connections",
+      "roi_records",
+      "audit_logs",
+      "canary_runs",
+      "query_metrics",
+      "table_metrics",
+      "plan_metrics"
+    ],
+    "material_effects": [
+      "experiment_results computed",
+      "ml_prediction produced",
+      "skeptic_report produced",
+      "verification_report produced",
+      "policy_verdict produced",
+      "deployment_plan produced",
+      "audit log entries persisted",
+      "roi records persisted"
+    ],
+    "explicit_requirements_found": [
+      "Simulation graph executes experiment, ML, skeptic, verification, policy, and deployment stages sequentially",
+      "Policy agent is a gating step invoking a non-overridable deterministic policy engine",
+      "Verification requires paired shadow replay samples for statistical verification",
+      "ROI calculation is deterministic and configured pricing tiers are required for monetary translation"
+    ],
+    "summary_evidence": [
+      {
+        "chunk_id": "chunk_c315cd911726e2e1",
+        "file_path": "apps/backend/app/agents/graph_simulation.py",
+        "start_line": 326,
+        "end_line": 345,
+        "symbol_or_node_id": "build_simulation_graph",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Builds a sequential LangGraph with experiment, ML scientist, skeptic, verification, policy, and deployment nodes and connects START to END."
+      },
+      {
+        "chunk_id": "chunk_24f6caa9224e4c4a",
+        "file_path": "apps/backend/app/services/audit_service.py",
+        "start_line": 22,
+        "end_line": 62,
+        "symbol_or_node_id": "AuditService.log_event",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Creates and commits immutable audit trail entries with user, connection, action, target, details, and timestamp."
+      },
+      {
+        "chunk_id": "chunk_9db8f195971da30f",
+        "file_path": "apps/backend/app/services/roi_service.py",
+        "start_line": 77,
+        "end_line": 163,
+        "symbol_or_node_id": "compute_deterministic_roi",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Computes monthly ROI from measured CPU/IO deltas using transparent pricing and returns structured savings details."
+      },
+      {
+        "chunk_id": "chunk_51535f950fa0b95b",
+        "file_path": "apps/backend/migrations/versions/c6c36b82a139_initial_migration_for_all_application_.py",
+        "start_line": 262,
+        "end_line": 360,
+        "symbol_or_node_id": "upgrade",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Creates approvals, canary_runs, model_predictions, and roi_records tables supporting experiment approval and deployment history."
+      }
+    ],
+    "summary_confidence": "HIGH"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "path_simulation_canary_gating",
+      "path_summary": "Candidate optimization enters the simulation graph, is mechanically executed, scored, statistically verified, policy-gated, and synthesized into a canary deployment plan.",
+      "entrypoints": [
+        "run_simulation",
+        "simulation_graph.invoke",
+        "build_simulation_graph"
+      ],
+      "connected_node_ids": [
+        "chunk_f974850df4642b36",
+        "chunk_09aa51b47fc18f86",
+        "chunk_54f296941bc6c2a0",
+        "chunk_f482fa39eda04b1a",
+        "chunk_b5ca06d60b433c8a",
+        "chunk_efa6a99eb5fdda67",
+        "chunk_c315cd911726e2e1",
+        "chunk_138c9319fac7b920"
+      ],
+      "business_context": {
+        "capability": "simulation and verification workflow",
+        "actor_goal": "evaluate an optimization candidate before canary deployment",
+        "business_object": "optimization candidate / candidate_sql",
+        "affected_actor_or_counterparty": "database owner or operator using the optimization workflow",
+        "business_value_or_consequence": [
+          "reduces risk before deployment",
+          "produces a deployable or blocked canary plan",
+          "captures statistical and policy evidence for later review"
+        ]
+      },
+      "runtime_shapes": [
+        "SAGA_WORKFLOW_ORCHESTRATOR"
+      ],
+      "workload_shapes": [
+        "HUMAN_IN_THE_LOOP_APPROVAL_GATING"
+      ],
+      "repo_specific_intent": "simulate, verify, and gate an optimization candidate for canary deployment",
+      "intent_family": "APPROVE_REJECT_OR_OVERRIDE",
+      "intent_object": "candidate optimization",
+      "desired_outcome": "either READY_FOR_APPROVAL deployment staging or a blocked report with verification and policy evidence",
+      "actors": [
+        {
+          "repo_native_actor": "Unknown operator / workflow caller",
+          "business_role": "runs optimization simulation and reviews approval-ready output",
+          "actor_archetype": "UNKNOWN_ACTOR",
+          "authentication_context": "Not visible in this fragment",
+          "lifecycle_status_if_observed": "UNKNOWN",
+          "evidence": [
+            {
+              "chunk_id": "chunk_138c9319fac7b920",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 351,
+              "end_line": 366,
+              "symbol_or_node_id": "run_simulation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "run_simulation accepts a candidate, optional workload, optional connection, and invokes the simulation graph synchronously."
+            },
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 277,
+              "end_line": 321,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "deployment_node stages a final report and canary deployment plan and marks whether human approval is required."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "optimization candidate",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "UNKNOWN",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f974850df4642b36",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 58,
+              "end_line": 87,
+              "symbol_or_node_id": "experiment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "experiment_node reads candidate SQL/statement and workload, and may use a customer connection to run shadow simulation."
+            },
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 289,
+              "end_line": 316,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "deployment_plan is derived from the candidate SQL and policy output."
+            }
+          ],
+          "confidence": "MEDIUM"
+        },
+        {
+          "repo_resource_type": "database connection",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "connection_id / user_id is implied elsewhere in repo, but not in this fragment",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f974850df4642b36",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 80,
+              "end_line": 83,
+              "symbol_or_node_id": "experiment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "A real shadow experiment requires conn, sql, and workload to be present."
+            },
+            {
+              "chunk_id": "chunk_138c9319fac7b920",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 359,
+              "end_line": 364,
+              "symbol_or_node_id": "run_simulation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "The caller can supply a connection object into the state passed to the graph."
+            }
+          ],
+          "confidence": "LOW"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "policy_verdict",
+          "state_type": "APPROVAL_STATUS",
+          "observed_values": [
+            "APPROVE",
+            "BLOCK",
+            "CONDITIONAL",
+            "VERIFIED",
+            "REJECTED"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "policy_verdict assigned by policy engine",
+          "source_symbol_or_field": "policy_node / final_report",
+          "evidence": [
+            {
+              "chunk_id": "chunk_b5ca06d60b433c8a",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 252,
+              "end_line": 272,
+              "symbol_or_node_id": "policy_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "policy_node invokes evaluate_policy(payload) and returns policy_verdict."
+            },
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 302,
+              "end_line": 319,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "final_report includes policy verdict fields and canary eligibility."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "verification_report.verdict",
+          "state_type": "APPROVAL_STATUS",
+          "observed_values": [
+            "VERIFIED",
+            "REJECTED",
+            "CONDITIONAL"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "verification verdict assigned after paired statistical test",
+          "source_symbol_or_field": "verification_node",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f482fa39eda04b1a",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 200,
+              "end_line": 247,
+              "symbol_or_node_id": "verification_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "verification_node computes CI, p-value, and selects VERIFIED/REJECTED/CONDITIONAL."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "SUBMISSION_TO_APPROVAL_STATE_CHANGE",
+        "APPROVAL_TO_ESCALATION"
+      ],
+      "effect_types": [
+        "STRUCTURED_OBJECT_RETURNED",
+        "JOB_COMPLETED"
+      ],
+      "material_effects": [
+        "Produces experiment results, ML prediction, skeptic report, verification report, policy verdict, deployment plan, and final report"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "If conn is not None and sql and workload are present, run a shadow simulation experiment; otherwise raise an error requiring real shadow experiment metrics.",
+          "source_symbol_or_condition": "experiment_node",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f974850df4642b36",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 80,
+              "end_line": 87,
+              "symbol_or_node_id": "experiment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Gate for executing the real shadow experiment and failure path when inputs are absent."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Verification requires paired baseline and candidate latency samples of equal length and at least two observations.",
+          "source_symbol_or_condition": "verification_node",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f482fa39eda04b1a",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 211,
+              "end_line": 221,
+              "symbol_or_node_id": "verification_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Raises RuntimeError unless paired shadow replay samples are available."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Statistical significance requires p < 0.05 and confidence interval excluding zero.",
+          "source_symbol_or_condition": "verification_node",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f482fa39eda04b1a",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 223,
+              "end_line": 225,
+              "symbol_or_node_id": "verification_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Combines p-value and CI exclusion into statistically_significant."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Canary eligibility depends on policy engine approval, and deployment_plan is BLOCKED otherwise.",
+          "source_symbol_or_condition": "deployment_node",
+          "evidence": [
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 286,
+              "end_line": 300,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Deployment status is READY_FOR_APPROVAL only when policy says approved; otherwise BLOCKED."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "The workflow is strictly sequential: experiment -> ML scientist -> skeptic -> verification -> policy -> deployment.",
+          "rule_type": "ORDERING_OR_SEQUENCE_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c315cd911726e2e1",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 337,
+              "end_line": 343,
+              "symbol_or_node_id": "build_simulation_graph",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Edges wire the exact node order from START to END."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "A real shadow experiment is required when no fixture metrics are supplied.",
+          "rule_type": "STATE_PRECONDITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_f974850df4642b36",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 65,
+              "end_line": 87,
+              "symbol_or_node_id": "experiment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses existing metrics if present; otherwise requires connection, sql, and workload."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Policy evaluation is deterministic and explicitly described as non-overridable.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_b5ca06d60b433c8a",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 250,
+              "end_line": 272,
+              "symbol_or_node_id": "policy_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Docstring says the policy engine is non-overridable and code passes a fixed payload into evaluate_policy."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Deployment plans always require human approval and include a rollback command and monitoring window.",
+          "rule_type": "BUSINESS_INVARIANT",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 289,
+              "end_line": 300,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "deployment_plan sets requires_human_approval true and defines rollback thresholds and command."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Candidate evaluation must produce measurable experiment results before policy gating",
+        "Statistical verification depends on paired replay samples",
+        "Deployment synthesis always emits a rollback plan and monitoring window"
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "run_simulation accepts a caller-supplied candidate and optional workload/connection.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_138c9319fac7b920",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 351,
+              "end_line": 364,
+              "symbol_or_node_id": "run_simulation",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Candidate and workload are external inputs to the graph."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The graph moves through explicit staged outputs ending in final_report.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c315cd911726e2e1",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 337,
+              "end_line": 343,
+              "symbol_or_node_id": "build_simulation_graph",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Shows the chain of transitions across nodes."
+            }
+          ]
+        },
+        {
+          "fact_name": "multiple_ordered_effects",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "One run emits multiple ordered reports before synthesis.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_c315cd911726e2e1",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 330,
+              "end_line": 343,
+              "symbol_or_node_id": "build_simulation_graph",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Multiple nodes are executed in a fixed order."
+            },
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 302,
+              "end_line": 321,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Synthesizes final report from prior stage outputs."
+            }
+          ]
+        },
+        {
+          "fact_name": "human_approval_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Deployment plan explicitly requires human approval.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 289,
+              "end_line": 300,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "requires_human_approval is set to True."
+            }
+          ]
+        },
+        {
+          "fact_name": "financial_effect_present",
+          "value": "FALSE",
+          "evidence_status": "UNKNOWN",
+          "reason": "This path evaluates optimization impact and deployment readiness, but does not directly create a monetary record here.",
+          "evidence": []
+        },
+        {
+          "fact_name": "resource_lifecycle_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The path stages canary deployment artifacts and a final report.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_efa6a99eb5fdda67",
+              "file_path": "apps/backend/app/agents/graph_simulation.py",
+              "start_line": 289,
+              "end_line": 321,
+              "symbol_or_node_id": "deployment_node",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates deployment_plan and final_report objects."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "AUTHORITATIVE_EXISTING_TEST",
+          "OBSERVED_CONNECTED_CODE_RULE",
+          "USER_DOCUMENTATION_OR_README",
+          "API_SCHEMA_OR_CONTRACT"
+        ],
+        "requirement_statements": [
+          "Simulation graph should execute all agent stages and approve only when verification and policy conditions are satisfied",
+          "Verification should produce VERIFIED for significant, sufficiently sized improvements and CONDITIONAL for underpowered samples",
+          "Deployment should expose a rollback command and approval staging state",
+          "ROI APIs and services should use deterministic pricing and persistence contracts"
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_584974a61793b0e4",
+            "file_path": "apps/backend/tests/unit/test_graph_simulation.py",
+            "start_line": 37,
+            "end_line": 107,
+            "symbol_or_node_id": "test_simulation_graph_executes_all_agent_stages_and_approves",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Tests the full agent chain, approval, blocking, and sample-size conditional behavior."
+          },
+          {
+            "chunk_id": "chunk_f482fa39eda04b1a",
+            "file_path": "apps/backend/app/agents/graph_simulation.py",
+            "start_line": 200,
+            "end_line": 247,
+            "symbol_or_node_id": "verification_node",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Implements the verification contract used by the tests."
+          },
+          {
+            "chunk_id": "chunk_efa6a99eb5fdda67",
+            "file_path": "apps/backend/app/agents/graph_simulation.py",
+            "start_line": 289,
+            "end_line": 321,
+            "symbol_or_node_id": "deployment_node",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Defines approval gating and rollback command generation."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "The caller identity and authorization model for running simulations is not visible in this fragment.",
+          "The policy engine internals are not shown, only the payload passed to it.",
+          "No direct persistence of experiment outcomes is shown in this fragment; only in-memory report assembly is visible."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_c315cd911726e2e1",
+          "file_path": "apps/backend/app/agents/graph_simulation.py",
+          "start_line": 326,
+          "end_line": 345,
+          "symbol_or_node_id": "build_simulation_graph",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Defines the ordered simulation workflow graph."
+        },
+        {
+          "chunk_id": "chunk_f974850df4642b36",
+          "file_path": "apps/backend/app/agents/graph_simulation.py",
+          "start_line": 58,
+          "end_line": 87,
+          "symbol_or_node_id": "experiment_node",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Runs or materializes experiment metrics from candidate SQL and workload."
+        },
+        {
+          "chunk_id": "chunk_f482fa39eda04b1a",
+          "file_path": "apps/backend/app/agents/graph_simulation.py",
+          "start_line": 200,
+          "end_line": 247,
+          "symbol_or_node_id": "verification_node",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Performs paired statistical verification and sets verdict."
+        },
+        {
+          "chunk_id": "chunk_b5ca06d60b433c8a",
+          "file_path": "apps/backend/app/agents/graph_simulation.py",
+          "start_line": 252,
+          "end_line": 272,
+          "symbol_or_node_id": "policy_node",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Invokes deterministic policy evaluation on verification and experiment payload."
+        },
+        {
+          "chunk_id": "chunk_efa6a99eb5fdda67",
+          "file_path": "apps/backend/app/agents/graph_simulation.py",
+          "start_line": 277,
+          "end_line": 321,
+          "symbol_or_node_id": "deployment_node",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Synthesizes final report and canary deployment plan."
+        }
+      ],
+      "evidence_gaps": [
+        "The external caller that supplies candidate/workload/connection is not identified.",
+        "The exact policy rules and deployment approval mechanism are outside this fragment."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_roi_translation_persistence",
+      "path_summary": "A verified optimization experiment is translated into deterministic monthly ROI, persisted as a RoiRecord, and summarized per connection.",
+      "entrypoints": [
+        "compute_deterministic_roi",
+        "RoiService.calculate_and_save_experiment_roi",
+        "RoiService.get_connection_roi_summary"
+      ],
+      "connected_node_ids": [
+        "chunk_9db8f195971da30f",
+        "chunk_a972fc29b9f2be94",
+        "chunk_d07d837ab7ad2149",
+        "chunk_51535f950fa0b95b"
+      ],
+      "business_context": {
+        "capability": "deterministic ROI translation and persistence",
+        "actor_goal": "convert measured optimization deltas into monetary savings and store the result",
+        "business_object": "RoiRecord / optimization experiment savings",
+        "affected_actor_or_counterparty": "database connection owner / operator",
+        "business_value_or_consequence": [
+          "shows monthly savings in USD",
+          "supports comparison of optimization outcomes",
+          "persists a record for later summaries and audit linkage"
+        ]
+      },
+      "runtime_shapes": [
+        "SERVICE_MESH_SIDECAR_PROXY"
+      ],
+      "workload_shapes": [
+        "DOUBLE_ENTRY_FINANCIAL_LEDGERING"
+      ],
+      "repo_specific_intent": "calculate and persist deterministic ROI for an optimization experiment",
+      "intent_family": "QUOTE_PRICE_OR_CALCULATE_CHARGE",
+      "intent_object": "ROI savings record",
+      "desired_outcome": "a saved RoiRecord with total monthly savings, component savings, and connection-level summary",
+      "actors": [
+        {
+          "repo_native_actor": "OptimizationExperiment owner / application service caller",
+          "business_role": "requests ROI calculation and persistence",
+          "actor_archetype": "UNKNOWN_ACTOR",
+          "authentication_context": "Not visible in this fragment",
+          "lifecycle_status_if_observed": "UNKNOWN",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a972fc29b9f2be94",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 169,
+              "end_line": 250,
+              "symbol_or_node_id": "RoiService.calculate_and_save_experiment_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Loads an experiment by ID, computes ROI, persists or updates RoiRecord, and writes an audit log."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "RoiRecord",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "experiment_id and connection_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d07d837ab7ad2149",
+              "file_path": "apps/backend/app/models/roi.py",
+              "start_line": 17,
+              "end_line": 84,
+              "symbol_or_node_id": "RoiRecord",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "RoiRecord belongs to an experiment and a connection via foreign keys."
+            },
+            {
+              "chunk_id": "chunk_a972fc29b9f2be94",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 203,
+              "end_line": 250,
+              "symbol_or_node_id": "RoiService.calculate_and_save_experiment_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Either updates the existing record for the experiment or inserts a new one."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "pricing tier catalog",
+          "scope_type": "GLOBAL_SYSTEM_RESOURCE",
+          "ownership_key_or_tenant_key": "standard / aws_rds_standard / neon_serverless / gcp_cloud_sql",
+          "evidence": [
+            {
+              "chunk_id": "chunk_47485e0553170bbb",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 27,
+              "end_line": 57,
+              "symbol_or_node_id": "PRICING_CATALOG",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Defines global reference pricing tiers used by deterministic ROI calculations."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "assumed_pricing_tier",
+          "state_type": "SUBSCRIPTION_TIER",
+          "observed_values": [
+            "standard",
+            "aws_rds_standard",
+            "neon_serverless",
+            "gcp_cloud_sql"
+          ],
+          "starting_state": "pricing tier input",
+          "resulting_state": "stored on RoiRecord and included in output",
+          "source_symbol_or_field": "RoiRecord.assumed_pricing_tier / compute_deterministic_roi",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9db8f195971da30f",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 96,
+              "end_line": 163,
+              "symbol_or_node_id": "compute_deterministic_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses a named pricing tier or custom pricing and returns the assumed tier."
+            },
+            {
+              "chunk_id": "chunk_d07d837ab7ad2149",
+              "file_path": "apps/backend/app/models/roi.py",
+              "start_line": 60,
+              "end_line": 64,
+              "symbol_or_node_id": "RoiRecord.assumed_pricing_tier",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "RoiRecord stores the assumed pricing tier as a string field."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_LEDGER_POSTING"
+      ],
+      "effect_types": [
+        "LEDGER_ENTRY_POSTED",
+        "DATABASE_RECORD_CREATED",
+        "DATABASE_RECORD_UPDATED"
+      ],
+      "material_effects": [
+        "Creates or updates a RoiRecord and writes an audit entry for ROI calculation"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "If the pricing tier is not configured and no custom pricing is provided, the service returns a zeroed-out ROI result with COST_MODEL_NOT_CONFIGURED status.",
+          "source_symbol_or_condition": "compute_deterministic_roi",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9db8f195971da30f",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 96,
+              "end_line": 120,
+              "symbol_or_node_id": "compute_deterministic_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns an unconfigured result when pricing is not available."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Experiment must exist before ROI can be saved.",
+          "source_symbol_or_condition": "calculate_and_save_experiment_roi",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a972fc29b9f2be94",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 178,
+              "end_line": 183,
+              "symbol_or_node_id": "RoiService.calculate_and_save_experiment_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Raises LookupError when the experiment is not found."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "ROI uses only positive deltas between baseline and candidate CPU/IO values.",
+          "rule_type": "CALCULATION_OR_THRESHOLD_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9db8f195971da30f",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 122,
+              "end_line": 137,
+              "symbol_or_node_id": "compute_deterministic_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses max(0.0, baseline - candidate) and subtracts storage cost."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Unknown pricing tiers are treated as not configured rather than approximated.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_2a1b8edd983f529c",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 62,
+              "end_line": 74,
+              "symbol_or_node_id": "get_pricing_tier",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns zero-cost, is_configured False for unknown tiers."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Saving ROI also writes an audit log entry with ROI calculation details.",
+          "rule_type": "BUSINESS_INVARIANT",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a972fc29b9f2be94",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 230,
+              "end_line": 247,
+              "symbol_or_node_id": "RoiService.calculate_and_save_experiment_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates AuditLog alongside RoiRecord before commit."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "ROI must be deterministic given the experiment metrics and pricing tier",
+        "A connection-level summary is the aggregation of stored RoiRecords",
+        "Audit logging accompanies ROI persistence"
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The computation is driven by experiment metrics, frequency, pricing tier, and optional custom pricing.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9db8f195971da30f",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 77,
+              "end_line": 163,
+              "symbol_or_node_id": "compute_deterministic_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Function parameters and formulas show external inputs."
+            }
+          ]
+        },
+        {
+          "fact_name": "financial_effect_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The path computes monthly savings in USD.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9db8f195971da30f",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 87,
+              "end_line": 163,
+              "symbol_or_node_id": "compute_deterministic_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Produces estimated_monthly_savings_usd and component savings."
+            }
+          ]
+        },
+        {
+          "fact_name": "irreversible_effect_present",
+          "value": "FALSE",
+          "evidence_status": "UNKNOWN",
+          "reason": "Persistence occurs, but reversibility is not established here.",
+          "evidence": []
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Returns a structured ROI dictionary and RoiSummaryResponse.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9db8f195971da30f",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 142,
+              "end_line": 163,
+              "symbol_or_node_id": "compute_deterministic_roi",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns structured savings and calculation details."
+            },
+            {
+              "chunk_id": "chunk_a972fc29b9f2be94",
+              "file_path": "apps/backend/app/services/roi_service.py",
+              "start_line": 271,
+              "end_line": 279,
+              "symbol_or_node_id": "RoiService.get_connection_roi_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Returns RoiSummaryResponse with totals and breakdowns."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "AUTHORITATIVE_EXISTING_TEST",
+          "OBSERVED_CONNECTED_CODE_RULE",
+          "USER_DOCUMENTATION_OR_README",
+          "API_SCHEMA_OR_CONTRACT"
+        ],
+        "requirement_statements": [
+          "ROI must be computed deterministically from measured deltas using configured pricing tiers",
+          "Unknown pricing tiers must not silently invent pricing",
+          "Saving ROI should persist a record and allow connection-level aggregation"
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_fcd27474f6aeb7d6",
+            "file_path": "apps/backend/tests/unit/test_roi_service.py",
+            "start_line": 17,
+            "end_line": 78,
+            "symbol_or_node_id": "test_get_pricing_tier_configured_and_unconfigured",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Tests configured and unconfigured pricing tier behavior and deterministic math."
+          },
+          {
+            "chunk_id": "chunk_a972fc29b9f2be94",
+            "file_path": "apps/backend/app/services/roi_service.py",
+            "start_line": 169,
+            "end_line": 279,
+            "symbol_or_node_id": "RoiService",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Persists ROI records, adds audit log, and provides connection summary."
+          },
+          {
+            "chunk_id": "chunk_d07d837ab7ad2149",
+            "file_path": "apps/backend/app/models/roi.py",
+            "start_line": 17,
+            "end_line": 84,
+            "symbol_or_node_id": "RoiRecord",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Defines persisted ROI schema."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "The upstream experiment approval/verdict prerequisite is implied by naming and tests but not explicitly enforced inside this service.",
+          "Connection ownership scope is present structurally, but policy enforcement is outside this fragment."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_9db8f195971da30f",
+          "file_path": "apps/backend/app/services/roi_service.py",
+          "start_line": 77,
+          "end_line": 163,
+          "symbol_or_node_id": "compute_deterministic_roi",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Deterministic ROI formula, pricing tier selection, and zero-output fallback."
+        },
+        {
+          "chunk_id": "chunk_a972fc29b9f2be94",
+          "file_path": "apps/backend/app/services/roi_service.py",
+          "start_line": 169,
+          "end_line": 279,
+          "symbol_or_node_id": "RoiService",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Loads experiment, saves or updates RoiRecord, writes audit log, and returns summary."
+        },
+        {
+          "chunk_id": "chunk_d07d837ab7ad2149",
+          "file_path": "apps/backend/app/models/roi.py",
+          "start_line": 17,
+          "end_line": 84,
+          "symbol_or_node_id": "RoiRecord",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "RoiRecord schema binds ROI to experiment and connection."
+        },
+        {
+          "chunk_id": "chunk_51535f950fa0b95b",
+          "file_path": "apps/backend/migrations/versions/c6c36b82a139_initial_migration_for_all_application_.py",
+          "start_line": 345,
+          "end_line": 363,
+          "symbol_or_node_id": "upgrade",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Creates roi_records table with experiment and connection foreign keys."
+        }
+      ],
+      "evidence_gaps": [
+        "Whether ROI is only permitted after verification/approval is not enforced in this fragment.",
+        "No direct API route for ROI is included here, only service/model evidence."
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "cross_pack_followups": [
+    {
+      "reason": "Need the API route or controller that exposes the simulation workflow to identify the production caller and authentication boundary.",
+      "related_semantic_pack_id": "semantic_pack_001",
+      "related_source_batch_id": "batch_002",
+      "related_chunk_id": "chunk_14c8a5f497042852"
+    },
+    {
+      "reason": "Need the route or controller that exposes ROI calculation to confirm external entrypoint, auth, and request shape.",
+      "related_semantic_pack_id": "semantic_pack_005",
+      "related_source_batch_id": "batch_005",
+      "related_chunk_id": "chunk_a972fc29b9f2be94"
+    }
+  ],
+  "unsupported_or_nonmaterial_signals": [
+    {
+      "signal": "frontend api client wrappers for audit/auth/connections/diagnostics/experiments/forecasts/monitoring/roi/sse",
+      "reason": "These are thin transport wrappers and do not themselves establish additional backend business semantics beyond endpoint names and JSON mapping.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_40b0788672cb92a5",
+          "file_path": "apps/frontend/lib/api/audit.ts",
+          "start_line": 50,
+          "end_line": 67,
+          "symbol_or_node_id": "auditApi",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Frontend wrapper around audit endpoint."
+        },
+        {
+          "chunk_id": "chunk_43d1ce255cdfa8c3",
+          "file_path": "apps/frontend/lib/api/auth.ts",
+          "start_line": 14,
+          "end_line": 35,
+          "symbol_or_node_id": "authApi",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Frontend wrapper around auth endpoints."
+        },
+        {
+          "chunk_id": "chunk_309a9481e82d382e",
+          "file_path": "apps/frontend/lib/api/client.ts",
+          "start_line": 43,
+          "end_line": 150,
+          "symbol_or_node_id": "request",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Generic HTTP client and token handling logic, not a distinct business path."
+        }
+      ]
+    }
+  ]
+}

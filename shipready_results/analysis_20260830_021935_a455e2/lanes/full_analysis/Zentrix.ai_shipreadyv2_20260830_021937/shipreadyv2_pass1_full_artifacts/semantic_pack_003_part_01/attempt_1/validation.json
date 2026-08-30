@@ -1,0 +1,10 @@
+{
+  "status": "PASSED",
+  "warnings": [],
+  "deterministic_repair_count": 0,
+  "deterministic_repairs": [],
+  "evidence_reference_count": 68,
+  "path_count": 3,
+  "activation_fact_count": 3,
+  "risk_trigger_fields_present": false
+}

@@ -1,0 +1,25 @@
+{
+  "status": "PASSED",
+  "warnings": [],
+  "deterministic_repair_count": 1,
+  "deterministic_repairs": [
+    {
+      "repair_type": "REASSIGN_TO_OVERLAPPING_CHUNK",
+      "file_path": "apps/backend/app/models/user.py",
+      "before": {
+        "chunk_id": "chunk_1a3662fd9fd4cb56",
+        "start_line": 18,
+        "end_line": 72
+      },
+      "after": {
+        "chunk_id": "chunk_e6e4f00f18ef6d01",
+        "start_line": 18,
+        "end_line": 72
+      }
+    }
+  ],
+  "evidence_reference_count": 88,
+  "path_count": 3,
+  "activation_fact_count": 14,
+  "risk_trigger_fields_present": false
+}

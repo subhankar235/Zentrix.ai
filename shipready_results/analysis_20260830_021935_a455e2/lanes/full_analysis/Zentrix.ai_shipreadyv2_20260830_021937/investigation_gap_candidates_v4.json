@@ -1,0 +1,1584 @@
+{
+  "schema_version": "shipready.critical_business_insight_selector.v4",
+  "rules_version": "proof_obligations.v1.reporting_ceiling.v4",
+  "generated_at": "2026-08-29T20:54:21.175105+00:00",
+  "repository_id": "repository_7c3ef405179ae9ff",
+  "repository_name": "Zentrix.ai",
+  "interpretation_boundary": "Selected records are prioritized detections, not automatically confirmed defects. For each record, reporting_ceiling.maximum_allowed_claim is an absolute ceiling. Step 4 may retain or downgrade that category and must never upgrade it.",
+  "reporting_contract": {
+    "category_levels": {
+      "NOT_REPORTABLE": -1,
+      "WORKFLOW_OBSERVATION": 0,
+      "INVESTIGATION_HYPOTHESIS": 1,
+      "EVIDENCE_BACKED_RISK": 2,
+      "CONFIRMED_FLAW": 3
+    },
+    "category_descriptions": {
+      "NOT_REPORTABLE": "The trigger check did not establish a reportable material path.",
+      "WORKFLOW_OBSERVATION": "The code behaviour is observed, but no adverse mechanism is established.",
+      "INVESTIGATION_HYPOTHESIS": "A material detection exists, but one or more required links are inferred or incomplete.",
+      "EVIDENCE_BACKED_RISK": "The risk-shaped mechanism and material consequence are observed; a violated business policy is not proved.",
+      "CONFIRMED_FLAW": "An observed repository rule, requirement, or internal contract is explicitly contradicted by validated evidence."
+    },
+    "step4_may_downgrade": true,
+    "step4_may_upgrade": false,
+    "selected_means": "A prioritized detection, not a confirmed defect."
+  },
+  "investigation_gaps": [
+    {
+      "insight_id": "insight_a3f87214cf5c571b",
+      "family": "STATE_TRANSITION_INTEGRITY",
+      "title": "State-transition integrity path",
+      "decision": "INVESTIGATION_GAP",
+      "qualification_status": "INVESTIGATION_GAP",
+      "priority": "NOT_SELECTED",
+      "normalized_path_ids": [
+        "business_path_490e19f8559dcce2"
+      ],
+      "component_ids": [
+        "component_6a57b242ae380f90"
+      ],
+      "implementation_group_ids": [],
+      "path_summary": "worker cycle collects live PostgreSQL telemetry for active customer connections and persists query, table, and plan snapshots",
+      "capability": {
+        "statement": "live telemetry ingestion",
+        "semantic_status": "INFERRED",
+        "evidence_refs": [
+          "evidence_617161942b65990b",
+          "evidence_0a0d5a0d62879ae9",
+          "evidence_5e1ea0a10c6703c0",
+          "evidence_209d965856604e10",
+          "evidence_90264ee081065d6e",
+          "evidence_0b39da02cba92049",
+          "evidence_05b9079144ad94e7",
+          "evidence_bf67db2c3fc0a0cd",
+          "evidence_0c99e2558b14f43d",
+          "evidence_60e78a9dc9107495",
+          "evidence_59f71930f65113e2",
+          "evidence_74f194a4296c10e4",
+          "evidence_15dacfe0693cbeb5",
+          "evidence_dd84e2e8e9a56a68",
+          "evidence_6fc2e4d6bd46d4c6",
+          "evidence_dad4aa2f542f2eb2",
+          "evidence_dec41fbbdf76813f",
+          "evidence_e9f260b4d18ba4ca",
+          "evidence_79b73f7c97ae74bf",
+          "evidence_567a1930317a03e5",
+          "evidence_4fdbbbb65afa7e18",
+          "evidence_ced4c6b4c662abff",
+          "evidence_0a33d9c218f4975c",
+          "evidence_0c5dd0d2c9b63704",
+          "evidence_bef0165b42952099",
+          "evidence_ba852e39b6e683a5"
+        ]
+      },
+      "entrypoints": [
+        {
+          "entrypoint_id": "entrypoint_a5c8b0d747e3823c",
+          "repo_native_entrypoint": "collect_connection_telemetry",
+          "entrypoint_kind": "PUBLIC_FUNCTION_OR_METHOD",
+          "reachability": {
+            "llm_assertions": [],
+            "canonical_value": "PUBLIC_LIBRARY_API",
+            "canonicalization_status": "VERIFIED",
+            "semantic_status": "OBSERVED",
+            "canonicalization_reason": "At least one supporting graph entity is exported from a library surface.",
+            "rule_ids": [
+              "REACHABILITY_FROM_ENTRYPOINT_AND_GRAPH"
+            ],
+            "evidence_refs": [
+              "evidence_209d965856604e10",
+              "evidence_90264ee081065d6e",
+              "evidence_60e78a9dc9107495",
+              "evidence_15dacfe0693cbeb5",
+              "evidence_6fc2e4d6bd46d4c6",
+              "evidence_79b73f7c97ae74bf",
+              "evidence_4fdbbbb65afa7e18",
+              "evidence_ced4c6b4c662abff"
+            ],
+            "canonical_confidence": {
+              "score": 78,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 40,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "At least one supporting graph entity is exported from a library surface."
+              ],
+              "caps_applied": []
+            }
+          },
+          "graph_node_ids": [
+            "chunk_9e53f4c1dc85ada4",
+            "chunk_e1ab6a1a1497b501",
+            "chunk_cdcaa231a9313070",
+            "chunk_aacd655b55597b20",
+            "chunk_03458e6f31afea57"
+          ],
+          "evidence_refs": [
+            "evidence_209d965856604e10",
+            "evidence_90264ee081065d6e",
+            "evidence_60e78a9dc9107495",
+            "evidence_15dacfe0693cbeb5",
+            "evidence_6fc2e4d6bd46d4c6",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_4fdbbbb65afa7e18",
+            "evidence_ced4c6b4c662abff"
+          ]
+        },
+        {
+          "entrypoint_id": "entrypoint_a9a91ffd6abf8a8e",
+          "repo_native_entrypoint": "collect_once",
+          "entrypoint_kind": "PUBLIC_FUNCTION_OR_METHOD",
+          "reachability": {
+            "llm_assertions": [],
+            "canonical_value": "PUBLIC_LIBRARY_API",
+            "canonicalization_status": "VERIFIED",
+            "semantic_status": "OBSERVED",
+            "canonicalization_reason": "At least one supporting graph entity is exported from a library surface.",
+            "rule_ids": [
+              "REACHABILITY_FROM_ENTRYPOINT_AND_GRAPH"
+            ],
+            "evidence_refs": [
+              "evidence_617161942b65990b",
+              "evidence_5e1ea0a10c6703c0",
+              "evidence_bf67db2c3fc0a0cd",
+              "evidence_59f71930f65113e2",
+              "evidence_74f194a4296c10e4",
+              "evidence_dd84e2e8e9a56a68",
+              "evidence_dad4aa2f542f2eb2",
+              "evidence_dec41fbbdf76813f",
+              "evidence_0a33d9c218f4975c"
+            ],
+            "canonical_confidence": {
+              "score": 78,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 40,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "At least one supporting graph entity is exported from a library surface."
+              ],
+              "caps_applied": []
+            }
+          },
+          "graph_node_ids": [
+            "chunk_9e53f4c1dc85ada4",
+            "chunk_e1ab6a1a1497b501",
+            "chunk_cdcaa231a9313070",
+            "chunk_aacd655b55597b20",
+            "chunk_03458e6f31afea57"
+          ],
+          "evidence_refs": [
+            "evidence_617161942b65990b",
+            "evidence_5e1ea0a10c6703c0",
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_59f71930f65113e2",
+            "evidence_74f194a4296c10e4",
+            "evidence_dd84e2e8e9a56a68",
+            "evidence_dad4aa2f542f2eb2",
+            "evidence_dec41fbbdf76813f",
+            "evidence_0a33d9c218f4975c"
+          ]
+        }
+      ],
+      "reachability": "PUBLIC_LIBRARY_API",
+      "proof_obligations": [
+        {
+          "obligation_id": "REACHABLE_ENTRYPOINT",
+          "evidence_role": "ENTRYPOINT",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "A directly eligible entrypoint and validated reachability evidence are present.",
+          "evidence_refs": [
+            "evidence_209d965856604e10",
+            "evidence_90264ee081065d6e",
+            "evidence_60e78a9dc9107495",
+            "evidence_15dacfe0693cbeb5",
+            "evidence_6fc2e4d6bd46d4c6",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_4fdbbbb65afa7e18",
+            "evidence_ced4c6b4c662abff",
+            "evidence_617161942b65990b",
+            "evidence_5e1ea0a10c6703c0",
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_59f71930f65113e2",
+            "evidence_74f194a4296c10e4",
+            "evidence_dd84e2e8e9a56a68",
+            "evidence_dad4aa2f542f2eb2",
+            "evidence_dec41fbbdf76813f",
+            "evidence_0a33d9c218f4975c"
+          ]
+        },
+        {
+          "obligation_id": "MATERIAL_CONSEQUENCE",
+          "evidence_role": "MATERIAL_EFFECT",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "1 material effect(s) have operation-specific validated evidence.",
+          "evidence_refs": [
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_ced4c6b4c662abff",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_90264ee081065d6e",
+            "evidence_6fc2e4d6bd46d4c6"
+          ]
+        },
+        {
+          "obligation_id": "BUSINESS_STATE_RESOURCE",
+          "evidence_role": "STATE_OR_RESOURCE",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "A non-presentation state-bearing resource with observed values is established.",
+          "evidence_refs": [
+            "evidence_0b39da02cba92049",
+            "evidence_05b9079144ad94e7",
+            "evidence_bf67db2c3fc0a0cd"
+          ]
+        },
+        {
+          "obligation_id": "BUSINESS_STATE_TRANSITION",
+          "evidence_role": "CAUSAL_LINK",
+          "passed": false,
+          "semantic_status": "UNKNOWN",
+          "reason": "A business-resource starting state, resulting state, and material consequence are not causally established.",
+          "evidence_refs": []
+        },
+        {
+          "obligation_id": "CAUSAL_CONNECTION",
+          "evidence_role": "CAUSAL_LINK",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "The two proof roles are connected inside the same validated symbol and chunk.",
+          "evidence_refs": [
+            "evidence_bf67db2c3fc0a0cd"
+          ]
+        }
+      ],
+      "material_consequences": [
+        {
+          "effect_id": "effect_31eac14215212a96",
+          "repo_native_effect": "persists live telemetry snapshots for queries, tables, and plans",
+          "canonical_value": "PERSISTENT_DATA_MUTATION",
+          "materiality": 4,
+          "evidence_refs": [
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_ced4c6b4c662abff",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_90264ee081065d6e",
+            "evidence_6fc2e4d6bd46d4c6"
+          ]
+        }
+      ],
+      "structural_corroboration": {
+        "graph_node_ids": [
+          "chunk_9e53f4c1dc85ada4",
+          "chunk_e1ab6a1a1497b501",
+          "chunk_cdcaa231a9313070",
+          "chunk_aacd655b55597b20",
+          "chunk_03458e6f31afea57"
+        ],
+        "graph_edges": [],
+        "files_in_positive_proof": [
+          "apps/backend/app/workers/telemetry_collector.py"
+        ]
+      },
+      "why_difficult_to_discover_locally": "The material consequence depends on relationships that are not represented by a single compiler label.",
+      "confidence": {
+        "path_reconstruction": 84,
+        "effect": 68,
+        "activation": 80,
+        "causal_link": 50,
+        "candidate": 50,
+        "coverage": 45
+      },
+      "reporting_ceiling": {
+        "maximum_allowed_claim": "INVESTIGATION_HYPOTHESIS",
+        "maximum_allowed_claim_level": 1,
+        "maximum_allowed_claim_description": "A material detection exists, but one or more required links are inferred or incomplete.",
+        "reporting_confidence_score": 50,
+        "reporting_confidence_label": "MEDIUM",
+        "classification_basis": "The detection is preserved, but at least one required proof obligation is inferred, unknown, or incomplete.",
+        "explicit_violation_proofs": [],
+        "llm_may_downgrade": true,
+        "llm_may_upgrade": false,
+        "detection_preserved": true
+      },
+      "score": {
+        "total": 13,
+        "maximum": 24,
+        "positive_proof_strength": 4,
+        "material_consequence": 4,
+        "structural_hiddenness": 2,
+        "causal_path_completeness": 3,
+        "downstream_blast_radius": 1,
+        "coverage_reliability": 0,
+        "selection_threshold": 14
+      },
+      "unresolved_behavior": [
+        "Permitted starting states and invalid or repeated transition behaviour are not assumed from absent code.",
+        "A business-resource starting state, resulting state, and material consequence are not causally established."
+      ],
+      "counterevidence": [],
+      "rejection_reasons": [
+        {
+          "code": "BUSINESS_TRANSITION_NOT_ESTABLISHED",
+          "reason": "A business-resource starting state, resulting state, and material consequence are not causally established."
+        }
+      ],
+      "scan_qualification": {
+        "request_completeness": "PARTIAL",
+        "material_source_coverage": "PARTIAL_OR_UNKNOWN",
+        "repository_wide_conclusions_allowed": false,
+        "qualification_message": "Repository-wide absence conclusions are prohibited: only 10 of 11 requests completed; 124 significant production source files are not represented by normalized paths."
+      },
+      "classification_provenance": {
+        "llm_confidences": [
+          "HIGH"
+        ],
+        "raw_activation_facts": [
+          {
+            "value": {
+              "fact_name": "external_input_present",
+              "value": "TRUE",
+              "reason": "The worker reads from a customer PostgreSQL pool and live query/table sources."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_15dacfe0693cbeb5"
+            ]
+          },
+          {
+            "value": {
+              "fact_name": "resource_scope_present",
+              "value": "TRUE",
+              "reason": "Each collection is bound to a connection_id and active DatabaseConnection records."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_dd84e2e8e9a56a68"
+            ]
+          },
+          {
+            "value": {
+              "fact_name": "state_transition_present",
+              "value": "TRUE",
+              "reason": "The cycle writes new telemetry rows and commits the session."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_6fc2e4d6bd46d4c6",
+              "evidence_dad4aa2f542f2eb2"
+            ]
+          },
+          {
+            "value": {
+              "fact_name": "repeatable_path",
+              "value": "TRUE",
+              "reason": "The code explicitly defines a single collection cycle and a main worker loop."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_dec41fbbdf76813f",
+              "evidence_e9f260b4d18ba4ca"
+            ]
+          }
+        ],
+        "canonical_signal_ids_used_only_as_hints": [
+          "DATA_TRANSFORMATION",
+          "DOWNSTREAM_CONSUMER_OR_SINK",
+          "MATERIAL_PERSISTENT_EFFECT",
+          "REACHABLE_ENTRYPOINT",
+          "REPEATABLE_INVOCATION"
+        ],
+        "effect_classifications": [
+          {
+            "llm_assertions": [
+              {
+                "value": "DATABASE_TABLE_WRITTEN",
+                "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+                "evidence_status": "INFERRED",
+                "evidence_refs": [
+                  "evidence_bf67db2c3fc0a0cd",
+                  "evidence_ced4c6b4c662abff",
+                  "evidence_79b73f7c97ae74bf",
+                  "evidence_90264ee081065d6e",
+                  "evidence_6fc2e4d6bd46d4c6"
+                ],
+                "llm_confidence": "HIGH"
+              }
+            ],
+            "canonical_value": "PERSISTENT_DATA_MUTATION",
+            "canonicalization_status": "SUPPORTED",
+            "semantic_status": "INFERRED",
+            "canonicalization_reason": "Exact effect evidence establishes a durable record mutation; generic collection or in-memory updates do not satisfy this rule.",
+            "rule_ids": [
+              "EFFECT_SPECIFIC_EVIDENCE",
+              "EFFECT_FROM_OPERATION_NOT_POSITION"
+            ],
+            "evidence_refs": [
+              "evidence_bf67db2c3fc0a0cd",
+              "evidence_ced4c6b4c662abff",
+              "evidence_79b73f7c97ae74bf",
+              "evidence_90264ee081065d6e",
+              "evidence_6fc2e4d6bd46d4c6"
+            ],
+            "canonical_confidence": {
+              "score": 68,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 40,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "Exact effect evidence establishes a durable record mutation; generic collection or in-memory updates do not satisfy this rule."
+              ],
+              "caps_applied": []
+            }
+          },
+          {
+            "llm_assertions": [
+              {
+                "value": "DATABASE_TABLE_WRITTEN",
+                "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+                "evidence_status": "INFERRED",
+                "evidence_refs": [
+                  "evidence_ced4c6b4c662abff",
+                  "evidence_bef0165b42952099"
+                ],
+                "llm_confidence": "HIGH"
+              }
+            ],
+            "canonical_value": "IN_MEMORY_DERIVED_RESULT",
+            "canonicalization_status": "RECLASSIFIED",
+            "semantic_status": "INFERRED",
+            "canonicalization_reason": "The cited operation establishes an in-memory computation, selection or derived decision without proving a durable or external effect.",
+            "rule_ids": [
+              "EFFECT_SPECIFIC_EVIDENCE",
+              "EFFECT_FROM_OPERATION_NOT_POSITION"
+            ],
+            "evidence_refs": [
+              "evidence_ced4c6b4c662abff",
+              "evidence_bef0165b42952099"
+            ],
+            "canonical_confidence": {
+              "score": 68,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 20,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "The cited operation establishes an in-memory computation, selection or derived decision without proving a durable or external effect."
+              ],
+              "caps_applied": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_id": "evidence_209d965856604e10",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 147,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Function is scoped to one connection_id and one customer target.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\""
+        },
+        {
+          "evidence_id": "evidence_90264ee081065d6e",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 164,
+          "end_line": 203,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Creates and adds telemetry ORM rows tied to the connection_id.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   164 |         query_metrics = [_query_metric(connection_id, captured_at, row) for row in query_rows]\n   165 |         table_metrics = []\n   166 |         for row in table_rows:\n   167 |             key = (row.get(\"schemaname\") or \"public\", row.get(\"relname\") or \"unknown\")\n   168 |             table_metrics.append(_table_metric(connection_id, captured_at, row, previous_tables.get(key), elapsed))\n   169 |             previous_tables[key] = row\n   170 | \n   171 |         plan_metrics: list[PlanMetric] = []\n   172 |         for query_metric in query_metrics[:max(0, max_plan_queries)]:\n   173 |             if not _is_plan_eligible(query_metric.query_text):\n   174 |                 continue\n   175 |             try:\n   176 |                 features = await pg_introspection.get_query_plan(customer, query_metric.query_text or \"\")\n   177 |             except (asyncpg.PostgresError, ValueError) as exc:\n   178 |                 logger.debug(\n   179 |                     \"Skipping plan capture for query\",\n   180 |                     extra={\"connection_id\": str(connection_id), \"query_id\": query_metric.queryid, \"error\": str(exc)},\n   181 |                 )\n   182 |                 continue\n   183 |             plan_metrics.append(PlanMetric(\n   184 |                 id=uuid4(),\n   185 |                 connection_id=connection_id,\n   186 |                 query_metrics_id=query_metric.id,\n   187 |                 capture_source=\"live_postgresql\",\n   188 |                 timestamp=captured_at,\n   189 |                 query_id=query_metric.queryid,\n   190 |                 plan_hash=_plan_hash(features),\n   191 |                 node_types=features.get(\"node_types\"),\n   192 |                 estimated_rows=_float(features.get(\"estimated_rows\")),\n   193 |                 actual_rows=_float(features.get(\"actual_rows\")),\n   194 |                 estimated_cost=_float(features.get(\"estimated_cost\")),\n   195 |                 actual_time=_float(features.get(\"actual_time\")),\n   196 |                 buffer_hits=_int(features.get(\"buffer_hits\")),\n   197 |                 buffer_reads=_int(features.get(\"buffer_reads\")),\n   198 |                 join_types=features.get(\"join_types\"),\n   199 |                 parallel_workers=_int(features.get(\"parallel_workers\")),\n   200 |             ))\n   201 | \n   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()"
+        },
+        {
+          "evidence_id": "evidence_60e78a9dc9107495",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 152,
+          "end_line": 162,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Catches PostgresError for query/table telemetry and falls back to empty lists.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []"
+        },
+        {
+          "evidence_id": "evidence_15dacfe0693cbeb5",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 147,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects telemetry from a customer pool.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\""
+        },
+        {
+          "evidence_id": "evidence_6fc2e4d6bd46d4c6",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 202,
+          "end_line": 204,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Adds rows and flushes the session.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()\n   204 |     return {\"queries\": len(query_metrics), \"tables\": len(table_metrics), \"plans\": len(plan_metrics)}"
+        },
+        {
+          "evidence_id": "evidence_79b73f7c97ae74bf",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 204,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects and persists telemetry rows.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\"\n   148 |     captured_at = datetime.now(timezone.utc)\n   149 |     previous_tables = previous_tables if previous_tables is not None else {}\n   150 |     elapsed = (captured_at - previous_captured_at).total_seconds() if previous_captured_at else None\n   151 | \n   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []\n   163 | \n   164 |         query_metrics = [_query_metric(connection_id, captured_at, row) for row in query_rows]\n   165 |         table_metrics = []\n   166 |         for row in table_rows:\n   167 |             key = (row.get(\"schemaname\") or \"public\", row.get(\"relname\") or \"unknown\")\n   168 |             table_metrics.append(_table_metric(connection_id, captured_at, row, previous_tables.get(key), elapsed))\n   169 |             previous_tables[key] = row\n   170 | \n   171 |         plan_metrics: list[PlanMetric] = []\n   172 |         for query_metric in query_metrics[:max(0, max_plan_queries)]:\n   173 |             if not _is_plan_eligible(query_metric.query_text):\n   174 |                 continue\n   175 |             try:\n   176 |                 features = await pg_introspection.get_query_plan(customer, query_metric.query_text or \"\")\n   177 |             except (asyncpg.PostgresError, ValueError) as exc:\n   178 |                 logger.debug(\n   179 |                     \"Skipping plan capture for query\",\n   180 |                     extra={\"connection_id\": str(connection_id), \"query_id\": query_metric.queryid, \"error\": str(exc)},\n   181 |                 )\n   182 |                 continue\n   183 |             plan_metrics.append(PlanMetric(\n   184 |                 id=uuid4(),\n   185 |                 connection_id=connection_id,\n   186 |                 query_metrics_id=query_metric.id,\n   187 |                 capture_source=\"live_postgresql\",\n   188 |                 timestamp=captured_at,\n   189 |                 query_id=query_metric.queryid,\n   190 |                 plan_hash=_plan_hash(features),\n   191 |                 node_types=features.get(\"node_types\"),\n   192 |                 estimated_rows=_float(features.get(\"estimated_rows\")),\n   193 |                 actual_rows=_float(features.get(\"actual_rows\")),\n   194 |                 estimated_cost=_float(features.get(\"estimated_cost\")),\n   195 |                 actual_time=_float(features.get(\"actual_time\")),\n   196 |                 buffer_hits=_int(features.get(\"buffer_hits\")),\n   197 |                 buffer_reads=_int(features.get(\"buffer_reads\")),\n   198 |                 join_types=features.get(\"join_types\"),\n   199 |                 parallel_workers=_int(features.get(\"parallel_workers\")),\n   200 |             ))\n   201 | \n   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()\n   204 |     return {\"queries\": len(query_metrics), \"tables\": len(table_metrics), \"plans\": len(plan_metrics)}"
+        },
+        {
+          "evidence_id": "evidence_4fdbbbb65afa7e18",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 152,
+          "end_line": 162,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Handles PostgresError and continues with empty source lists.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []"
+        },
+        {
+          "evidence_id": "evidence_ced4c6b4c662abff",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 204,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects and persists one telemetry snapshot per connection, including query, table, and plan rows.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\"\n   148 |     captured_at = datetime.now(timezone.utc)\n   149 |     previous_tables = previous_tables if previous_tables is not None else {}\n   150 |     elapsed = (captured_at - previous_captured_at).total_seconds() if previous_captured_at else None\n   151 | \n   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []\n   163 | \n   164 |         query_metrics = [_query_metric(connection_id, captured_at, row) for row in query_rows]\n   165 |         table_metrics = []\n   166 |         for row in table_rows:\n   167 |             key = (row.get(\"schemaname\") or \"public\", row.get(\"relname\") or \"unknown\")\n   168 |             table_metrics.append(_table_metric(connection_id, captured_at, row, previous_tables.get(key), elapsed))\n   169 |             previous_tables[key] = row\n   170 | \n   171 |         plan_metrics: list[PlanMetric] = []\n   172 |         for query_metric in query_metrics[:max(0, max_plan_queries)]:\n   173 |             if not _is_plan_eligible(query_metric.query_text):\n   174 |                 continue\n   175 |             try:\n   176 |                 features = await pg_introspection.get_query_plan(customer, query_metric.query_text or \"\")\n   177 |             except (asyncpg.PostgresError, ValueError) as exc:\n   178 |                 logger.debug(\n   179 |                     \"Skipping plan capture for query\",\n   180 |                     extra={\"connection_id\": str(connection_id), \"query_id\": query_metric.queryid, \"error\": str(exc)},\n   181 |                 )\n   182 |                 continue\n   183 |             plan_metrics.append(PlanMetric(\n   184 |                 id=uuid4(),\n   185 |                 connection_id=connection_id,\n   186 |                 query_metrics_id=query_metric.id,\n   187 |                 capture_source=\"live_postgresql\",\n   188 |                 timestamp=captured_at,\n   189 |                 query_id=query_metric.queryid,\n   190 |                 plan_hash=_plan_hash(features),\n   191 |                 node_types=features.get(\"node_types\"),\n   192 |                 estimated_rows=_float(features.get(\"estimated_rows\")),\n   193 |                 actual_rows=_float(features.get(\"actual_rows\")),\n   194 |                 estimated_cost=_float(features.get(\"estimated_cost\")),\n   195 |                 actual_time=_float(features.get(\"actual_time\")),\n   196 |                 buffer_hits=_int(features.get(\"buffer_hits\")),\n   197 |                 buffer_reads=_int(features.get(\"buffer_reads\")),\n   198 |                 join_types=features.get(\"join_types\"),\n   199 |                 parallel_workers=_int(features.get(\"parallel_workers\")),\n   200 |             ))\n   201 | \n   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()\n   204 |     return {\"queries\": len(query_metrics), \"tables\": len(table_metrics), \"plans\": len(plan_metrics)}"
+        },
+        {
+          "evidence_id": "evidence_617161942b65990b",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 207,
+          "end_line": 240,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects one cycle for every active customer connection and commits the session.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   207 | async def collect_once(\n   208 |     session_factory: async_sessionmaker[AsyncSession] = async_session_factory,\n   209 |     connection_manager: Any = customer_connection_manager,\n   210 |     previous_state: dict[UUID, tuple[datetime, dict[tuple[str, str], dict[str, Any]]]] | None = None,\n   211 | ) -> dict[str, int]:\n   212 |     \"\"\"Collect one cycle for every active customer connection.\"\"\"\n   213 |     previous_state = previous_state if previous_state is not None else {}\n   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}\n   215 |     async with session_factory() as session:\n   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()"
+        },
+        {
+          "evidence_id": "evidence_5e1ea0a10c6703c0",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 216,
+          "end_line": 224,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Selects active DatabaseConnection records and processes each record by id.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)"
+        },
+        {
+          "evidence_id": "evidence_bf67db2c3fc0a0cd",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 214,
+          "end_line": 240,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Accumulates counts for queries, tables, plans, and errors before commit.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}\n   215 |     async with session_factory() as session:\n   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()"
+        },
+        {
+          "evidence_id": "evidence_59f71930f65113e2",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 216,
+          "end_line": 218,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Selects DatabaseConnection where is_active is true.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()"
+        },
+        {
+          "evidence_id": "evidence_74f194a4296c10e4",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 223,
+          "end_line": 240,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Uses session.begin_nested() per connection and commits after iterating.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()"
+        },
+        {
+          "evidence_id": "evidence_dd84e2e8e9a56a68",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 216,
+          "end_line": 224,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Processes per-connection records.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)"
+        },
+        {
+          "evidence_id": "evidence_dad4aa2f542f2eb2",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 240,
+          "end_line": 241,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Commits after collecting for all active connections.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   240 |         await session.commit()\n   241 |     return totals"
+        },
+        {
+          "evidence_id": "evidence_dec41fbbdf76813f",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 212,
+          "end_line": 214,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Described as one cycle for every active customer connection.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   212 |     \"\"\"Collect one cycle for every active customer connection.\"\"\"\n   213 |     previous_state = previous_state if previous_state is not None else {}\n   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}"
+        },
+        {
+          "evidence_id": "evidence_0a33d9c218f4975c",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 207,
+          "end_line": 241,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Processes all active connections in a cycle and commits the session.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   207 | async def collect_once(\n   208 |     session_factory: async_sessionmaker[AsyncSession] = async_session_factory,\n   209 |     connection_manager: Any = customer_connection_manager,\n   210 |     previous_state: dict[UUID, tuple[datetime, dict[tuple[str, str], dict[str, Any]]]] | None = None,\n   211 | ) -> dict[str, int]:\n   212 |     \"\"\"Collect one cycle for every active customer connection.\"\"\"\n   213 |     previous_state = previous_state if previous_state is not None else {}\n   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}\n   215 |     async with session_factory() as session:\n   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()\n   241 |     return totals"
+        },
+        {
+          "evidence_id": "evidence_0b39da02cba92049",
+          "chunk_id": "chunk_454eaadd1876ae9c",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 71,
+          "end_line": 80,
+          "symbol_or_node_id": "_query_metric",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Sets capture_source to live_postgresql on query metrics.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "    71 |     return QueryMetric(\n    72 |         id=uuid4(),\n    73 |         connection_id=connection_id,\n    74 |         timestamp=captured_at,\n    75 |         db_id=row.get(\"db_id\"),\n    76 |         userid=row.get(\"userid\"),\n    77 |         queryid=row.get(\"queryid\"),\n    78 |         query_hash=_query_hash(query_text),\n    79 |         capture_source=\"live_postgresql\",\n    80 |         query_text=query_text,"
+        },
+        {
+          "evidence_id": "evidence_05b9079144ad94e7",
+          "chunk_id": "chunk_09fd21724db31828",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 109,
+          "end_line": 115,
+          "symbol_or_node_id": "_table_metric",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Sets capture_source to live_postgresql on table metrics.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   109 |     return TableMetric(\n   110 |         connection_id=connection_id,\n   111 |         timestamp=captured_at,\n   112 |         schema_name=row.get(\"schemaname\") or \"public\",\n   113 |         table_name=row.get(\"relname\") or \"unknown\",\n   114 |         capture_source=\"live_postgresql\",\n   115 |         row_count=live,"
+        }
+      ],
+      "selection_reasons": []
+    },
+    {
+      "insight_id": "insight_e1f769db59cec924",
+      "family": "DATA_CONTRACT_TRANSFORMATION",
+      "title": "Data-contract transformation path",
+      "decision": "INVESTIGATION_GAP",
+      "qualification_status": "INVESTIGATION_GAP",
+      "priority": "NOT_SELECTED",
+      "normalized_path_ids": [
+        "business_path_490e19f8559dcce2"
+      ],
+      "component_ids": [
+        "component_6a57b242ae380f90"
+      ],
+      "implementation_group_ids": [],
+      "path_summary": "worker cycle collects live PostgreSQL telemetry for active customer connections and persists query, table, and plan snapshots",
+      "capability": {
+        "statement": "live telemetry ingestion",
+        "semantic_status": "INFERRED",
+        "evidence_refs": [
+          "evidence_617161942b65990b",
+          "evidence_0a0d5a0d62879ae9",
+          "evidence_5e1ea0a10c6703c0",
+          "evidence_209d965856604e10",
+          "evidence_90264ee081065d6e",
+          "evidence_0b39da02cba92049",
+          "evidence_05b9079144ad94e7",
+          "evidence_bf67db2c3fc0a0cd",
+          "evidence_0c99e2558b14f43d",
+          "evidence_60e78a9dc9107495",
+          "evidence_59f71930f65113e2",
+          "evidence_74f194a4296c10e4",
+          "evidence_15dacfe0693cbeb5",
+          "evidence_dd84e2e8e9a56a68",
+          "evidence_6fc2e4d6bd46d4c6",
+          "evidence_dad4aa2f542f2eb2",
+          "evidence_dec41fbbdf76813f",
+          "evidence_e9f260b4d18ba4ca",
+          "evidence_79b73f7c97ae74bf",
+          "evidence_567a1930317a03e5",
+          "evidence_4fdbbbb65afa7e18",
+          "evidence_ced4c6b4c662abff",
+          "evidence_0a33d9c218f4975c",
+          "evidence_0c5dd0d2c9b63704",
+          "evidence_bef0165b42952099",
+          "evidence_ba852e39b6e683a5"
+        ]
+      },
+      "entrypoints": [
+        {
+          "entrypoint_id": "entrypoint_a5c8b0d747e3823c",
+          "repo_native_entrypoint": "collect_connection_telemetry",
+          "entrypoint_kind": "PUBLIC_FUNCTION_OR_METHOD",
+          "reachability": {
+            "llm_assertions": [],
+            "canonical_value": "PUBLIC_LIBRARY_API",
+            "canonicalization_status": "VERIFIED",
+            "semantic_status": "OBSERVED",
+            "canonicalization_reason": "At least one supporting graph entity is exported from a library surface.",
+            "rule_ids": [
+              "REACHABILITY_FROM_ENTRYPOINT_AND_GRAPH"
+            ],
+            "evidence_refs": [
+              "evidence_209d965856604e10",
+              "evidence_90264ee081065d6e",
+              "evidence_60e78a9dc9107495",
+              "evidence_15dacfe0693cbeb5",
+              "evidence_6fc2e4d6bd46d4c6",
+              "evidence_79b73f7c97ae74bf",
+              "evidence_4fdbbbb65afa7e18",
+              "evidence_ced4c6b4c662abff"
+            ],
+            "canonical_confidence": {
+              "score": 78,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 40,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "At least one supporting graph entity is exported from a library surface."
+              ],
+              "caps_applied": []
+            }
+          },
+          "graph_node_ids": [
+            "chunk_9e53f4c1dc85ada4",
+            "chunk_e1ab6a1a1497b501",
+            "chunk_cdcaa231a9313070",
+            "chunk_aacd655b55597b20",
+            "chunk_03458e6f31afea57"
+          ],
+          "evidence_refs": [
+            "evidence_209d965856604e10",
+            "evidence_90264ee081065d6e",
+            "evidence_60e78a9dc9107495",
+            "evidence_15dacfe0693cbeb5",
+            "evidence_6fc2e4d6bd46d4c6",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_4fdbbbb65afa7e18",
+            "evidence_ced4c6b4c662abff"
+          ]
+        },
+        {
+          "entrypoint_id": "entrypoint_a9a91ffd6abf8a8e",
+          "repo_native_entrypoint": "collect_once",
+          "entrypoint_kind": "PUBLIC_FUNCTION_OR_METHOD",
+          "reachability": {
+            "llm_assertions": [],
+            "canonical_value": "PUBLIC_LIBRARY_API",
+            "canonicalization_status": "VERIFIED",
+            "semantic_status": "OBSERVED",
+            "canonicalization_reason": "At least one supporting graph entity is exported from a library surface.",
+            "rule_ids": [
+              "REACHABILITY_FROM_ENTRYPOINT_AND_GRAPH"
+            ],
+            "evidence_refs": [
+              "evidence_617161942b65990b",
+              "evidence_5e1ea0a10c6703c0",
+              "evidence_bf67db2c3fc0a0cd",
+              "evidence_59f71930f65113e2",
+              "evidence_74f194a4296c10e4",
+              "evidence_dd84e2e8e9a56a68",
+              "evidence_dad4aa2f542f2eb2",
+              "evidence_dec41fbbdf76813f",
+              "evidence_0a33d9c218f4975c"
+            ],
+            "canonical_confidence": {
+              "score": 78,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 40,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "At least one supporting graph entity is exported from a library surface."
+              ],
+              "caps_applied": []
+            }
+          },
+          "graph_node_ids": [
+            "chunk_9e53f4c1dc85ada4",
+            "chunk_e1ab6a1a1497b501",
+            "chunk_cdcaa231a9313070",
+            "chunk_aacd655b55597b20",
+            "chunk_03458e6f31afea57"
+          ],
+          "evidence_refs": [
+            "evidence_617161942b65990b",
+            "evidence_5e1ea0a10c6703c0",
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_59f71930f65113e2",
+            "evidence_74f194a4296c10e4",
+            "evidence_dd84e2e8e9a56a68",
+            "evidence_dad4aa2f542f2eb2",
+            "evidence_dec41fbbdf76813f",
+            "evidence_0a33d9c218f4975c"
+          ]
+        }
+      ],
+      "reachability": "PUBLIC_LIBRARY_API",
+      "proof_obligations": [
+        {
+          "obligation_id": "REACHABLE_ENTRYPOINT",
+          "evidence_role": "ENTRYPOINT",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "A directly eligible entrypoint and validated reachability evidence are present.",
+          "evidence_refs": [
+            "evidence_209d965856604e10",
+            "evidence_90264ee081065d6e",
+            "evidence_60e78a9dc9107495",
+            "evidence_15dacfe0693cbeb5",
+            "evidence_6fc2e4d6bd46d4c6",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_4fdbbbb65afa7e18",
+            "evidence_ced4c6b4c662abff",
+            "evidence_617161942b65990b",
+            "evidence_5e1ea0a10c6703c0",
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_59f71930f65113e2",
+            "evidence_74f194a4296c10e4",
+            "evidence_dd84e2e8e9a56a68",
+            "evidence_dad4aa2f542f2eb2",
+            "evidence_dec41fbbdf76813f",
+            "evidence_0a33d9c218f4975c"
+          ]
+        },
+        {
+          "obligation_id": "MATERIAL_CONSEQUENCE",
+          "evidence_role": "MATERIAL_EFFECT",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "1 material effect(s) have operation-specific validated evidence.",
+          "evidence_refs": [
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_ced4c6b4c662abff",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_90264ee081065d6e",
+            "evidence_6fc2e4d6bd46d4c6"
+          ]
+        },
+        {
+          "obligation_id": "DATA_INPUT_CONTRACT",
+          "evidence_role": "CALLER_CONTROLLED_INPUT",
+          "passed": false,
+          "semantic_status": "OBSERVED",
+          "reason": "DATA_INPUT_CONTRACT lacks direct or connected validated evidence.",
+          "evidence_refs": []
+        },
+        {
+          "obligation_id": "DATA_TRANSFORMATION",
+          "evidence_role": "TRANSFORMATION",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "Validated evidence establishes transformation.",
+          "evidence_refs": [
+            "evidence_bef0165b42952099"
+          ]
+        },
+        {
+          "obligation_id": "DOWNSTREAM_CONSUMER_OR_SINK",
+          "evidence_role": "MATERIAL_EFFECT",
+          "passed": true,
+          "semantic_status": "OBSERVED",
+          "reason": "Validated evidence establishes material effect.",
+          "evidence_refs": [
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_ced4c6b4c662abff",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_90264ee081065d6e",
+            "evidence_6fc2e4d6bd46d4c6",
+            "evidence_bef0165b42952099"
+          ]
+        },
+        {
+          "obligation_id": "CAUSAL_CONNECTION",
+          "evidence_role": "CAUSAL_LINK",
+          "passed": false,
+          "semantic_status": "UNKNOWN",
+          "reason": "Producer-to-transform: No same-symbol or path-graph connection establishes the causal relationship. Transform-to-consumer: The two proof roles are connected inside the same validated symbol and chunk.",
+          "evidence_refs": [
+            "evidence_bef0165b42952099"
+          ]
+        }
+      ],
+      "material_consequences": [
+        {
+          "effect_id": "effect_31eac14215212a96",
+          "repo_native_effect": "persists live telemetry snapshots for queries, tables, and plans",
+          "canonical_value": "PERSISTENT_DATA_MUTATION",
+          "materiality": 4,
+          "evidence_refs": [
+            "evidence_bf67db2c3fc0a0cd",
+            "evidence_ced4c6b4c662abff",
+            "evidence_79b73f7c97ae74bf",
+            "evidence_90264ee081065d6e",
+            "evidence_6fc2e4d6bd46d4c6"
+          ]
+        }
+      ],
+      "structural_corroboration": {
+        "graph_node_ids": [
+          "chunk_9e53f4c1dc85ada4",
+          "chunk_e1ab6a1a1497b501",
+          "chunk_cdcaa231a9313070",
+          "chunk_aacd655b55597b20",
+          "chunk_03458e6f31afea57"
+        ],
+        "graph_edges": [],
+        "files_in_positive_proof": [
+          "apps/backend/app/workers/telemetry_collector.py"
+        ]
+      },
+      "why_difficult_to_discover_locally": "The material consequence depends on relationships that are not represented by a single compiler label.",
+      "confidence": {
+        "path_reconstruction": 84,
+        "effect": 68,
+        "activation": 66,
+        "causal_link": 0,
+        "candidate": 0,
+        "coverage": 45
+      },
+      "reporting_ceiling": {
+        "maximum_allowed_claim": "INVESTIGATION_HYPOTHESIS",
+        "maximum_allowed_claim_level": 1,
+        "maximum_allowed_claim_description": "A material detection exists, but one or more required links are inferred or incomplete.",
+        "reporting_confidence_score": 0,
+        "reporting_confidence_label": "LOW",
+        "classification_basis": "The detection is preserved, but at least one required proof obligation is inferred, unknown, or incomplete.",
+        "explicit_violation_proofs": [],
+        "llm_may_downgrade": true,
+        "llm_may_upgrade": false,
+        "detection_preserved": true
+      },
+      "score": {
+        "total": 11,
+        "maximum": 24,
+        "positive_proof_strength": 2,
+        "material_consequence": 4,
+        "structural_hiddenness": 2,
+        "causal_path_completeness": 2,
+        "downstream_blast_radius": 1,
+        "coverage_reliability": 0,
+        "selection_threshold": 14
+      },
+      "unresolved_behavior": [
+        "DATA_INPUT_CONTRACT lacks direct or connected validated evidence.",
+        "Producer-to-transform: No same-symbol or path-graph connection establishes the causal relationship. Transform-to-consumer: The two proof roles are connected inside the same validated symbol and chunk."
+      ],
+      "counterevidence": [],
+      "rejection_reasons": [
+        {
+          "code": "MISSING_POSITIVE_PROOF",
+          "reason": "DATA_INPUT_CONTRACT lacks direct or connected validated evidence."
+        },
+        {
+          "code": "SIGNAL_NOT_CAUSALLY_LINKED",
+          "reason": "Producer-to-transform: No same-symbol or path-graph connection establishes the causal relationship. Transform-to-consumer: The two proof roles are connected inside the same validated symbol and chunk."
+        }
+      ],
+      "scan_qualification": {
+        "request_completeness": "PARTIAL",
+        "material_source_coverage": "PARTIAL_OR_UNKNOWN",
+        "repository_wide_conclusions_allowed": false,
+        "qualification_message": "Repository-wide absence conclusions are prohibited: only 10 of 11 requests completed; 124 significant production source files are not represented by normalized paths."
+      },
+      "classification_provenance": {
+        "llm_confidences": [
+          "HIGH"
+        ],
+        "raw_activation_facts": [
+          {
+            "value": {
+              "fact_name": "external_input_present",
+              "value": "TRUE",
+              "reason": "The worker reads from a customer PostgreSQL pool and live query/table sources."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_15dacfe0693cbeb5"
+            ]
+          },
+          {
+            "value": {
+              "fact_name": "resource_scope_present",
+              "value": "TRUE",
+              "reason": "Each collection is bound to a connection_id and active DatabaseConnection records."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_dd84e2e8e9a56a68"
+            ]
+          },
+          {
+            "value": {
+              "fact_name": "state_transition_present",
+              "value": "TRUE",
+              "reason": "The cycle writes new telemetry rows and commits the session."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_6fc2e4d6bd46d4c6",
+              "evidence_dad4aa2f542f2eb2"
+            ]
+          },
+          {
+            "value": {
+              "fact_name": "repeatable_path",
+              "value": "TRUE",
+              "reason": "The code explicitly defines a single collection cycle and a main worker loop."
+            },
+            "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+            "evidence_status": "OBSERVED",
+            "evidence_refs": [
+              "evidence_dec41fbbdf76813f",
+              "evidence_e9f260b4d18ba4ca"
+            ]
+          }
+        ],
+        "canonical_signal_ids_used_only_as_hints": [
+          "DATA_TRANSFORMATION",
+          "DOWNSTREAM_CONSUMER_OR_SINK",
+          "MATERIAL_PERSISTENT_EFFECT",
+          "REACHABLE_ENTRYPOINT",
+          "REPEATABLE_INVOCATION"
+        ],
+        "effect_classifications": [
+          {
+            "llm_assertions": [
+              {
+                "value": "DATABASE_TABLE_WRITTEN",
+                "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+                "evidence_status": "INFERRED",
+                "evidence_refs": [
+                  "evidence_bf67db2c3fc0a0cd",
+                  "evidence_ced4c6b4c662abff",
+                  "evidence_79b73f7c97ae74bf",
+                  "evidence_90264ee081065d6e",
+                  "evidence_6fc2e4d6bd46d4c6"
+                ],
+                "llm_confidence": "HIGH"
+              }
+            ],
+            "canonical_value": "PERSISTENT_DATA_MUTATION",
+            "canonicalization_status": "SUPPORTED",
+            "semantic_status": "INFERRED",
+            "canonicalization_reason": "Exact effect evidence establishes a durable record mutation; generic collection or in-memory updates do not satisfy this rule.",
+            "rule_ids": [
+              "EFFECT_SPECIFIC_EVIDENCE",
+              "EFFECT_FROM_OPERATION_NOT_POSITION"
+            ],
+            "evidence_refs": [
+              "evidence_bf67db2c3fc0a0cd",
+              "evidence_ced4c6b4c662abff",
+              "evidence_79b73f7c97ae74bf",
+              "evidence_90264ee081065d6e",
+              "evidence_6fc2e4d6bd46d4c6"
+            ],
+            "canonical_confidence": {
+              "score": 68,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 40,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "Exact effect evidence establishes a durable record mutation; generic collection or in-memory updates do not satisfy this rule."
+              ],
+              "caps_applied": []
+            }
+          },
+          {
+            "llm_assertions": [
+              {
+                "value": "DATABASE_TABLE_WRITTEN",
+                "source_fragment_ref": "semantic_pack_006_part_01::path_telemetry_collection_cycle",
+                "evidence_status": "INFERRED",
+                "evidence_refs": [
+                  "evidence_ced4c6b4c662abff",
+                  "evidence_bef0165b42952099"
+                ],
+                "llm_confidence": "HIGH"
+              }
+            ],
+            "canonical_value": "IN_MEMORY_DERIVED_RESULT",
+            "canonicalization_status": "RECLASSIFIED",
+            "semantic_status": "INFERRED",
+            "canonicalization_reason": "The cited operation establishes an in-memory computation, selection or derived decision without proving a durable or external effect.",
+            "rule_ids": [
+              "EFFECT_SPECIFIC_EVIDENCE",
+              "EFFECT_FROM_OPERATION_NOT_POSITION"
+            ],
+            "evidence_refs": [
+              "evidence_ced4c6b4c662abff",
+              "evidence_bef0165b42952099"
+            ],
+            "canonical_confidence": {
+              "score": 68,
+              "label": "MEDIUM",
+              "components": {
+                "evidence_strength": 20,
+                "path_completeness": 25,
+                "independent_corroboration": 0,
+                "reachability_confidence": 0,
+                "evidence_integrity": 0
+              },
+              "reasons": [
+                "The cited operation establishes an in-memory computation, selection or derived decision without proving a durable or external effect."
+              ],
+              "caps_applied": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_id": "evidence_209d965856604e10",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 147,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Function is scoped to one connection_id and one customer target.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\""
+        },
+        {
+          "evidence_id": "evidence_90264ee081065d6e",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 164,
+          "end_line": 203,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Creates and adds telemetry ORM rows tied to the connection_id.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   164 |         query_metrics = [_query_metric(connection_id, captured_at, row) for row in query_rows]\n   165 |         table_metrics = []\n   166 |         for row in table_rows:\n   167 |             key = (row.get(\"schemaname\") or \"public\", row.get(\"relname\") or \"unknown\")\n   168 |             table_metrics.append(_table_metric(connection_id, captured_at, row, previous_tables.get(key), elapsed))\n   169 |             previous_tables[key] = row\n   170 | \n   171 |         plan_metrics: list[PlanMetric] = []\n   172 |         for query_metric in query_metrics[:max(0, max_plan_queries)]:\n   173 |             if not _is_plan_eligible(query_metric.query_text):\n   174 |                 continue\n   175 |             try:\n   176 |                 features = await pg_introspection.get_query_plan(customer, query_metric.query_text or \"\")\n   177 |             except (asyncpg.PostgresError, ValueError) as exc:\n   178 |                 logger.debug(\n   179 |                     \"Skipping plan capture for query\",\n   180 |                     extra={\"connection_id\": str(connection_id), \"query_id\": query_metric.queryid, \"error\": str(exc)},\n   181 |                 )\n   182 |                 continue\n   183 |             plan_metrics.append(PlanMetric(\n   184 |                 id=uuid4(),\n   185 |                 connection_id=connection_id,\n   186 |                 query_metrics_id=query_metric.id,\n   187 |                 capture_source=\"live_postgresql\",\n   188 |                 timestamp=captured_at,\n   189 |                 query_id=query_metric.queryid,\n   190 |                 plan_hash=_plan_hash(features),\n   191 |                 node_types=features.get(\"node_types\"),\n   192 |                 estimated_rows=_float(features.get(\"estimated_rows\")),\n   193 |                 actual_rows=_float(features.get(\"actual_rows\")),\n   194 |                 estimated_cost=_float(features.get(\"estimated_cost\")),\n   195 |                 actual_time=_float(features.get(\"actual_time\")),\n   196 |                 buffer_hits=_int(features.get(\"buffer_hits\")),\n   197 |                 buffer_reads=_int(features.get(\"buffer_reads\")),\n   198 |                 join_types=features.get(\"join_types\"),\n   199 |                 parallel_workers=_int(features.get(\"parallel_workers\")),\n   200 |             ))\n   201 | \n   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()"
+        },
+        {
+          "evidence_id": "evidence_60e78a9dc9107495",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 152,
+          "end_line": 162,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Catches PostgresError for query/table telemetry and falls back to empty lists.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []"
+        },
+        {
+          "evidence_id": "evidence_15dacfe0693cbeb5",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 147,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects telemetry from a customer pool.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\""
+        },
+        {
+          "evidence_id": "evidence_6fc2e4d6bd46d4c6",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 202,
+          "end_line": 204,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Adds rows and flushes the session.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()\n   204 |     return {\"queries\": len(query_metrics), \"tables\": len(table_metrics), \"plans\": len(plan_metrics)}"
+        },
+        {
+          "evidence_id": "evidence_79b73f7c97ae74bf",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 204,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects and persists telemetry rows.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\"\n   148 |     captured_at = datetime.now(timezone.utc)\n   149 |     previous_tables = previous_tables if previous_tables is not None else {}\n   150 |     elapsed = (captured_at - previous_captured_at).total_seconds() if previous_captured_at else None\n   151 | \n   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []\n   163 | \n   164 |         query_metrics = [_query_metric(connection_id, captured_at, row) for row in query_rows]\n   165 |         table_metrics = []\n   166 |         for row in table_rows:\n   167 |             key = (row.get(\"schemaname\") or \"public\", row.get(\"relname\") or \"unknown\")\n   168 |             table_metrics.append(_table_metric(connection_id, captured_at, row, previous_tables.get(key), elapsed))\n   169 |             previous_tables[key] = row\n   170 | \n   171 |         plan_metrics: list[PlanMetric] = []\n   172 |         for query_metric in query_metrics[:max(0, max_plan_queries)]:\n   173 |             if not _is_plan_eligible(query_metric.query_text):\n   174 |                 continue\n   175 |             try:\n   176 |                 features = await pg_introspection.get_query_plan(customer, query_metric.query_text or \"\")\n   177 |             except (asyncpg.PostgresError, ValueError) as exc:\n   178 |                 logger.debug(\n   179 |                     \"Skipping plan capture for query\",\n   180 |                     extra={\"connection_id\": str(connection_id), \"query_id\": query_metric.queryid, \"error\": str(exc)},\n   181 |                 )\n   182 |                 continue\n   183 |             plan_metrics.append(PlanMetric(\n   184 |                 id=uuid4(),\n   185 |                 connection_id=connection_id,\n   186 |                 query_metrics_id=query_metric.id,\n   187 |                 capture_source=\"live_postgresql\",\n   188 |                 timestamp=captured_at,\n   189 |                 query_id=query_metric.queryid,\n   190 |                 plan_hash=_plan_hash(features),\n   191 |                 node_types=features.get(\"node_types\"),\n   192 |                 estimated_rows=_float(features.get(\"estimated_rows\")),\n   193 |                 actual_rows=_float(features.get(\"actual_rows\")),\n   194 |                 estimated_cost=_float(features.get(\"estimated_cost\")),\n   195 |                 actual_time=_float(features.get(\"actual_time\")),\n   196 |                 buffer_hits=_int(features.get(\"buffer_hits\")),\n   197 |                 buffer_reads=_int(features.get(\"buffer_reads\")),\n   198 |                 join_types=features.get(\"join_types\"),\n   199 |                 parallel_workers=_int(features.get(\"parallel_workers\")),\n   200 |             ))\n   201 | \n   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()\n   204 |     return {\"queries\": len(query_metrics), \"tables\": len(table_metrics), \"plans\": len(plan_metrics)}"
+        },
+        {
+          "evidence_id": "evidence_4fdbbbb65afa7e18",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 152,
+          "end_line": 162,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Handles PostgresError and continues with empty source lists.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []"
+        },
+        {
+          "evidence_id": "evidence_ced4c6b4c662abff",
+          "chunk_id": "chunk_9e53f4c1dc85ada4",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 135,
+          "end_line": 204,
+          "symbol_or_node_id": "collect_connection_telemetry",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects and persists one telemetry snapshot per connection, including query, table, and plan rows.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   135 | async def collect_connection_telemetry(\n   136 |     connection_id: UUID,\n   137 |     customer_pool: asyncpg.Pool,\n   138 |     session: AsyncSession,\n   139 |     previous_tables: dict[tuple[str, str], dict[str, Any]] | None = None,\n   140 |     previous_captured_at: datetime | None = None,\n   141 |     max_plan_queries: int = 10,\n   142 | ) -> dict[str, int]:\n   143 |     \"\"\"Collect and persist one snapshot for one monitored database.\n   144 | \n   145 |     The customer connection is only used through fixed read-only tools. The\n   146 |     application session receives one atomic batch for this customer.\n   147 |     \"\"\"\n   148 |     captured_at = datetime.now(timezone.utc)\n   149 |     previous_tables = previous_tables if previous_tables is not None else {}\n   150 |     elapsed = (captured_at - previous_captured_at).total_seconds() if previous_captured_at else None\n   151 | \n   152 |     async with customer_pool.acquire() as customer:\n   153 |         try:\n   154 |             query_rows = await pg_introspection.get_query_metrics(customer)\n   155 |         except asyncpg.PostgresError as exc:\n   156 |             logger.warning(\"Query telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   157 |             query_rows = []\n   158 |         try:\n   159 |             table_rows = await pg_introspection.get_table_stats(customer)\n   160 |         except asyncpg.PostgresError as exc:\n   161 |             logger.warning(\"Table telemetry unavailable\", extra={\"connection_id\": str(connection_id), \"error\": str(exc)})\n   162 |             table_rows = []\n   163 | \n   164 |         query_metrics = [_query_metric(connection_id, captured_at, row) for row in query_rows]\n   165 |         table_metrics = []\n   166 |         for row in table_rows:\n   167 |             key = (row.get(\"schemaname\") or \"public\", row.get(\"relname\") or \"unknown\")\n   168 |             table_metrics.append(_table_metric(connection_id, captured_at, row, previous_tables.get(key), elapsed))\n   169 |             previous_tables[key] = row\n   170 | \n   171 |         plan_metrics: list[PlanMetric] = []\n   172 |         for query_metric in query_metrics[:max(0, max_plan_queries)]:\n   173 |             if not _is_plan_eligible(query_metric.query_text):\n   174 |                 continue\n   175 |             try:\n   176 |                 features = await pg_introspection.get_query_plan(customer, query_metric.query_text or \"\")\n   177 |             except (asyncpg.PostgresError, ValueError) as exc:\n   178 |                 logger.debug(\n   179 |                     \"Skipping plan capture for query\",\n   180 |                     extra={\"connection_id\": str(connection_id), \"query_id\": query_metric.queryid, \"error\": str(exc)},\n   181 |                 )\n   182 |                 continue\n   183 |             plan_metrics.append(PlanMetric(\n   184 |                 id=uuid4(),\n   185 |                 connection_id=connection_id,\n   186 |                 query_metrics_id=query_metric.id,\n   187 |                 capture_source=\"live_postgresql\",\n   188 |                 timestamp=captured_at,\n   189 |                 query_id=query_metric.queryid,\n   190 |                 plan_hash=_plan_hash(features),\n   191 |                 node_types=features.get(\"node_types\"),\n   192 |                 estimated_rows=_float(features.get(\"estimated_rows\")),\n   193 |                 actual_rows=_float(features.get(\"actual_rows\")),\n   194 |                 estimated_cost=_float(features.get(\"estimated_cost\")),\n   195 |                 actual_time=_float(features.get(\"actual_time\")),\n   196 |                 buffer_hits=_int(features.get(\"buffer_hits\")),\n   197 |                 buffer_reads=_int(features.get(\"buffer_reads\")),\n   198 |                 join_types=features.get(\"join_types\"),\n   199 |                 parallel_workers=_int(features.get(\"parallel_workers\")),\n   200 |             ))\n   201 | \n   202 |     session.add_all([*query_metrics, *table_metrics, *plan_metrics])\n   203 |     await session.flush()\n   204 |     return {\"queries\": len(query_metrics), \"tables\": len(table_metrics), \"plans\": len(plan_metrics)}"
+        },
+        {
+          "evidence_id": "evidence_617161942b65990b",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 207,
+          "end_line": 240,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects one cycle for every active customer connection and commits the session.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   207 | async def collect_once(\n   208 |     session_factory: async_sessionmaker[AsyncSession] = async_session_factory,\n   209 |     connection_manager: Any = customer_connection_manager,\n   210 |     previous_state: dict[UUID, tuple[datetime, dict[tuple[str, str], dict[str, Any]]]] | None = None,\n   211 | ) -> dict[str, int]:\n   212 |     \"\"\"Collect one cycle for every active customer connection.\"\"\"\n   213 |     previous_state = previous_state if previous_state is not None else {}\n   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}\n   215 |     async with session_factory() as session:\n   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()"
+        },
+        {
+          "evidence_id": "evidence_5e1ea0a10c6703c0",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 216,
+          "end_line": 224,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Selects active DatabaseConnection records and processes each record by id.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)"
+        },
+        {
+          "evidence_id": "evidence_bf67db2c3fc0a0cd",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 214,
+          "end_line": 240,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Accumulates counts for queries, tables, plans, and errors before commit.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}\n   215 |     async with session_factory() as session:\n   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()"
+        },
+        {
+          "evidence_id": "evidence_59f71930f65113e2",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 216,
+          "end_line": 218,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Selects DatabaseConnection where is_active is true.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()"
+        },
+        {
+          "evidence_id": "evidence_74f194a4296c10e4",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 223,
+          "end_line": 240,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Uses session.begin_nested() per connection and commits after iterating.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()"
+        },
+        {
+          "evidence_id": "evidence_dd84e2e8e9a56a68",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 216,
+          "end_line": 224,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Processes per-connection records.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)"
+        },
+        {
+          "evidence_id": "evidence_dad4aa2f542f2eb2",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 240,
+          "end_line": 241,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Commits after collecting for all active connections.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   240 |         await session.commit()\n   241 |     return totals"
+        },
+        {
+          "evidence_id": "evidence_dec41fbbdf76813f",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 212,
+          "end_line": 214,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Described as one cycle for every active customer connection.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   212 |     \"\"\"Collect one cycle for every active customer connection.\"\"\"\n   213 |     previous_state = previous_state if previous_state is not None else {}\n   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}"
+        },
+        {
+          "evidence_id": "evidence_0a33d9c218f4975c",
+          "chunk_id": "chunk_cdcaa231a9313070",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 207,
+          "end_line": 241,
+          "symbol_or_node_id": "collect_once",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Processes all active connections in a cycle and commits the session.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "   207 | async def collect_once(\n   208 |     session_factory: async_sessionmaker[AsyncSession] = async_session_factory,\n   209 |     connection_manager: Any = customer_connection_manager,\n   210 |     previous_state: dict[UUID, tuple[datetime, dict[tuple[str, str], dict[str, Any]]]] | None = None,\n   211 | ) -> dict[str, int]:\n   212 |     \"\"\"Collect one cycle for every active customer connection.\"\"\"\n   213 |     previous_state = previous_state if previous_state is not None else {}\n   214 |     totals = {\"connections\": 0, \"queries\": 0, \"tables\": 0, \"plans\": 0, \"errors\": 0}\n   215 |     async with session_factory() as session:\n   216 |         records = (await session.execute(\n   217 |             select(DatabaseConnection).where(DatabaseConnection.is_active.is_(True))\n   218 |         )).scalars().all()\n   219 |         for record in records:\n   220 |             totals[\"connections\"] += 1\n   221 |             previous = previous_state.get(record.id)\n   222 |             try:\n   223 |                 async with session.begin_nested():\n   224 |                     pool = await connection_manager.get_customer_pool(record.id, db=session)\n   225 |                     table_state = previous[1] if previous else {}\n   226 |                     counts = await collect_connection_telemetry(\n   227 |                         record.id,\n   228 |                         pool,\n   229 |                         session,\n   230 |                         previous_tables=table_state,\n   231 |                         previous_captured_at=previous[0] if previous else None,\n   232 |                     )\n   233 |                 captured_at = datetime.now(timezone.utc)\n   234 |                 previous_state[record.id] = (captured_at, table_state)\n   235 |                 for key in (\"queries\", \"tables\", \"plans\"):\n   236 |                     totals[key] += counts[key]\n   237 |             except Exception:\n   238 |                 totals[\"errors\"] += 1\n   239 |                 logger.exception(\"Telemetry collection failed\", extra={\"connection_id\": str(record.id)})\n   240 |         await session.commit()\n   241 |     return totals"
+        },
+        {
+          "evidence_id": "evidence_bef0165b42952099",
+          "chunk_id": "chunk_e1ab6a1a1497b501",
+          "file_path": "apps/backend/app/workers/telemetry_collector.py",
+          "start_line": 39,
+          "end_line": 44,
+          "symbol_or_node_id": "_plan_hash",
+          "original_evidence_level": "E1_DIRECT_CODE",
+          "canonical_evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Computes a plan hash from plan feature material.",
+          "source_request_id": "semantic_pack_006_part_01",
+          "source_semantic_pack_id": "semantic_pack_006",
+          "validation_status": "VALID",
+          "redaction_applied": false,
+          "excerpt": "    39 | def _plan_hash(features: dict[str, Any]) -> str:\n    40 |     material = \"|\".join(\n    41 |         str(features.get(key, \"\"))\n    42 |         for key in (\"node_types\", \"join_types\", \"estimated_cost\", \"parallel_workers\")\n    43 |     )\n    44 |     return hashlib.sha256(material.encode(\"utf-8\")).hexdigest()[:64]"
+        }
+      ],
+      "selection_reasons": []
+    }
+  ]
+}

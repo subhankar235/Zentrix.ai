@@ -1,0 +1,91 @@
+{
+  "schema_version": "shipreadyv2.fast_lane_profile.v1",
+  "repository_name": "Zentrix.ai",
+  "workspace_root": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai",
+  "files_scanned": 255,
+  "language_counts": {
+    "css": 1,
+    "javascript": 2,
+    "python": 164,
+    "tsx": 59,
+    "typescript": 29
+  },
+  "language_percentages": {
+    "css": 0.39,
+    "javascript": 0.78,
+    "python": 64.31,
+    "tsx": 23.14,
+    "typescript": 11.37
+  },
+  "application_shapes": [
+    {
+      "shape": "API_SERVICE",
+      "confidence": "HIGH",
+      "evidence": [
+        "39 API/controller signals"
+      ]
+    },
+    {
+      "shape": "WEB_FRONTEND",
+      "confidence": "HIGH",
+      "evidence": [
+        "72 page/UI signals"
+      ]
+    },
+    {
+      "shape": "BACKGROUND_WORKER_OR_CONSUMER",
+      "confidence": "HIGH",
+      "evidence": [
+        "apps/backend/app/workers/__init__.py",
+        "apps/backend/app/workers/__main__.py",
+        "apps/backend/app/workers/canary_monitor.py",
+        "apps/backend/app/workers/retrain_worker.py",
+        "apps/backend/app/workers/shadow_lab_worker.py"
+      ]
+    },
+    {
+      "shape": "CLI_APPLICATION",
+      "confidence": "HIGH",
+      "evidence": [
+        "apps/backend/app/workers/__main__.py",
+        "apps/frontend/lib/api/client.ts",
+        "apps/backend/app/ml/train_live_anomaly.py",
+        "apps/backend/app/workers/canary_monitor.py",
+        "apps/backend/app/workers/retrain_worker.py"
+      ]
+    },
+    {
+      "shape": "DATA_PIPELINE",
+      "confidence": "MEDIUM",
+      "evidence": [
+        "apps/frontend/components/simulation/pipeline-stepper.tsx"
+      ]
+    }
+  ],
+  "top_role_hints": {
+    "ui_component_file": 59,
+    "data_model_file": 21,
+    "api_or_controller_file": 21,
+    "next_page_component": 13,
+    "service_file": 11,
+    "react_hook_or_state_file": 10,
+    "api_route_file": 10,
+    "api_route": 8,
+    "auth_related_file": 8,
+    "persistence_related_file": 3,
+    "transaction_related_file": 1,
+    "css_stylesheet": 1,
+    "global_css": 1
+  },
+  "entity_kind_counts": {
+    "function": 499,
+    "async_function": 240,
+    "class": 137,
+    "route_handler": 39,
+    "css_at_rule": 15,
+    "css_selector": 3,
+    "component": 1,
+    "method": 1
+  },
+  "interpretation_boundary": "Fast deterministic profile. Application shapes are evidence-backed hints, not final business classifications."
+}

@@ -1,0 +1,53 @@
+{
+  "request_id": "semantic_pack_001_part_02",
+  "semantic_pack_id": "semantic_pack_001",
+  "semantic_part": {
+    "sequence": 2,
+    "total": 2
+  },
+  "model": "gpt-5.4-mini",
+  "reasoning_effort": "low",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "assembled_input_tokens": 57278,
+  "assembled_input_sha256": "c117ac4ca30f42ede88f43cf5486e0396c24951cbe7441a8ab61b40a4894e039",
+  "chunk_count": 26,
+  "chunk_ids": [
+    "chunk_532179e36f03707b",
+    "chunk_b35d24cca16bcb37",
+    "chunk_e11e487ab077e528",
+    "chunk_a26d48c84a8594a8",
+    "chunk_0db1cd0417e53d39",
+    "chunk_828f8a38c5156395",
+    "chunk_2558c61af299c041",
+    "chunk_13bfdc9715f9b477",
+    "chunk_5651c1748ef177a6",
+    "chunk_8548e4520d871c11",
+    "chunk_88e8e1b1d3176c92",
+    "chunk_e6629e7255a3dec5",
+    "chunk_e0e1d198320be5db",
+    "chunk_f264c234080fba15",
+    "chunk_90b58748193b5537",
+    "chunk_c83397af4f25bdfd",
+    "chunk_46ba3c6eddff275c",
+    "chunk_b4982fd81389004c",
+    "chunk_960f6ec57aa0fe7d",
+    "chunk_a1536754c47a83be",
+    "chunk_52330311e199a8cb",
+    "chunk_c7ae2d9098d0b63b",
+    "chunk_dca0853dfc92ae31",
+    "chunk_5dd8d5cb338ca19d",
+    "chunk_0908658930c8606b",
+    "chunk_a275dbb2113c940c"
+  ],
+  "source_token_accounting": {
+    "tokenizer": "tiktoken:cl100k_base",
+    "shared_context_tokens": 9600,
+    "assembly_separator_tokens": 9,
+    "request_payload_tokens": 47228,
+    "assembled_input_tokens": 56837,
+    "target_assembled_input_tokens": 66000,
+    "maximum_assembled_input_tokens": 70000,
+    "safety_margin_tokens": 1000,
+    "remaining_before_maximum": 13163
+  }
+}

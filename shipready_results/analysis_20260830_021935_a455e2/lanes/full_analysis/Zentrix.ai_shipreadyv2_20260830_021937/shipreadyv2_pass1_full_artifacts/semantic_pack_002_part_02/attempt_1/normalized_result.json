@@ -1,0 +1,1575 @@
+{
+  "schema_version": "shipreadyv2.pass1_semantic_skim_result.v2",
+  "prompt_version": "shipreadyv2.pass1.semantic_skim_test.v3",
+  "request_id": "semantic_pack_002_part_02",
+  "semantic_pack_id": "semantic_pack_002",
+  "semantic_part": {
+    "sequence": 2,
+    "total": 2
+  },
+  "classification_status": "CLASSIFIED",
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "Operate Zentrix.ai database-connection onboarding and performance-optimization workflows, including connection testing, telemetry collection, shadow replay experiments, and canary monitoring.",
+    "primary_capabilities": [
+      "Register and manage monitored PostgreSQL connections",
+      "Test database reachability, permissions, and read-only monitoring capability",
+      "Collect live and cached database telemetry",
+      "Provision shadow databases and replay workloads for optimization experiments",
+      "Evaluate candidate optimizations with deterministic policy thresholds",
+      "Continuously monitor canary and retraining workers"
+    ],
+    "primary_repo_native_actors": [
+      "user",
+      "connection_service",
+      "ShadowLabWorker",
+      "canary worker",
+      "retrain worker",
+      "telemetry collector"
+    ],
+    "important_business_objects": [
+      "DatabaseConnection",
+      "QueryMetric",
+      "TableMetric",
+      "OptimizationExperiment",
+      "CanaryRun",
+      "ShadowDatabase",
+      "ShadowConfig",
+      "ConnectionTestResponse"
+    ],
+    "material_effects": [
+      "DATABASE_RECORD_CREATED",
+      "DATABASE_RECORD_UPDATED",
+      "DATABASE_RECORD_DELETED",
+      "EXTERNAL_API_CALLED",
+      "JOB_STARTED",
+      "JOB_COMPLETED",
+      "JOB_FAILED",
+      "METRIC_EMITTED"
+    ],
+    "explicit_requirements_found": [
+      "Connection onboarding must test reachability and permission status before persisting",
+      "A dedicated monitoring role should be provisioned when the supplied role is not sufficiently read-only",
+      "Shadow experiments use ephemeral Docker containers and must tear them down afterward",
+      "Policy evaluation uses deterministic thresholds for canary eligibility",
+      "Telemetry summaries should prefer live PostgreSQL stats and fall back to stored metrics"
+    ],
+    "summary_evidence": [
+      {
+        "chunk_id": "chunk_80ec8bff2e37ee46",
+        "file_path": "apps/backend/app/services/connection_service.py",
+        "start_line": 240,
+        "end_line": 341,
+        "symbol_or_node_id": "ConnectionService.create_connection",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Service registers monitored database connections, tests the DSN, optionally provisions a monitoring role, encrypts credentials, and creates or updates DatabaseConnection rows."
+      },
+      {
+        "chunk_id": "chunk_574e3c2b6de2b5c9",
+        "file_path": "apps/backend/app/services/connection_service.py",
+        "start_line": 472,
+        "end_line": 621,
+        "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Service retrieves live query/table telemetry from customer pools, computes cache-hit and latency aggregates, and falls back to stored QueryMetric/TableMetric records."
+      },
+      {
+        "chunk_id": "chunk_a1300f9b430ad24d",
+        "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+        "start_line": 124,
+        "end_line": 181,
+        "symbol_or_node_id": "provision_shadow_db",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Tool provisions an ephemeral Docker PostgreSQL shadow container, waits for readiness, and returns a ready ShadowDatabase instance."
+      },
+      {
+        "chunk_id": "chunk_9c81a3c0df1c206f",
+        "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+        "start_line": 121,
+        "end_line": 223,
+        "symbol_or_node_id": "ShadowLabWorker.run_simulation_experiment / run_ephemeral_experiment",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Worker replays workload against baseline and candidate states, measures regression/latency/storage deltas, and tears down the shadow environment."
+      },
+      {
+        "chunk_id": "chunk_01ae81e3bc5ec787",
+        "file_path": "apps/backend/app/tools/policy_engine.py",
+        "start_line": 17,
+        "end_line": 176,
+        "symbol_or_node_id": "evaluate",
+        "evidence_level": "E1_DIRECT_CODE",
+        "evidence_summary": "Deterministic policy engine compares verification metrics to thresholds and returns APPROVE, CONDITIONAL, or BLOCK verdicts."
+      }
+    ],
+    "summary_confidence": "HIGH"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "path_connection_onboarding_and_monitoring_registration",
+      "path_summary": "Authenticated user creates or updates a monitored PostgreSQL connection, the service validates reachability/permissions, provisions a dedicated read-only monitoring role when needed, and persists encrypted connection state.",
+      "entrypoints": [
+        "ConnectionService.create_connection",
+        "verify_raw_dsn",
+        "_provision_monitoring_dsn"
+      ],
+      "connected_node_ids": [
+        "chunk_80ec8bff2e37ee46",
+        "chunk_9e17fe055173aaa5",
+        "chunk_00dcddfd4e515213",
+        "chunk_1a3662fd9fd4cb56"
+      ],
+      "business_context": {
+        "capability": "Register and validate monitored database connections",
+        "actor_goal": "Onboard a database target for telemetry and monitoring",
+        "business_object": "DatabaseConnection",
+        "affected_actor_or_counterparty": "user / database operator",
+        "business_value_or_consequence": [
+          "Enables monitored access to a customer PostgreSQL database",
+          "Stores encrypted credentials and permission status for later telemetry",
+          "May provision a dedicated read-only role to satisfy monitoring requirements"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER",
+        "OBJECT_UTILITY_MODULE_PACKAGE"
+      ],
+      "workload_shapes": [
+        "FORM_LIFECYCLE_VALIDATION_ENGINE",
+        "ACCESS_CONTROL_RBAC_ABAC_EVALUATION",
+        "IDEMPOTENCY_KEY_VERIFICATION"
+      ],
+      "repo_specific_intent": "register, validate, and manage a monitored database connection",
+      "intent_family": "CREATE_OR_REGISTER_RESOURCE",
+      "intent_object": "DatabaseConnection",
+      "desired_outcome": "A valid, encrypted, actively monitored connection record is created or refreshed",
+      "actors": [
+        {
+          "repo_native_actor": "user",
+          "business_role": "connection owner / database operator",
+          "actor_archetype": "REGISTERED_FREE_USER",
+          "authentication_context": "authenticated API caller inferred from service and route usage",
+          "lifecycle_status_if_observed": "active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 254,
+              "end_line": 341,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "create_connection takes user_id and persists the connection under that user."
+            },
+            {
+              "chunk_id": "chunk_1a3662fd9fd4cb56",
+              "file_path": "apps/backend/tests/integration/test_connection_service.py",
+              "start_line": 54,
+              "end_line": 80,
+              "symbol_or_node_id": "test_connection_service_lifecycle",
+              "evidence_level": "E2_CONNECTED_CODE",
+              "evidence_summary": "Integration test creates a user and calls connection_service.create_connection, then test_connection."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_actor": "connection_service",
+          "business_role": "backend service layer",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "service method invoked from authenticated request flow",
+          "lifecycle_status_if_observed": "active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 240,
+              "end_line": 341,
+              "symbol_or_node_id": "ConnectionService",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Service class owns create/update lifecycle logic."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "DatabaseConnection",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "user_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 296,
+              "end_line": 337,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Existing records are filtered by user_id and created records store user_id."
+            },
+            {
+              "chunk_id": "chunk_e6e4f00f18ef6d01",
+              "file_path": "apps/backend/app/models/user.py",
+              "start_line": 18,
+              "end_line": 72,
+              "symbol_or_node_id": "User",
+              "evidence_level": "E2_CONNECTED_CODE",
+              "evidence_summary": "User model is the owner-side entity connected to DatabaseConnection records."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "PostgreSQL target DSN / monitoring role",
+          "scope_type": "EXTERNAL_SYSTEM_RESOURCE",
+          "ownership_key_or_tenant_key": "current database / target host:port/database name",
+          "evidence": [
+            {
+              "chunk_id": "chunk_00dcddfd4e515213",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 37,
+              "end_line": 117,
+              "symbol_or_node_id": "_provision_monitoring_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates a dedicated monitoring role against the target database and returns a DSN for that role."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "permission_status",
+          "state_type": "ENTITLEMENT_STATE",
+          "observed_values": [
+            "pg_stat_statements",
+            "hypopg",
+            "pg_stat_activity",
+            "pg_stat_user_tables",
+            "pg_statio_user_tables",
+            "read_only_role"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "persisted on DatabaseConnection",
+          "source_symbol_or_field": "ConnectionTestResponse.permissions / DatabaseConnection.permission_status",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9e17fe055173aaa5",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 127,
+              "end_line": 235,
+              "symbol_or_node_id": "verify_raw_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "verify_raw_dsn computes permission booleans for several PostgreSQL views and a read_only_role check."
+            },
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 315,
+              "end_line": 336,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "create_connection stores the permission status on the DatabaseConnection record."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "is_active",
+          "state_type": "ACCOUNT_STATUS",
+          "observed_values": [
+            "True"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "set true on create/update",
+          "source_symbol_or_field": "DatabaseConnection.is_active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 316,
+              "end_line": 337,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "New and updated connection records are marked active."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_EXTERNAL_API_TO_RESPONSE",
+        "REQUEST_TO_DB_CREATE",
+        "REQUEST_TO_DB_UPDATE",
+        "REQUEST_TO_VALIDATION_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "DATABASE_RECORD_CREATED",
+        "DATABASE_RECORD_UPDATED",
+        "EXTERNAL_API_CALLED",
+        "JSON_PAYLOAD_RETURNED"
+      ],
+      "material_effects": [
+        "Creates or updates DatabaseConnection rows with encrypted connection data",
+        "Calls PostgreSQL to validate reachability and permissions",
+        "Optionally provisions a read-only monitoring role and revalidates it"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "If initial DSN verification fails, creation aborts with an error.",
+          "source_symbol_or_condition": "if not test_result.success: raise ValueError(...)",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 266,
+              "end_line": 269,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Create aborts when verify_raw_dsn reports failure."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "If the supplied role is not sufficiently read-only or lacks monitoring permissions, the service attempts to provision a dedicated monitoring role.",
+          "source_symbol_or_condition": "if not test_result.permissions.get(\"pg_stat_statements\") or not test_result.permissions.get(\"read_only_role\")",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 270,
+              "end_line": 289,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Provisioning branch runs when monitoring requirements are not met."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "If the connection record is not found or the caller is not authorized, test_connection returns success=False.",
+          "source_symbol_or_condition": "if not conn_record: return ConnectionTestResponse(success=False, error=...)",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 354,
+              "end_line": 364,
+              "symbol_or_node_id": "ConnectionService.test_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "test_connection enforces record lookup and ownership/superuser filtering."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "A connection must be validated before it is persisted; failing validation blocks onboarding.",
+          "rule_type": "STATE_PRECONDITION",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 263,
+              "end_line": 269,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Validation precedes persistence and raises on failure."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "The service prefers or provisions a dedicated monitoring role when the source credential is not read-only enough for telemetry collection.",
+          "rule_type": "ACTOR_PERMISSION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 270,
+              "end_line": 289,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Branch provisions monitoring role when required monitoring permissions are absent."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Connection records are scoped to the owning user unless a superuser explicitly bypasses the filter.",
+          "rule_type": "OWNERSHIP_OR_TENANT_BOUNDARY",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 296,
+              "end_line": 303,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Existing connection lookup filters by user_id."
+            },
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 354,
+              "end_line": 357,
+              "symbol_or_node_id": "ConnectionService.test_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "test_connection narrows the query to user_id when caller is not superuser."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Connection credentials are stored encrypted rather than in plaintext.",
+        "Monitoring permission checks are part of onboarding, not a separate optional-only step."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "ConnectionCreate input and raw DSN are supplied to the service.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 254,
+              "end_line": 263,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "create_connection accepts ConnectionCreate and derives a raw connection string."
+            }
+          ]
+        },
+        {
+          "fact_name": "authenticated_actor_present",
+          "value": "TRUE",
+          "evidence_status": "INFERRED",
+          "reason": "The service is keyed by user_id and applies ownership filters; API tests pass Bearer tokens.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 254,
+              "end_line": 341,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "user_id is required for create/update path."
+            },
+            {
+              "chunk_id": "chunk_1a3662fd9fd4cb56",
+              "file_path": "apps/backend/tests/integration/test_connection_service.py",
+              "start_line": 135,
+              "end_line": 170,
+              "symbol_or_node_id": "test_api_connections_endpoints",
+              "evidence_level": "E2_CONNECTED_CODE",
+              "evidence_summary": "Integration test creates a bearer token and calls connection endpoints."
+            }
+          ]
+        },
+        {
+          "fact_name": "external_dependency_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The path connects to PostgreSQL via asyncpg and uses customer pool access.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9e17fe055173aaa5",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 138,
+              "end_line": 237,
+              "symbol_or_node_id": "verify_raw_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "verify_raw_dsn opens a PostgreSQL connection with asyncpg and performs queries."
+            },
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 496,
+              "end_line": 553,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Telemetry summary reads from customer_connection_manager and live PostgreSQL stats."
+            }
+          ]
+        },
+        {
+          "fact_name": "ownership_or_tenant_boundary",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Queries are filtered by user_id unless the caller is superuser.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 296,
+              "end_line": 303,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Existing connection lookup is constrained by user_id."
+            },
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 354,
+              "end_line": 357,
+              "symbol_or_node_id": "ConnectionService.test_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Non-superuser test path filters by user_id."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Connection records transition to active and receive refreshed permission status and timestamps.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 308,
+              "end_line": 337,
+              "symbol_or_node_id": "ConnectionService.create_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Existing or new connection records are updated/created with is_active=True and last_checked_at."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The service returns structured ConnectionTestResponse and telemetry response objects.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9e17fe055173aaa5",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 142,
+              "end_line": 147,
+              "symbol_or_node_id": "verify_raw_dsn",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Failure path returns ConnectionTestResponse."
+            },
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 608,
+              "end_line": 621,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Telemetry summary returns TelemetrySummaryResponse."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "AUTHORITATIVE_EXISTING_TEST",
+          "OBSERVED_CONNECTED_CODE_RULE",
+          "API_SCHEMA_OR_CONTRACT"
+        ],
+        "requirement_statements": [
+          "Connection onboarding tests against a live PostgreSQL target.",
+          "A successful monitoring setup should expose required permissions such as pg_stat_statements and read_only_role.",
+          "Telemetry summary should return live metrics when available and use stored metrics as a fallback."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_1a3662fd9fd4cb56",
+            "file_path": "apps/backend/tests/integration/test_connection_service.py",
+            "start_line": 21,
+            "end_line": 110,
+            "symbol_or_node_id": "test_connection_service_lifecycle",
+            "evidence_level": "E2_CONNECTED_CODE",
+            "evidence_summary": "Integration test exercises onboarding, test_connection, list, telemetry, and delete lifecycle."
+          },
+          {
+            "chunk_id": "chunk_9e17fe055173aaa5",
+            "file_path": "apps/backend/app/services/connection_service.py",
+            "start_line": 120,
+            "end_line": 235,
+            "symbol_or_node_id": "verify_raw_dsn",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Connection test checks permissions and latency before persistence."
+          },
+          {
+            "chunk_id": "chunk_574e3c2b6de2b5c9",
+            "file_path": "apps/backend/app/services/connection_service.py",
+            "start_line": 496,
+            "end_line": 594,
+            "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Live telemetry first, stored telemetry fallback second."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "No direct schema or policy excerpt was supplied for the intended ownership model beyond user_id filtering.",
+          "No explicit acceptance criterion was supplied for when provisioning a monitoring role must succeed versus fail."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_80ec8bff2e37ee46",
+          "file_path": "apps/backend/app/services/connection_service.py",
+          "start_line": 240,
+          "end_line": 341,
+          "symbol_or_node_id": "ConnectionService.create_connection",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Primary onboarding and persistence path for monitored connections."
+        },
+        {
+          "chunk_id": "chunk_9e17fe055173aaa5",
+          "file_path": "apps/backend/app/services/connection_service.py",
+          "start_line": 120,
+          "end_line": 237,
+          "symbol_or_node_id": "verify_raw_dsn",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Validates PostgreSQL reachability and monitoring permissions."
+        },
+        {
+          "chunk_id": "chunk_00dcddfd4e515213",
+          "file_path": "apps/backend/app/services/connection_service.py",
+          "start_line": 37,
+          "end_line": 117,
+          "symbol_or_node_id": "_provision_monitoring_dsn",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Creates or rotates a dedicated read-only monitoring role and DSN."
+        },
+        {
+          "chunk_id": "chunk_574e3c2b6de2b5c9",
+          "file_path": "apps/backend/app/services/connection_service.py",
+          "start_line": 472,
+          "end_line": 621,
+          "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Collects live telemetry and falls back to stored metrics."
+        },
+        {
+          "chunk_id": "chunk_1a3662fd9fd4cb56",
+          "file_path": "apps/backend/tests/integration/test_connection_service.py",
+          "start_line": 21,
+          "end_line": 170,
+          "symbol_or_node_id": "test_connection_service_lifecycle / test_api_connections_endpoints",
+          "evidence_level": "E2_CONNECTED_CODE",
+          "evidence_summary": "Integration tests confirm onboarding, testing, telemetry, and deletion flows."
+        }
+      ],
+      "evidence_gaps": [
+        "Exact authorization policy for superuser versus regular user is only partially visible in service logic.",
+        "Remote route/controller wiring for the connection endpoints is not included in this fragment."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_shadow_experiment_replay_and_policy_evaluation",
+      "path_summary": "A queued optimization experiment is executed in an ephemeral shadow PostgreSQL container, replayed against baseline and candidate states, then evaluated by deterministic policy thresholds.",
+      "entrypoints": [
+        "provision_shadow_db",
+        "clone_customer_database",
+        "ShadowLabWorker.run_simulation_experiment",
+        "ShadowLabWorker.run_ephemeral_experiment",
+        "evaluate"
+      ],
+      "connected_node_ids": [
+        "chunk_a1300f9b430ad24d",
+        "chunk_aeb377aa7cc1714e",
+        "chunk_aa5deda1af2de725",
+        "chunk_cb2761d96de1059f",
+        "chunk_9c81a3c0df1c206f",
+        "chunk_01ae81e3bc5ec787"
+      ],
+      "business_context": {
+        "capability": "Shadow replay optimization workflow",
+        "actor_goal": "Measure candidate SQL changes safely before promotion",
+        "business_object": "OptimizationExperiment",
+        "affected_actor_or_counterparty": "database operator / experiment owner",
+        "business_value_or_consequence": [
+          "Produces latency and storage deltas from real workload replay",
+          "Avoids applying candidate changes to production directly",
+          "Supports deterministic approve/block decisions for canary readiness"
+        ]
+      },
+      "runtime_shapes": [
+        "DYNAMIC_TASK_DELAY_RUNNER",
+        "COMMAND_LINE_INTERFACE_CLI_TOOL",
+        "OBJECT_UTILITY_MODULE_PACKAGE"
+      ],
+      "workload_shapes": [
+        "MULTI_SOURCE_DATA_INGESTION_HYDRATION",
+        "SCHEMA_STRUCTURAL_TRANSFORMATION",
+        "DOUBLE_ENTRY_FINANCIAL_LEDGERING"
+      ],
+      "repo_specific_intent": "provision a shadow database, replay workload, and evaluate candidate optimization",
+      "intent_family": "EXECUTE_OR_SCHEDULE_JOB",
+      "intent_object": "OptimizationExperiment / shadow replay run",
+      "desired_outcome": "A simulated experiment result with policy verdict and recorded latency deltas",
+      "actors": [
+        {
+          "repo_native_actor": "ShadowLabWorker",
+          "business_role": "experiment runner",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "background worker loop; no human auth visible",
+          "lifecycle_status_if_observed": "running / queued / simulated",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9c81a3c0df1c206f",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 121,
+              "end_line": 223,
+              "symbol_or_node_id": "ShadowLabWorker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Worker runs paired simulation and ephemeral experiments."
+            },
+            {
+              "chunk_id": "chunk_d49ca8e6b7436775",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 229,
+              "end_line": 302,
+              "symbol_or_node_id": "run_shadow_lab_worker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Worker loop processes pending experiments and updates experiment state."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_actor": "policy_engine",
+          "business_role": "deterministic verifier",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "pure function over verification metrics",
+          "lifecycle_status_if_observed": "active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_01ae81e3bc5ec787",
+              "file_path": "apps/backend/app/tools/policy_engine.py",
+              "start_line": 41,
+              "end_line": 176,
+              "symbol_or_node_id": "evaluate",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Evaluation compares metrics against thresholds and synthesizes verdict."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "ShadowDatabase / Docker container",
+          "scope_type": "SYSTEM_INTERNAL_RESOURCE",
+          "ownership_key_or_tenant_key": "container_name / container_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a1300f9b430ad24d",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 124,
+              "end_line": 176,
+              "symbol_or_node_id": "provision_shadow_db",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Creates ephemeral container with generated container name and DSN."
+            },
+            {
+              "chunk_id": "chunk_74e73d66dd57486c",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 184,
+              "end_line": 199,
+              "symbol_or_node_id": "teardown_shadow_db",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Stops and removes the container by name or id."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_resource_type": "OptimizationExperiment",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "connection_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d49ca8e6b7436775",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 249,
+              "end_line": 295,
+              "symbol_or_node_id": "run_shadow_lab_worker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Selects pending experiments and updates experiment rows."
+            }
+          ],
+          "confidence": "MEDIUM"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "status",
+          "state_type": "JOB_STATUS",
+          "observed_values": [
+            "PENDING_SIMULATION",
+            "RUNNING",
+            "SIMULATED",
+            "FAILED",
+            "COMPLETED"
+          ],
+          "starting_state": "PENDING_SIMULATION",
+          "resulting_state": "SIMULATED or FAILED",
+          "source_symbol_or_field": "OptimizationExperiment.status",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d49ca8e6b7436775",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 250,
+              "end_line": 295,
+              "symbol_or_node_id": "run_shadow_lab_worker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Worker moves experiments from PENDING_SIMULATION to RUNNING and then SIMULATED or FAILED."
+            },
+            {
+              "chunk_id": "chunk_9c81a3c0df1c206f",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 139,
+              "end_line": 147,
+              "symbol_or_node_id": "ShadowLabWorker.run_simulation_experiment",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Failed candidate installation returns FAILED status."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "policy_verdict",
+          "state_type": "APPROVAL_STATUS",
+          "observed_values": [
+            "APPROVE",
+            "CONDITIONAL",
+            "BLOCK"
+          ],
+          "starting_state": "UNKNOWN",
+          "resulting_state": "VERIFIED / CONDITIONAL / REJECTED",
+          "source_symbol_or_field": "evaluate.verdict / evaluate.status",
+          "evidence": [
+            {
+              "chunk_id": "chunk_01ae81e3bc5ec787",
+              "file_path": "apps/backend/app/tools/policy_engine.py",
+              "start_line": 147,
+              "end_line": 176,
+              "symbol_or_node_id": "evaluate",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Evaluation synthesizes policy verdict and status."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "CRON_TO_BATCH_PROCESSING",
+        "REQUEST_TO_DB_UPDATE",
+        "REQUEST_TO_DB_READ_TO_RESPONSE",
+        "REQUEST_TO_TRANSACTION_COMMIT"
+      ],
+      "effect_types": [
+        "JOB_STARTED",
+        "JOB_COMPLETED",
+        "JOB_FAILED",
+        "DATABASE_RECORD_UPDATED",
+        "RESOURCE_RECONCILED"
+      ],
+      "material_effects": [
+        "Spins up and tears down ephemeral PostgreSQL shadow infrastructure",
+        "Replays workload twice to compare baseline and candidate optimization behavior",
+        "Persists experiment metrics and state transitions",
+        "Produces deterministic verdicts for canary eligibility"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "Shadow provisioning requires Docker to be available.",
+          "source_symbol_or_condition": "if not is_docker_available(): raise ShadowProvisioningError(...)",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a1300f9b430ad24d",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 129,
+              "end_line": 132,
+              "symbol_or_node_id": "provision_shadow_db",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Docker availability is checked before container creation."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Only allowed candidate SQL patterns may be installed in the shadow database.",
+          "source_symbol_or_condition": "if not any(pattern.match(cleaned) for pattern in _ALLOWED_SHADOW_SQL): return success=False",
+          "evidence": [
+            {
+              "chunk_id": "chunk_aa5deda1af2de725",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 253,
+              "end_line": 261,
+              "symbol_or_node_id": "install_candidate_optimization",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Candidate SQL is rejected if it is outside the supported action set."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "If no replayable workload exists, the worker fails the experiment rather than proceeding.",
+          "source_symbol_or_condition": "if not workload: raise RuntimeError(...)",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d49ca8e6b7436775",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 273,
+              "end_line": 276,
+              "symbol_or_node_id": "run_shadow_lab_worker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Shadow worker requires replayable read queries."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "Policy engine blocks when metric thresholds are violated; it only approves when no rules fail.",
+          "source_symbol_or_condition": "if not violated_rules: APPROVE else BLOCK/CONDITIONAL",
+          "evidence": [
+            {
+              "chunk_id": "chunk_01ae81e3bc5ec787",
+              "file_path": "apps/backend/app/tools/policy_engine.py",
+              "start_line": 147,
+              "end_line": 176,
+              "symbol_or_node_id": "evaluate",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Verdict depends on violated rules and sample-size condition."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "An optimization candidate must pass through a supported shadow action set before execution.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_aa5deda1af2de725",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 249,
+              "end_line": 261,
+              "symbol_or_node_id": "install_candidate_optimization",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Allowed SQL patterns gate execution."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Shadow experiments should use real replayable queries, not synthetic metrics alone.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d49ca8e6b7436775",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 266,
+              "end_line": 274,
+              "symbol_or_node_id": "run_shadow_lab_worker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Workload is built from live query metrics and failure occurs when none are replayable."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "Ephemeral shadow infrastructure must be torn down after use.",
+          "rule_type": "FAILURE_RECOVERY_OR_COMPENSATION_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_1af9f0473c8d1abc",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 323,
+              "end_line": 332,
+              "symbol_or_node_id": "shadow_environment",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Context manager always tears down the container in finally."
+            },
+            {
+              "chunk_id": "chunk_9c81a3c0df1c206f",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 219,
+              "end_line": 223,
+              "symbol_or_node_id": "ShadowLabWorker.run_ephemeral_experiment",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Experiment teardown is guaranteed in finally."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "A shadow experiment is only meaningful when baseline and candidate runs are paired over the same workload.",
+        "The candidate optimization is measured by latency improvement, regression rate, and storage growth.",
+        "A failed provisioning or installation attempt aborts the experiment rather than silently continuing."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_input_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Source DSN, candidate SQL, and workload are supplied to the experiment path.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9c81a3c0df1c206f",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 124,
+              "end_line": 150,
+              "symbol_or_node_id": "ShadowLabWorker.run_simulation_experiment",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Method receives target connection, candidate SQL, and workload."
+            }
+          ]
+        },
+        {
+          "fact_name": "external_dependency_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Docker and PostgreSQL client tools are invoked.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a1300f9b430ad24d",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 139,
+              "end_line": 176,
+              "symbol_or_node_id": "provision_shadow_db",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses docker run to create the shadow DB container."
+            },
+            {
+              "chunk_id": "chunk_aeb377aa7cc1714e",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 209,
+              "end_line": 242,
+              "symbol_or_node_id": "clone_customer_database",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Uses pg_dump and pg_restore for cloning."
+            }
+          ]
+        },
+        {
+          "fact_name": "state_transition_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Experiment and worker statuses are updated through the workflow.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_d49ca8e6b7436775",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 257,
+              "end_line": 295,
+              "symbol_or_node_id": "run_shadow_lab_worker",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Experiment status transitions from PENDING_SIMULATION to RUNNING to SIMULATED/FAILED."
+            }
+          ]
+        },
+        {
+          "fact_name": "multiple_ordered_effects",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The flow provisions infrastructure, clones data, runs baseline/candidate replays, then tears down.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_9c81a3c0df1c206f",
+              "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+              "start_line": 207,
+              "end_line": 223,
+              "symbol_or_node_id": "ShadowLabWorker.run_ephemeral_experiment",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Ordered lifecycle: provision, clone, run, teardown."
+            }
+          ]
+        },
+        {
+          "fact_name": "resource_lifecycle_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Ephemeral shadow container lifecycle is explicit.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_a1300f9b430ad24d",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 124,
+              "end_line": 181,
+              "symbol_or_node_id": "provision_shadow_db",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Provisioning returns a ready ephemeral container."
+            },
+            {
+              "chunk_id": "chunk_74e73d66dd57486c",
+              "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+              "start_line": 184,
+              "end_line": 199,
+              "symbol_or_node_id": "teardown_shadow_db",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Teardown removes the container."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "AUTHORITATIVE_EXISTING_TEST",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Shadow container provisioning should fail clearly when Docker is unavailable.",
+          "Candidate SQL must be constrained to supported optimization actions.",
+          "Policy evaluation must be deterministic and threshold-based."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_649ebb3bb35721f1",
+            "file_path": "apps/backend/tests/unit/test_shadow_db_tool.py",
+            "start_line": 107,
+            "end_line": 111,
+            "symbol_or_node_id": "test_provision_shadow_db_fails_gracefully_when_docker_unavailable",
+            "evidence_level": "E2_CONNECTED_CODE",
+            "evidence_summary": "Unit test asserts provisioning fails when Docker is unavailable."
+          },
+          {
+            "chunk_id": "chunk_649ebb3bb35721f1",
+            "file_path": "apps/backend/tests/unit/test_shadow_db_tool.py",
+            "start_line": 58,
+            "end_line": 79,
+            "symbol_or_node_id": "test_install_candidate_optimization / test_clone_schema_and_tables",
+            "evidence_level": "E2_CONNECTED_CODE",
+            "evidence_summary": "Unit tests cover candidate installation and cloning behavior."
+          },
+          {
+            "chunk_id": "chunk_4c1818c00b80524d",
+            "file_path": "apps/backend/tests/unit/test_policy_engine.py",
+            "start_line": 21,
+            "end_line": 80,
+            "symbol_or_node_id": "test_policy_engine_*",
+            "evidence_level": "E2_CONNECTED_CODE",
+            "evidence_summary": "Tests encode deterministic thresholds and verdict outcomes."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "No explicit approval workflow for moving simulated experiments into canary deployment is present in this fragment.",
+          "No oracle excerpt for the allowed SQL pattern list was supplied beyond implementation code."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_a1300f9b430ad24d",
+          "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+          "start_line": 124,
+          "end_line": 181,
+          "symbol_or_node_id": "provision_shadow_db",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Ephemeral Docker shadow DB provisioning and readiness check."
+        },
+        {
+          "chunk_id": "chunk_aeb377aa7cc1714e",
+          "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+          "start_line": 202,
+          "end_line": 242,
+          "symbol_or_node_id": "clone_customer_database",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Customer database cloning via pg_dump and pg_restore."
+        },
+        {
+          "chunk_id": "chunk_aa5deda1af2de725",
+          "file_path": "apps/backend/app/tools/shadow_db_tool.py",
+          "start_line": 245,
+          "end_line": 279,
+          "symbol_or_node_id": "install_candidate_optimization",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Candidate SQL gating and execution against shadow database."
+        },
+        {
+          "chunk_id": "chunk_9c81a3c0df1c206f",
+          "file_path": "apps/backend/app/workers/shadow_lab_worker.py",
+          "start_line": 121,
+          "end_line": 223,
+          "symbol_or_node_id": "ShadowLabWorker",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Paired simulation experiment and ephemeral experiment workflow."
+        },
+        {
+          "chunk_id": "chunk_01ae81e3bc5ec787",
+          "file_path": "apps/backend/app/tools/policy_engine.py",
+          "start_line": 41,
+          "end_line": 176,
+          "symbol_or_node_id": "evaluate",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Deterministic policy verdict synthesis from verification metrics."
+        }
+      ],
+      "evidence_gaps": [
+        "The source of pending OptimizationExperiment records is not shown here beyond worker queries.",
+        "The route or API entrypoint that schedules these workers is not included in this fragment."
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "path_id": "path_telemetry_aggregation_and_summary",
+      "path_summary": "The service queries live PostgreSQL telemetry when possible, computes summary metrics, and falls back to stored QueryMetric and TableMetric records when live collection is unavailable.",
+      "entrypoints": [
+        "ConnectionService.get_telemetry_summary",
+        "customer_connection_manager.get_customer_pool",
+        "pg_introspection.get_query_metrics",
+        "pg_introspection.get_table_stats"
+      ],
+      "connected_node_ids": [
+        "chunk_574e3c2b6de2b5c9",
+        "chunk_944b01a5d8b7a09a"
+      ],
+      "business_context": {
+        "capability": "Database telemetry aggregation",
+        "actor_goal": "Inspect query and table health for a monitored database",
+        "business_object": "QueryMetric / TableMetric / TelemetrySummaryResponse",
+        "affected_actor_or_counterparty": "connection owner / DBA",
+        "business_value_or_consequence": [
+          "Provides query counts, latency, cache-hit ratio, and bloated-table signals",
+          "Maintains visibility even when live telemetry is not reachable",
+          "Supports operational troubleshooting and optimization triage"
+        ]
+      },
+      "runtime_shapes": [
+        "REST_API_ENDPOINT_HANDLER",
+        "OBJECT_UTILITY_MODULE_PACKAGE"
+      ],
+      "workload_shapes": [
+        "STREAMING_ROLLUP_AGGREGATION",
+        "SYSTEM_HEALTH_METRIC_DOWNSAMPLING",
+        "FACETED_FILTERING_AGGREGATION"
+      ],
+      "repo_specific_intent": "retrieve telemetry summary for a monitored database",
+      "intent_family": "VIEW_OR_RETRIEVE_RESOURCE",
+      "intent_object": "TelemetrySummaryResponse",
+      "desired_outcome": "A summary of live or cached telemetry for one connection",
+      "actors": [
+        {
+          "repo_native_actor": "connection_service",
+          "business_role": "telemetry aggregator",
+          "actor_archetype": "OTHER_REPO_SPECIFIC_ACTOR",
+          "authentication_context": "user_id / is_superuser scoped service call",
+          "lifecycle_status_if_observed": "active",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 472,
+              "end_line": 621,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Service assembles telemetry summary from live or stored sources."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "DatabaseConnection telemetry",
+          "scope_type": "ACTOR_OWNED_RESOURCE",
+          "ownership_key_or_tenant_key": "connection_id / user_id",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 483,
+              "end_line": 488,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Telemetry summary is fetched for a specific connection record."
+            },
+            {
+              "chunk_id": "chunk_80ec8bff2e37ee46",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 354,
+              "end_line": 429,
+              "symbol_or_node_id": "ConnectionService.get_connection",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Connection lookups are scoped by user_id unless superuser."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "window_start / window_end",
+          "state_type": "FEATURE_WINDOW",
+          "observed_values": [
+            "now - timedelta(hours=24)",
+            "now"
+          ],
+          "starting_state": "now - 24h",
+          "resulting_state": "now",
+          "source_symbol_or_field": "ConnectionService.get_telemetry_summary",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 483,
+              "end_line": 485,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Telemetry summary uses a 24-hour lookback window."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "repo_native_state_name": "query_telemetry_available / table_telemetry_available",
+          "state_type": "PROCESSING_STATUS",
+          "observed_values": [
+            "True",
+            "False"
+          ],
+          "starting_state": "False",
+          "resulting_state": "True when live stats succeed",
+          "source_symbol_or_field": "ConnectionService.get_telemetry_summary",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 493,
+              "end_line": 571,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Live stats flags are set when queries and tables are successfully fetched."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "path_types": [
+        "REQUEST_TO_DB_READ_TO_RESPONSE",
+        "REQUEST_TO_AGGREGATION_TO_RESPONSE"
+      ],
+      "effect_types": [
+        "JSON_PAYLOAD_RETURNED",
+        "STRUCTURED_OBJECT_RETURNED"
+      ],
+      "material_effects": [
+        "Computes telemetry aggregates and returns them to the caller",
+        "Reads live PostgreSQL statistics and stored metric rows"
+      ],
+      "guards_observed": [
+        {
+          "guard_statement": "If the connection record cannot be resolved, the summary returns None.",
+          "source_symbol_or_condition": "if not conn_record: return None",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 483,
+              "end_line": 488,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Missing connection short-circuits summary generation."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "guard_statement": "If live telemetry collection fails, the service falls back to cached/stored metrics.",
+          "source_symbol_or_condition": "if not top_queries / if not top_tables",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 575,
+              "end_line": 594,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Fallback queries select QueryMetric and TableMetric rows."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "Live PostgreSQL telemetry is preferred over stored telemetry when available.",
+          "rule_type": "OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 496,
+              "end_line": 574,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Attempts pool access and live introspection first."
+            }
+          ],
+          "confidence": "HIGH"
+        },
+        {
+          "rule_statement": "The summary always computes top queries, top tables, total queries, average latency, p95 latency, and cache hit ratio when possible.",
+          "rule_type": "OUTPUT_CONTRACT_RULE",
+          "evidence_status": "OBSERVED",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 596,
+              "end_line": 621,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Return object includes these summary fields."
+            }
+          ],
+          "confidence": "HIGH"
+        }
+      ],
+      "business_invariants": [
+        "Telemetry is connection-scoped and bounded to a recent time window.",
+        "Live collection and stored fallback should produce the same response shape."
+      ],
+      "activation_facts": [
+        {
+          "fact_name": "external_dependency_present",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The path uses a customer connection pool and PostgreSQL introspection queries.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 496,
+              "end_line": 571,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Live telemetry retrieval from customer pool and pg_introspection."
+            }
+          ]
+        },
+        {
+          "fact_name": "repeatable_path",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "The same service can repeatedly summarize telemetry over a moving 24h window.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 483,
+              "end_line": 485,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Window is computed from current time on each invocation."
+            }
+          ]
+        },
+        {
+          "fact_name": "structured_output_contract",
+          "value": "TRUE",
+          "evidence_status": "OBSERVED",
+          "reason": "Returns TelemetrySummaryResponse with a fixed set of fields.",
+          "evidence": [
+            {
+              "chunk_id": "chunk_574e3c2b6de2b5c9",
+              "file_path": "apps/backend/app/services/connection_service.py",
+              "start_line": 608,
+              "end_line": 621,
+              "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+              "evidence_level": "E1_DIRECT_CODE",
+              "evidence_summary": "Structured response object is constructed and returned."
+            }
+          ]
+        }
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "AUTHORITATIVE_EXISTING_TEST",
+          "OBSERVED_CONNECTED_CODE_RULE"
+        ],
+        "requirement_statements": [
+          "Telemetry summary should be available after connection onboarding.",
+          "Live metrics are preferred, but cached metrics are acceptable when live access fails."
+        ],
+        "aligned_code_evidence": [
+          {
+            "chunk_id": "chunk_1a3662fd9fd4cb56",
+            "file_path": "apps/backend/tests/integration/test_connection_service.py",
+            "start_line": 93,
+            "end_line": 102,
+            "symbol_or_node_id": "test_connection_service_lifecycle",
+            "evidence_level": "E2_CONNECTED_CODE",
+            "evidence_summary": "Integration test calls get_telemetry_summary and asserts a summary is returned."
+          },
+          {
+            "chunk_id": "chunk_574e3c2b6de2b5c9",
+            "file_path": "apps/backend/app/services/connection_service.py",
+            "start_line": 496,
+            "end_line": 594,
+            "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+            "evidence_level": "E1_DIRECT_CODE",
+            "evidence_summary": "Live-first then fallback summary path."
+          }
+        ],
+        "conflicts_or_gaps": [
+          "No explicit oracle for the exact aggregation formulas beyond implementation code."
+        ],
+        "confidence": "HIGH"
+      },
+      "evidence": [
+        {
+          "chunk_id": "chunk_574e3c2b6de2b5c9",
+          "file_path": "apps/backend/app/services/connection_service.py",
+          "start_line": 472,
+          "end_line": 621,
+          "symbol_or_node_id": "ConnectionService.get_telemetry_summary",
+          "evidence_level": "E1_DIRECT_CODE",
+          "evidence_summary": "Telemetry summary aggregation path."
+        },
+        {
+          "chunk_id": "chunk_1a3662fd9fd4cb56",
+          "file_path": "apps/backend/tests/integration/test_connection_service.py",
+          "start_line": 93,
+          "end_line": 102,
+          "symbol_or_node_id": "test_connection_service_lifecycle",
+          "evidence_level": "E2_CONNECTED_CODE",
+          "evidence_summary": "Integration test covers telemetry summary retrieval."
+        }
+      ],
+      "evidence_gaps": [
+        "The underlying schema definitions for QueryMetricOut and TableMetricOut are not included here.",
+        "The exact API route wiring for the telemetry endpoint is not shown in this fragment."
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "cross_pack_followups": [],
+  "unsupported_or_nonmaterial_signals": [
+    {
+      "signal": "apps/backend/app/services/__init__.py export of ConnectionService",
+      "reason": "Package export is name-only support and does not add a distinct production path beyond the service implementation already classified.",
+      "evidence": [
+        {
+          "chunk_id": "chunk_fd2c66977af80041",
+          "file_path": "apps/backend/app/services/__init__.py",
+          "start_line": 6,
+          "end_line": 10,
+          "symbol_or_node_id": "services.__init__",
+          "evidence_level": "E4_NAME_OR_DEPENDENCY_ONLY",
+          "evidence_summary": "Exports ConnectionService from the package."
+        }
+      ]
+    }
+  ]
+}

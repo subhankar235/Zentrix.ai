@@ -1,0 +1,3503 @@
+You are the ShipReadyV2 Pass 1 semantic mapping agent.
+
+OBJECTIVE
+Read one graph-connected repository fragment and translate implementation details into evidence-backed business context. Reconstruct material entrypoint-to-effect path fragments and classify their runtime shape, workload shape, actor, state, intent, resource scope, path type, effects, observed guards, rules, invariants, and requirement alignment.
+
+PASS 1 BOUNDARY
+- This request is semantic discovery, not defect detection or test execution.
+- Do not select risk triggers. Deterministic routing occurs only after fragments from all requests are merged.
+- Do not declare a control missing, a test failed, or a business flaw confirmed.
+- Do not infer absence from this fragment: connected code may appear in another request.
+- Ignore examples, fixtures, generated files, and tests as production paths unless they establish a requirement, oracle, or counter-evidence for production code.
+
+CLASSIFICATION RULES
+- Preserve every repo-native name and add a normalized taxonomy ID only when supported.
+- OBSERVED means explicit code, test, schema, documentation, guard, state, effect, or contract evidence.
+- INFERRED means multiple connected signals strongly support the interpretation; state the reasoning.
+- UNKNOWN means the supplied evidence cannot establish the answer. Never guess a business policy.
+- OTHER means the concept is clearly present but no supplied taxonomy value fits. Preserve the repo-native label and explain why OTHER is appropriate.
+- Do not force payment, entitlement, approval, ownership, tenant, or deletion semantics from names or dependencies alone.
+
+CONFIDENCE
+- HIGH: direct or connected evidence establishes the material path and effect; the classified field is explicit or strongly corroborated.
+- MEDIUM: the material path/effect is supported, but one or more important actor, state, scope, intent, or rule fields require a bounded inference.
+- LOW: the path is incomplete or materially depends on weak evidence, but it is important enough for later expansion.
+- UNSUPPORTED: no material path/effect exists or the signal is name/dependency-only. Put it in unsupported_or_nonmaterial_signals, not in business_path_fragments.
+
+EVIDENCE
+- Every non-UNKNOWN normalized classification must cite evidence.
+- Cite exact chunk_id, file_path, start_line, end_line, and symbol_or_node_id.
+- Use only evidence present in this request, including supplied bridge excerpts.
+- A bridge excerpt is supporting context, not proof that the full remote path was inspected.
+
+OUTPUT
+- Return exactly one JSON object and no Markdown.
+- Follow the output contract below.
+- Use empty arrays and UNKNOWN values where appropriate; do not omit required top-level fields.
+
+===== COMPACT ARCHETYPE TAXONOMY =====
+schema_version: shipreadyv2.pass1_taxonomy.compact.v1
+taxonomy_name: ShipReady Archetype Taxonomy
+taxonomy_version: 0.4.0
+source:
+  file: archetype_taxonomy(3).yaml
+  sha256: 55e98bdace2af1a1dbe6a73315e651383f9f2ca265a3ad5ca262dbd8acbf1f5f
+classification_context:
+  purpose: Sent with every Pass 1 map batch to classify evidence-backed business paths.
+  layers:
+    layer_1_runtime_shapes:
+      name: 'Layer 1: Runtime Shapes'
+      description: Defines how code is entered, how long the process lives, and resource lifecycles.
+      categories:
+        A_NETWORK_DRIVEN_EPHEMERAL:
+        - REST_API_ENDPOINT_HANDLER
+        - GRAPHQL_RESOLVER_SERVICE
+        - GRPC_UNARY_SERVICE
+        - WEBHOOK_RECEIVER
+        - SERVERLESS_FUNCTION_FAAS
+        - EDGE_FUNCTION_MIDDLEWARE
+        - OAUTH_IDENTITY_PROVIDER
+        - SERVER_SIDE_RENDERED_SSR_ENGINE
+        - REVERSE_PROXY_INGRESS_CONTROLLER
+        - BFF_BACKEND_FOR_FRONTEND
+        - SAML_FEDERATION_GATEWAY
+        - DNS_NAMESERVER_DAEMON
+        B_NETWORK_DRIVEN_CONTINUOUS:
+        - WEBSOCKET_SERVER
+        - GRPC_STREAMING_SERVER
+        - WEBRTC_MEDIA_SERVER
+        - MQTT_BROKER
+        - TCP_UDP_SOCKET_SERVER
+        - SFTP_FTP_SERVER
+        - MESSAGE_BROKER_NODE
+        - DATABASE_ENGINE_SERVER
+        - CACHING_LAYER_DAEMON
+        - PUSH_NOTIFICATION_GATEWAY
+        - DISTRIBUTED_FILE_SYSTEM_NODE
+        - PROXY_VPN_CONCENTRATOR
+        C_EVENT_DRIVEN_REACTIVE:
+        - QUEUE_CONSUMER_WORKER
+        - STREAM_PROCESSOR_EVENT_SOURCING
+        - CHANGE_DATA_CAPTURE_CDC_DAEMON
+        - DEAD_LETTER_QUEUE_DLQ_TRIAGE_WORKER
+        - PUB_SUB_SUBSCRIBER
+        - SAGA_WORKFLOW_ORCHESTRATOR
+        - FILE_SYSTEM_EVENT_MONITOR
+        - ACTOR_MODEL_RUNTIME
+        - IOT_TELEMETRY_INGEST_WORKER
+        - AUDIT_LOG_INDEXER
+        - WEBHOOK_BROADCASTER_FAN_OUT_OUTBOX
+        - DISTRIBUTED_LOCK_MANAGER
+        D_TIME_DRIVEN_SCHEDULED:
+        - CRON_JOB_SCRIPT
+        - DYNAMIC_TASK_DELAY_RUNNER
+        - SRE_AVAILABILITY_PROBER
+        - HEARTBEAT_KEEP_ALIVE_DAEMON
+        - CACHE_EVICTION_TTL_SWEEPER
+        - DATABASE_INDEX_OPTIMIZER
+        - SSL_CERTIFICATE_RENEWER
+        - BILLING_METERING_AGGREGATOR
+        - LEADER_ELECTION_TIMER
+        - TELEMETRY_SCRAPING_AGENT
+        E_DATA_DRIVEN_HEAVY_COMPUTE:
+        - ETL_PIPELINE
+        - MAPREDUCE_DISTRIBUTED_BATCH_JOB
+        - ML_MODEL_TRAINING_PIPELINE
+        - ML_BATCH_INFERENCE_JOB
+        - DB_MIGRATION_SCRIPT
+        - LOG_ROTATOR_COMPRESSOR
+        - VIDEO_TRANSCODING_ENGINE
+        - CRYPTO_HASHING_WORKER
+        - REPORTING_PDF_COMPILATION_ENGINE
+        - DATA_ANONYMIZATION_SANDBOX_TOOL
+        - GRAPH_NETWORK_ANALYZER
+        - BACKUP_SNAPSHOT_VAULT_CREATOR
+        F_HUMAN_INTERACTIVE_CLIENT:
+        - SINGLE_PAGE_APPLICATION_SPA
+        - COMMAND_LINE_INTERFACE_CLI_TOOL
+        - DESKTOP_GUI_APP
+        - MOBILE_APP_CLIENT
+        - INTERACTIVE_NOTEBOOK_SCRIPT
+        - BUSINESS_ANALYTICS_DRIVEN_DASHBOARD
+        - REPL_READ_EVAL_PRINT_LOOP
+        - INTERACTIVE_CONVERSATIONAL_BOT_CLIENT
+        - EMBEDDED_WEB_COMPONENT_WIDGET
+        - IMMERSIVE_XR_VR_APP_CLIENT
+        - HARDWARE_CONSOLE_GUI_APPLICATION
+        - LOCAL_CONFIGURATOR_INSTALLER_WIZARD
+        G_EMBEDDED_KERNEL_EXTENSIONS:
+        - DATABASE_STORED_PROCEDURE
+        - DATABASE_TRIGGER
+        - WEBASSEMBLY_WASM_PLUGIN
+        - KERNEL_MODULE_DRIVER
+        - BROWSER_EXTENSION_BACKGROUND_WORKER
+        - GIT_HOOK_SCRIPT
+        - API_MIDDLEWARE_INTERCEPTOR
+        - EBPF_PROGRAM
+        - CICD_PIPELINE_RUNNER_AGENT
+        - KUBERNETES_MUTATING_VALIDATING_WEBHOOK
+        - SERVICE_MESH_SIDECAR_PROXY
+        - COMPILER_LINTER_PLUGIN
+        H_PASSIVE_IMPORTABLE:
+        - SHARED_DYNAMIC_LIBRARY
+        - STATIC_LIBRARY_PACKAGE
+        - SOFTWARE_DEVELOPMENT_KIT_SDK
+        - OBJECT_UTILITY_MODULE_PACKAGE
+        - DATABASE_SCHEMA_DEFINITION
+        - INFRASTRUCTURE_AS_CODE_IAC_TEMPLATE
+        - API_SPECIFICATION_DECLARATION
+        - POLYFILL_COMPATIBILITY_PACKAGE
+        - DATA_SERIALIZATION_DESERIALIZATION_STUB
+        - MOCK_TESTING_STUB_LIBRARY
+        I_CONTINUOUS_MONITORING_LOOP:
+        - KUBERNETES_CUSTOM_CONTROLLER_OPERATOR
+        - GITOPS_STATE_RECONCILIATION_ENGINE
+        - LOG_SCRAPING_AGGREGATION_DAEMON
+        - DISTRIBUTED_SERVICE_DISCOVERY_REGISTRY
+        - HOST_SECURITY_INTRUSION_DETECTION_AGENT
+        - FEATURE_FLAG_REAL_TIME_SYNC_WORKER
+        - HARDWARE_UPS_POWER_MONITORING_DAEMON
+        - CLUSTER_AUTO_SCALER_COORDINATOR
+    layer_2_workload_domain_shapes:
+      name: 'Layer 2: Workload / Domain Shapes'
+      description: Defines what work the system performs and its internal data transformations.
+      categories:
+        C1_GENERATIVE_CONTENT_KNOWLEDGE:
+        - CONTENT_GENERATION
+        - SYNTHETIC_ASSESSMENT_QUIZ_QUESTION_GEN
+        - STRUCTURED_LESSON_ORCHESTRATION
+        - CONTEXT_CONSTRAINED_SYNTHESIS_SUMMARIZATION
+        - CROSS_LINGUAL_MAPPING_TRANSLATION
+        - STYLISTIC_TEXT_REWRITING
+        - SEMANTIC_DOCUMENT_HYDRO_FILLING
+        - CONVERSATIONAL_TURN_ASSEMBLY_CHATBOT
+        - RAG_CONTEXT_SYNTHESIS
+        - TAXONOMIC_LABELING_TEXT_CLASSIFICATION
+        - SAFETY_FILTER_EXECUTION_CONTENT_MODERATION
+        - ALGORITHMIC_GRADING_AND_FEEDBACK
+        C2_MACHINE_LEARNING_STATS:
+        - TIME_SERIES_HORIZON_FORECASTING
+        - MULTIVARIATE_REGRESSION_SCORING
+        - ANOMALY_OUTLIER_DETECTION
+        - CLUSTERING_BEHAVIORAL_SEGMENTATION
+        - COMPUTER_VISION_CLASSIFICATION
+        - ACOUSTIC_SPEECH_TO_TEXT_PARSING
+        - PREDICTIVE_RECOMMENDATION_INFERENCE
+        - SENTIMENT_VECTOR_VALENCE_ANALYSIS
+        - GRAPH_STRUCTURAL_ANALYSIS
+        C3_DISCOVERY_RETRIEVAL_SEARCH:
+        - FULL_TEXT_INVERTED_INDEXING
+        - DENSE_VECTOR_EMBEDDING_GENERATION
+        - K_NEAREST_NEIGHBORS_KNN_SEARCH
+        - LEXICAL_SEMANTIC_HYBRID_RANKING
+        - AUTOMATED_SEARCH_QUERY_EXPANSION
+        - FACETED_FILTERING_AGGREGATION
+        C4_TRANSACTIONAL_LEDGER_COMMERCE:
+        - CART_QUOTE_PRICING_CALCULATION
+        - INVENTORY_LEDGER_ALLOCATION
+        - DOUBLE_ENTRY_FINANCIAL_LEDGERING
+        - PAYMENT_GATEWAY_INTERLOCKING
+        - SUBSCRIPTION_TIER_ENTITLEMENT_CHECKING
+        - MULTI_PARTY_PAYOUT_SPLIT_ORCHESTRATION
+        - ORDER_STATUS_LIFECYCLE_MACHINE
+        C5_RISK_COMPLIANCE_VERIFICATION:
+        - KYC_IDENTITY_DOCUMENT_OCR_VERIFICATION
+        - ANTI_MONEY_LAUNDERING_AML_VELOCITY_CHECK
+        - ACCESS_CONTROL_RBAC_ABAC_EVALUATION
+        - IMMUTABLE_AUDIT_TRAIL_CONSTRUCTION
+        - SANCTION_LIST_CROSS_MATCHING
+        - POLICY_AS_CODE_COMPLIANCE_VERIFICATION
+        C6_MUTATION_WAREHOUSE_DATA_PIPELINES:
+        - SCHEMA_STRUCTURAL_TRANSFORMATION
+        - DATA_DEDUPLICATION_RECORD_LINKAGE
+        - DATA_DENORMALIZATION_FLAT_SERIALIZATION
+        - STREAMING_ROLLUP_AGGREGATION
+        - MULTI_SOURCE_DATA_INGESTION_HYDRATION
+        - COLD_ARCHIVE_STORAGE_COMPACTION
+        C7_STATEFUL_MACHINES_APPROVALS:
+        - HUMAN_IN_THE_LOOP_APPROVAL_GATING
+        - DYNAMIC_ESCALATION_ROUTING
+        - FORM_LIFECYCLE_VALIDATION_ENGINE
+        - TENANT_CONFIGURATION_INITIALIZATION
+        - SAAS_SEAT_MANAGEMENT_PROVISIONING
+        C8_INTER_SYSTEM_COMMUNICATION:
+        - TRANSACTIONAL_EMAIL_LAYOUT_COMPOSING
+        - SMS_ALERT_SHORT_CODE_THROTTLING
+        - PUSH_NOTIFICATION_TOKEN_MAPPING
+        - SLACK_WEBHOOK_ALERT_STRUCTURING
+        - IN_APP_NOTIFICATION_FEED_INSERTION
+        C9_REALTIME_COORDINATES_IOT:
+        - GEOFENCE_PROXIMITY_INTERSECTION
+        - SPATIAL_ROUTING_PATH_OPTIMIZATION
+        - IOT_STATE_SHADOW_SYNCHRONIZATION
+        - HIGH_FREQUENCY_TELEMETRY_DEADBANDING
+        - LIVE_ROOM_CHANNEL_PRES_TRACKING
+        C10_SPECIALIZED_UTILITIES:
+        - AB_TEST_VARIANT_ALLOCATION
+        - RATE_LIMITING_TOKEN_BUCKET_DRAW
+        - DISTRIBUTED_CACHE_WARMUP
+        - IDEMPOTENCY_KEY_VERIFICATION
+        - VULNERABILITY_SIGNATURE_SCANNING
+        - FEATURE_FLAG_EVALUATION_ENGINE
+        - DIGITAL_SIGNATURE_CRYPTOGRAPHIC_SIGNING
+        - SEARCH_KEYWORD_TOKENIZATION_PARSING
+        - TAX_TARIFF_JURISDICTION_MATCHING
+        - BULK_INVOICE_CONCATENATION
+        - DATABASE_SEED_PROVISIONING
+        - SESSION_STATE_DESERIALIZATION
+        - MEDIA_TRANSCODING_QUALITY_DOWNSAMPLING
+        - E_COMMERCE_SHIPPING_BOX_VOLUME_FITTING
+        - DYNAMIC_SURVEY_TREE_GENERATION
+        - API_RESPONSE_PAYLOAD_REDACTION
+        - SYSTEM_HEALTH_METRIC_DOWNSAMPLING
+        - TOKEN_REFRESH_ROTATION_VERIFICATION
+        - MULTI_FILE_ZIP_ARCHIVE_ASSEMBLY
+    layer_3_state_types:
+      name: 'Layer 3: State Types'
+      description: Defines important state values whose correctness affects workflow, data, model, transaction, or system
+        behavior.
+      categories:
+        S1_ENTITY_LIFECYCLE_STATE:
+        - ENTITY_STATUS
+        - USER_STATUS
+        - ACCOUNT_STATUS
+        - ORDER_STATUS
+        - TASK_STATUS
+        - CASE_STATUS
+        - DOCUMENT_STATUS
+        - JOB_STATUS
+        - SESSION_STATUS
+        - SUBSCRIPTION_STATUS
+        - DEVICE_STATUS
+        S2_TRANSACTIONAL_FINANCIAL_STATE:
+        - PAYMENT_STATUS
+        - REFUND_STATUS
+        - LEDGER_BALANCE
+        - INVOICE_STATUS
+        - SUBSCRIPTION_TIER
+        - ENTITLEMENT_STATE
+        - PAYOUT_STATUS
+        - SETTLEMENT_STATUS
+        - CART_TOTAL
+        - QUOTE_PRICE
+        - TAX_AMOUNT
+        - DISCOUNT_APPLIED
+        - INVENTORY_RESERVED
+        S3_DATA_QUALITY_AND_SCHEMA_STATE:
+        - INPUT_SCHEMA
+        - OUTPUT_SCHEMA
+        - SCHEMA_VERSION
+        - ROW_COUNT
+        - NULL_COUNT
+        - DUPLICATE_COUNT
+        - MISSING_VALUE_STATUS
+        - DATA_VALIDATION_STATUS
+        - BATCH_ID
+        - PROCESSING_STATUS
+        - LAST_PROCESSED_OFFSET
+        - CHECKPOINT_CURSOR
+        - DATASET_VERSION
+        S4_MODEL_AND_INFERENCE_STATE:
+        - MODEL_VERSION
+        - MODEL_ARTIFACT_PATH
+        - FEATURE_SCHEMA
+        - FEATURE_WINDOW
+        - TRAINING_WINDOW
+        - PREDICTION_WINDOW
+        - PREDICTION_SCORE
+        - PREDICTION_CONFIDENCE
+        - THRESHOLD_VALUE
+        - LABEL_VERSION
+        - BACKTEST_PERIOD
+        - EVALUATION_METRIC
+        - CALIBRATION_STATUS
+        - DRIFT_STATUS
+        S5_CONTENT_GENERATION_STATE:
+        - PROMPT_TEMPLATE_VERSION
+        - INPUT_TOPIC
+        - DIFFICULTY_LEVEL
+        - QUESTION_COUNT
+        - GENERATED_OUTPUT
+        - OUTPUT_SCHEMA_VALIDITY
+        - ANSWER_KEY_VALIDITY
+        - SOURCE_CONTEXT
+        - RETRIEVED_CONTEXT
+        - HALLUCINATION_CHECK_STATUS
+        - MODERATION_STATUS
+        - GENERATION_ATTEMPT_COUNT
+        S6_SEARCH_INDEX_AND_RANKING_STATE:
+        - QUERY_TEXT
+        - SEARCH_INDEX_VERSION
+        - EMBEDDING_MODEL_VERSION
+        - EMBEDDING_VECTOR
+        - CANDIDATE_SET
+        - RANKING_SCORE
+        - FILTER_STATE
+        - RESULT_COUNT
+        - RELEVANCE_SCORE
+        - USER_FEEDBACK_STATE
+        - CLICK_SIGNAL
+        S7_WORKFLOW_APPROVAL_STATE:
+        - APPROVAL_STATUS
+        - REVIEW_STATUS
+        - ESCALATION_LEVEL
+        - ASSIGNED_OWNER
+        - SLA_DEADLINE
+        - SUBMITTED_AT
+        - APPROVED_AT
+        - REJECTED_REASON
+        - FORM_VALIDATION_STATUS
+        - TENANT_CONFIG_STATUS
+        S8_COMMUNICATION_DELIVERY_STATE:
+        - MESSAGE_STATUS
+        - DELIVERY_STATUS
+        - RECIPIENT_ADDRESS
+        - TEMPLATE_ID
+        - RETRY_COUNT
+        - SCHEDULED_SEND_TIME
+        - WEBHOOK_DELIVERY_STATUS
+        - NOTIFICATION_PREFERENCE
+        - TOKEN_MAPPING_STATUS
+        S9_RUNTIME_RESOURCE_STATE:
+        - PROCESS_STATUS
+        - WORKER_STATUS
+        - LOCK_STATUS
+        - HEARTBEAT_STATUS
+        - CACHE_STATE
+        - CONNECTION_STATE
+        - MEMORY_USAGE
+        - DISK_USAGE
+        - QUEUE_DEPTH
+        - STREAM_OFFSET
+        S10_TIME_WINDOW_AND_FRESHNESS_STATE:
+        - EVENT_TIMESTAMP
+        - DATA_TIMESTAMP
+        - LAST_UPDATED_AT
+        - TTL_EXPIRY
+        - FRESHNESS_STATUS
+        - PROCESSING_WINDOW
+        - LOOKBACK_WINDOW
+        - FORECAST_HORIZON
+        - WATERMARK
+        - SCHEDULED_RUN_TIME
+        S11_EXTERNAL_SYSTEM_STATE:
+        - EXTERNAL_API_RESPONSE_STATUS
+        - EXTERNAL_RATE_LIMIT_STATE
+        - WEBHOOK_SIGNATURE_STATUS
+        - OAUTH_CALLBACK_STATE
+        - PAYMENT_GATEWAY_STATE
+        - THIRD_PARTY_SYNC_STATUS
+        - REMOTE_FILE_AVAILABILITY
+        - UPSTREAM_SERVICE_HEALTH
+        S12_CONFIGURATION_POLICY_STATE:
+        - FEATURE_FLAG_STATE
+        - CONFIG_VERSION
+        - POLICY_VERSION
+        - TENANT_CONFIG
+        - ENVIRONMENT_NAME
+        - RATE_LIMIT_CONFIG
+        - AB_TEST_VARIANT
+        - TOKEN_EXPIRY_POLICY
+        - ACCESS_POLICY
+        S13_CONCURRENCY_IDEMPOTENCY_STATE:
+        - IDEMPOTENCY_KEY
+        - REQUEST_ID
+        - CORRELATION_ID
+        - LOCK_TOKEN
+        - RETRY_COUNT
+        - DEDUPLICATION_KEY
+        - SEEN_EVENT_ID
+        - TRANSACTION_BOUNDARY
+        - VERSION_COUNTER
+        S14_AUDIT_OBSERVABILITY_STATE:
+        - AUDIT_EVENT_ID
+        - TRACE_ID
+        - CORRELATION_ID
+        - LOG_EVENT_STATUS
+        - METRIC_NAME
+        - ALERT_STATUS
+        - ERROR_CODE
+        - FAILURE_REASON
+        - RUN_ID
+    layer_4_path_types:
+      name: 'Layer 4: Path Types'
+      description: Defines execution paths from entrypoint to state/effect.
+      categories:
+        P1_REQUEST_RESPONSE_PATHS:
+        - REQUEST_TO_RESPONSE_READ_ONLY
+        - REQUEST_TO_VALIDATION_TO_RESPONSE
+        - REQUEST_TO_EXTERNAL_API_TO_RESPONSE
+        - REQUEST_TO_CACHE_LOOKUP_TO_RESPONSE
+        - REQUEST_TO_DB_READ_TO_RESPONSE
+        - REQUEST_TO_AGGREGATION_TO_RESPONSE
+        P2_MUTATION_TRANSACTION_PATHS:
+        - REQUEST_TO_DB_CREATE
+        - REQUEST_TO_DB_UPDATE
+        - REQUEST_TO_DB_DELETE
+        - REQUEST_TO_TRANSACTION_COMMIT
+        - REQUEST_TO_LEDGER_POSTING
+        - REQUEST_TO_PAYMENT_CAPTURE
+        - REQUEST_TO_REFUND_ISSUE
+        - REQUEST_TO_INVENTORY_RESERVATION
+        P3_EVENT_REACTIVE_PATHS:
+        - QUEUE_MESSAGE_TO_STATE_UPDATE
+        - PUBSUB_EVENT_TO_HANDLER_EFFECT
+        - WEBHOOK_EVENT_TO_ENTITY_UPDATE
+        - CDC_EVENT_TO_PROJECTION_UPDATE
+        - DLQ_MESSAGE_TO_TRIAGE_ACTION
+        - OUTBOX_EVENT_TO_FANOUT_DELIVERY
+        P4_SCHEDULED_BATCH_PATHS:
+        - CRON_TO_BATCH_PROCESSING
+        - CRON_TO_EXTERNAL_DATA_SYNC
+        - CRON_TO_REPORT_GENERATION
+        - CRON_TO_CACHE_REFRESH
+        - CRON_TO_CLEANUP_SWEEP
+        - CRON_TO_HEALTH_PROBE
+        P5_DATA_PIPELINE_PATHS:
+        - FILE_INPUT_TO_TRANSFORMED_OUTPUT
+        - API_INPUT_TO_WAREHOUSE_TABLE
+        - RAW_DATA_TO_CLEANED_DATASET
+        - MULTI_SOURCE_JOIN_TO_ANALYTICS_TABLE
+        - STREAM_EVENTS_TO_ROLLUP_AGGREGATE
+        - SCHEMA_MIGRATION_TO_OUTPUT_TABLE
+        P6_MODEL_INFERENCE_PATHS:
+        - REQUEST_TO_MODEL_SCORE_RESPONSE
+        - BATCH_DATA_TO_MODEL_PREDICTION_FILE
+        - FEATURE_BUILD_TO_MODEL_INFERENCE
+        - MODEL_SCORE_TO_THRESHOLD_DECISION
+        - BACKTEST_DATA_TO_EVALUATION_METRIC
+        P7_GENERATIVE_AI_PATHS:
+        - USER_INPUT_TO_PROMPT_TO_GENERATED_OUTPUT
+        - DOCUMENT_CONTEXT_TO_RAG_ANSWER
+        - TOPIC_TO_QUIZ_GENERATION
+        - LLM_OUTPUT_TO_SCHEMA_VALIDATED_OBJECT
+        - LLM_OUTPUT_TO_HUMAN_REVIEW_QUEUE
+        P8_SEARCH_RETRIEVAL_PATHS:
+        - QUERY_TO_INDEX_LOOKUP_TO_RESULTS
+        - QUERY_TO_EMBEDDING_TO_VECTOR_SEARCH
+        - QUERY_TO_HYBRID_RANKING_TO_RESULTS
+        - DOCUMENT_TO_EMBEDDING_TO_INDEX_UPDATE
+        - USER_FEEDBACK_TO_RANKING_UPDATE
+        P9_WORKFLOW_STATE_MACHINE_PATHS:
+        - SUBMISSION_TO_APPROVAL_STATE_CHANGE
+        - APPROVAL_TO_ESCALATION
+        - STATUS_TRANSITION_TO_NOTIFICATION
+        - FORM_VALIDATION_TO_STATE_CHANGE
+        - TENANT_SETUP_TO_PROVISIONING
+        P10_NOTIFICATION_DELIVERY_PATHS:
+        - EVENT_TO_EMAIL_NOTIFICATION
+        - EVENT_TO_SMS_NOTIFICATION
+        - EVENT_TO_PUSH_NOTIFICATION
+        - EVENT_TO_WEBHOOK_DELIVERY
+        - MESSAGE_TEMPLATE_TO_DELIVERY_ATTEMPT
+        - FAILED_DELIVERY_TO_RETRY
+        P11_EXTERNAL_INTEGRATION_PATHS:
+        - REQUEST_TO_THIRD_PARTY_API_CALL
+        - OAUTH_CALLBACK_TO_TOKEN_EXCHANGE
+        - WEBHOOK_TO_SIGNATURE_VERIFICATION_TO_EFFECT
+        - REMOTE_FILE_DOWNLOAD_TO_PROCESSING
+        - EXTERNAL_SYNC_TO_LOCAL_STATE_UPDATE
+        P12_INFRA_RESOURCE_CONTROL_PATHS:
+        - CONTROLLER_RECONCILE_TO_RESOURCE_UPDATE
+        - HEALTH_PROBE_TO_ALERT
+        - LOG_STREAM_TO_ALERT
+        - CACHE_TTL_TO_EVICTION
+        - LOCK_ACQUIRE_TO_CRITICAL_SECTION
+        - BACKUP_JOB_TO_SNAPSHOT_ARTIFACT
+    layer_5_actor_archetypes:
+      name: 'Layer 5: Actor Archetypes'
+      description: 'Defines the security, operational, or systemic identity executing a path or consuming an effect. Pass
+        1 must preserve the repo-native actor name and may map it to one of these normalized archetypes. UNKNOWN_ACTOR is
+        valid when identity evidence is incomplete.
+
+        '
+      categories:
+        A1_INTERNAL_ADMINISTRATION_OPERATIONS:
+        - GLOBAL_SYSTEM_ADMINISTRATOR
+        - TENANT_ORGANIZATION_ADMINISTRATOR
+        - CUSTOMER_SUPPORT_AGENT
+        - BILLING_FINANCE_OPERATOR
+        - COMPLIANCE_AUDIT_REVIEWER
+        - DATA_PROTECTION_OFFICER_DPO
+        - CONTENT_MODERATOR
+        - DEVOPS_SRE_ENGINEER
+        A2_B2C_END_USER_LIFECYCLE:
+        - ANONYMOUS_UNAUTHENTICATED_VISITOR
+        - REGISTERED_FREE_USER
+        - PAID_SUBSCRIBER_TIER_1
+        - PAID_SUBSCRIBER_TIER_2
+        - TRIAL_PERIOD_USER
+        - CHURNED_INACTIVE_USER
+        - BANNED_SUSPENDED_USER
+        - INVITED_PENDING_USER
+        A3_B2B_ORGANIZATIONAL_ROLES:
+        - ORGANIZATION_OWNER_LEGAL_SIGNATORY
+        - DEPARTMENT_TEAM_MANAGER
+        - COLLABORATIVE_CONTRIBUTOR_EDITOR
+        - READ_ONLY_STAKEHOLDER_VIEWER
+        - EXTERNAL_GUEST_COLLABORATOR
+        - PROCUREMENT_OFFICER
+        A4_TWO_SIDED_MARKETPLACE_PERSONAS:
+        - MARKETPLACE_BUYER_CONSUMER
+        - MARKETPLACE_SELLER_MERCHANT
+        - INDEPENDENT_DELIVERY_LOGISTICS_CONTRACTOR
+        - AFFILIATE_MARKETER_REFERRER
+        A5_SOCIAL_INFLUENCE_NETWORKS:
+        - CONTENT_CREATOR_PUBLISHER
+        - STANDARD_FOLLOWER_SUBSCRIBER
+        - COMMUNITY_MODERATOR_DELEGATE
+        A6_AUTOMATED_AGENTS_SYSTEMS:
+        - FIRST_PARTY_AI_AGENT_ORCHESTRATOR
+        - THIRD_PARTY_INTEGRATION_BOT
+        - CRON_SYSTEM_SCHEDULER_DAEMON
+        - GITOPS_RECONCILIATION_RUNNER
+        - MONITORING_TELEMETRY_SCRAPER
+        - SECURITY_SIGNATURE_VULNERABILITY_SCANNER
+        - WEB_CRAWLER_INDEXING_BOT
+        A7_FINANCIAL_QUANTITATIVE_TRADING:
+        - HIGH_FREQUENCY_TRADING_ALGORITHM
+        - RETAIL_INVESTOR_TRADER
+        - LIQUIDITY_PROVIDER_MARKET_MAKER
+        - RISK_MANAGEMENT_CONTROLLER_BOT
+        A8_DECENTRALIZED_BLOCKCHAIN_NETWORKS:
+        - BLOCKCHAIN_VALIDATOR_NODE_OPERATOR
+        - DECENTRALIZED_APP_DAPP_END_USER
+        - SMART_CONTRACT_ROUTER_AUTOMATION
+        A9_HARDWARE_IOT_PERIPHERALS:
+        - IOT_TELEMETRY_SENSOR_NODE
+        - EDGE_COMPUTE_GATEWAY_CONTROLLER
+        - HARDWARE_CONSOLE_LOCAL_OPERATOR
+        A10_FALLBACK_IDENTITY:
+        - OTHER_REPO_SPECIFIC_ACTOR
+        - UNKNOWN_ACTOR
+      category_descriptions:
+        A1_INTERNAL_ADMINISTRATION_OPERATIONS: Identities with structural, infrastructure, or global cross-tenant operational
+          privileges.
+        A2_B2C_END_USER_LIFECYCLE: Standard retail or consumer-facing application personas.
+        A3_B2B_ORGANIZATIONAL_ROLES: Institutional, multi-seat, tenant, and collaborative identities.
+        A4_TWO_SIDED_MARKETPLACE_PERSONAS: Supply-side and demand-side transaction identities.
+        A5_SOCIAL_INFLUENCE_NETWORKS: Identities participating in publishing, moderation, and content consumption networks.
+        A6_AUTOMATED_AGENTS_SYSTEMS: Non-human programmatic identities executing runtime paths.
+        A7_FINANCIAL_QUANTITATIVE_TRADING: Human and automated market execution or risk-control actors.
+        A8_DECENTRALIZED_BLOCKCHAIN_NETWORKS: Identities operating in distributed-ledger and smart-contract systems.
+        A9_HARDWARE_IOT_PERIPHERALS: Physical or hardware-level actors participating in the system.
+        A10_FALLBACK_IDENTITY: Fallback labels used only when repo-native evidence does not support a more specific archetype.
+  supporting_taxonomies:
+    effect_types:
+      description: Defines observable consequences or side effects produced by an execution path.
+      families:
+        E1_RESPONSE_OUTPUT_EFFECTS:
+          description: Path returns a response, page, payload, file, stream, or error to a caller/client.
+          effects:
+          - API_RESPONSE_RETURNED
+          - HTML_PAGE_RENDERED
+          - JSON_PAYLOAD_RETURNED
+          - STRUCTURED_OBJECT_RETURNED
+          - FILE_DOWNLOAD_RETURNED
+          - ERROR_RESPONSE_RETURNED
+          - REDIRECT_RESPONSE_RETURNED
+          - STREAM_RESPONSE_EMITTED
+        E2_STATE_MUTATION_EFFECTS:
+          description: Path changes application/entity/config/session state.
+          effects:
+          - STATUS_FIELD_UPDATED
+          - DATABASE_RECORD_CREATED
+          - DATABASE_RECORD_UPDATED
+          - DATABASE_RECORD_DELETED
+          - ENTITY_STATE_TRANSITIONED
+          - CONFIGURATION_UPDATED
+          - SESSION_STATE_UPDATED
+          - ENTITLEMENT_UPDATED
+        E3_TRANSACTION_FINANCIAL_EFFECTS:
+          description: Path creates or changes money, billing, ledger, commerce, inventory, order, or settlement effects.
+          effects:
+          - PAYMENT_CAPTURED
+          - PAYMENT_AUTHORIZED
+          - REFUND_ISSUED
+          - LEDGER_ENTRY_POSTED
+          - INVOICE_GENERATED
+          - PAYOUT_CREATED
+          - ORDER_CREATED
+          - ORDER_STATUS_UPDATED
+          - INVENTORY_RESERVED
+          - CART_TOTAL_RECALCULATED
+        E4_DATA_STORAGE_FILE_EFFECTS:
+          description: Path reads/writes files, reports, archives, datasets, database tables, or exported artifacts.
+          effects:
+          - FILE_READ
+          - FILE_WRITTEN
+          - CSV_EXPORTED
+          - PARQUET_EXPORTED
+          - EXCEL_REPORT_WRITTEN
+          - PDF_GENERATED
+          - REPORT_EXPORTED
+          - DATABASE_TABLE_WRITTEN
+          - DATASET_VERSION_CREATED
+          - ARCHIVE_CREATED
+        E5_EXTERNAL_SYSTEM_EFFECTS:
+          description: Path calls, reads from, writes to, receives from, or syncs with an external system.
+          effects:
+          - EXTERNAL_API_CALLED
+          - EXTERNAL_API_READ
+          - EXTERNAL_API_WRITE
+          - WEBHOOK_RECEIVED
+          - WEBHOOK_SENT
+          - OAUTH_TOKEN_EXCHANGED
+          - REMOTE_FILE_DOWNLOADED
+          - THIRD_PARTY_SYNC_PERFORMED
+          - PAYMENT_GATEWAY_CALLED
+        E6_MODEL_LLM_EFFECTS:
+          description: Path performs ML/LLM/RAG/recommendation/classification/scoring output.
+          effects:
+          - MODEL_INFERENCE_PERFORMED
+          - MODEL_TRAINING_PERFORMED
+          - MODEL_ARTIFACT_WRITTEN
+          - PREDICTION_SCORE_PRODUCED
+          - THRESHOLD_DECISION_PRODUCED
+          - LLM_OUTPUT_GENERATED
+          - RAG_ANSWER_GENERATED
+          - EMBEDDING_VECTOR_CREATED
+          - RECOMMENDATION_LIST_RETURNED
+          - CLASSIFICATION_LABEL_ASSIGNED
+        E7_SEARCH_INDEX_RANKING_EFFECTS:
+          description: Path updates indexes or returns search/retrieval/ranking outputs.
+          effects:
+          - SEARCH_INDEX_UPDATED
+          - SEARCH_RESULTS_RETURNED
+          - VECTOR_INDEX_UPDATED
+          - CANDIDATE_SET_GENERATED
+          - RANKING_SCORE_ASSIGNED
+          - FILTERED_RESULTS_RETURNED
+          - AUTOCOMPLETE_SUGGESTIONS_RETURNED
+        E8_NOTIFICATION_DELIVERY_EFFECTS:
+          description: Path sends, retries, records, or inserts communication/notification delivery.
+          effects:
+          - EMAIL_SENT
+          - SMS_SENT
+          - PUSH_NOTIFICATION_SENT
+          - SLACK_MESSAGE_SENT
+          - IN_APP_NOTIFICATION_INSERTED
+          - WEBHOOK_DELIVERY_ATTEMPTED
+          - DELIVERY_STATUS_RECORDED
+          - NOTIFICATION_RETRIED
+        E9_RUNTIME_INFRA_EFFECTS:
+          description: Path starts/completes/fails jobs or changes runtime resource/cache/lock/backup/controller state.
+          effects:
+          - JOB_STARTED
+          - JOB_COMPLETED
+          - JOB_FAILED
+          - CACHE_ENTRY_WRITTEN
+          - CACHE_ENTRY_EVICTED
+          - LOCK_ACQUIRED
+          - LOCK_RELEASED
+          - RESOURCE_RECONCILED
+          - BACKUP_SNAPSHOT_CREATED
+          - HEALTH_CHECK_RECORDED
+        E10_AUDIT_OBSERVABILITY_EFFECTS:
+          description: Path writes audit/log/metric/trace/alert/error/run-history/compliance evidence.
+          effects:
+          - AUDIT_EVENT_WRITTEN
+          - LOG_EVENT_WRITTEN
+          - METRIC_EMITTED
+          - TRACE_SPAN_CREATED
+          - ALERT_TRIGGERED
+          - ERROR_RECORDED
+          - RUN_HISTORY_RECORDED
+          - COMPLIANCE_RECORD_CREATED
+    business_intent_types:
+      description: 'Controlled normalization vocabulary for Pass 1. Intent is not a rigid domain taxonomy: the LLM must first
+        state the repo-specific business intent in plain language, then map it to one family. OTHER and UNKNOWN are valid
+        and must be preferred over a forced incorrect match.
+
+        '
+      required_output_fields:
+      - repo_specific_intent
+      - intent_family
+      - intent_object
+      - desired_outcome
+      - evidence
+      - confidence
+      families:
+        I1_IDENTITY_ACCESS:
+        - AUTHENTICATE_OR_ESTABLISH_IDENTITY
+        - AUTHORIZE_OR_GRANT_ACCESS
+        - REVOKE_OR_TERMINATE_ACCESS
+        I2_RESOURCE_LIFECYCLE:
+        - CREATE_OR_REGISTER_RESOURCE
+        - VIEW_OR_RETRIEVE_RESOURCE
+        - CONSUME_OR_ACCESS_RESOURCE
+        - MODIFY_OR_CONFIGURE_RESOURCE
+        - DELETE_ARCHIVE_OR_DEACTIVATE_RESOURCE
+        I3_WORKFLOW_DECISION:
+        - SUBMIT_OR_REQUEST_REVIEW
+        - APPROVE_REJECT_OR_OVERRIDE
+        - ASSIGN_ESCALATE_OR_TRANSFER
+        - COMPLETE_CANCEL_OR_REOPEN_WORKFLOW
+        I4_COMMERCE_FINANCE_ENTITLEMENT:
+        - QUOTE_PRICE_OR_CALCULATE_CHARGE
+        - PURCHASE_PAY_AUTHORIZE_OR_CAPTURE
+        - REFUND_CANCEL_REVERSE_OR_DISPUTE
+        - PROVISION_OR_GRANT_ENTITLEMENT
+        - ALLOCATE_RESERVE_OR_FULFILL
+        - SETTLE_RECONCILE_OR_PAYOUT
+        I5_DISCOVERY_CONTENT_MODEL:
+        - SEARCH_FILTER_OR_DISCOVER
+        - GENERATE_OR_TRANSFORM_CONTENT
+        - PREDICT_SCORE_CLASSIFY_OR_RECOMMEND
+        - MODERATE_VALIDATE_OR_REVIEW_CONTENT
+        I6_DATA_COMMUNICATION_OPERATION:
+        - IMPORT_EXPORT_OR_SYNC_DATA
+        - SEND_OR_DELIVER_NOTIFICATION
+        - EXECUTE_OR_SCHEDULE_JOB
+        - MONITOR_RECONCILE_OR_RECOVER
+        - CONFIGURE_RELEASE_OR_ROLLBACK_FEATURE
+        I7_FALLBACK:
+        - OTHER_REPO_SPECIFIC_INTENT
+        - UNKNOWN_INTENT
+      classification_rules:
+      - Preserve the verb and object used by the repository or its documentation.
+      - Classify the desired business outcome, not the implementation helper name.
+      - Do not infer payment, approval, entitlement, or deletion intent from a dependency name alone.
+      - Return alternative candidate families only when evidence genuinely supports more than one interpretation.
+    resource_scope_types:
+      description: 'Describes the business object affected by an intent and the scope within which an actor may operate. Pass
+        1 must preserve the repo-native resource name.
+
+        '
+      required_output_fields:
+      - repo_resource_type
+      - scope_type
+      - ownership_key_or_tenant_key
+      - evidence
+      - confidence
+      scope_types:
+      - ACTOR_OWNED_RESOURCE
+      - TENANT_SCOPED_RESOURCE
+      - TEAM_OR_GROUP_SCOPED_RESOURCE
+      - SHARED_CROSS_ACTOR_RESOURCE
+      - PUBLIC_RESOURCE
+      - GLOBAL_SYSTEM_RESOURCE
+      - EXTERNAL_SYSTEM_RESOURCE
+      - SYSTEM_INTERNAL_RESOURCE
+      - OTHER_REPO_SPECIFIC_SCOPE
+      - UNKNOWN_SCOPE
+      boundary_questions:
+      - Which identifier binds the resource to an actor, account, tenant, team, organization, or external system?
+      - Can an authenticated actor supply or alter that identifier?
+      - Is resource scope enforced in the query, service, policy, middleware, or downstream system?
+    observed_business_rule_types:
+      description: 'Vocabulary for four or five evidence-backed rules extracted for each material path. These are observations
+        or hypotheses from code, not automatically the intended product specification.
+
+        '
+      types:
+      - AUTHENTICATION_PRECONDITION
+      - ACTOR_PERMISSION_RULE
+      - OWNERSHIP_OR_TENANT_BOUNDARY
+      - STATE_PRECONDITION
+      - ALLOWED_STATE_TRANSITION
+      - FORBIDDEN_STATE_TRANSITION
+      - ENTITLEMENT_OR_QUOTA_RULE
+      - CALCULATION_OR_THRESHOLD_RULE
+      - ORDERING_OR_SEQUENCE_RULE
+      - IDEMPOTENCY_OR_DEDUPLICATION_RULE
+      - FAILURE_RECOVERY_OR_COMPENSATION_RULE
+      - PRIVACY_REDACTION_RULE
+      - OUTPUT_CONTRACT_RULE
+      - BUSINESS_INVARIANT
+      - OTHER_REPO_SPECIFIC_RULE
+      evidence_statuses:
+        OBSERVED: Explicitly implemented or asserted in connected code, tests, or requirements evidence.
+        INFERRED: Strongly implied by multiple connected signals but not explicitly declared.
+        UNKNOWN: Important rule cannot be confirmed from available evidence.
+      rule_output_fields:
+      - rule_statement
+      - rule_type
+      - evidence_status
+      - evidence
+      - confidence
+    evidence_confidence_types:
+      evidence_levels:
+        E1_DIRECT_CODE: Direct entrypoint, guard, state, effect, query, test, or requirement evidence with file and line references.
+        E2_CONNECTED_CODE: Evidence from graph-linked caller, callee, middleware, model, repository, policy, or test.
+        E3_MULTI_SIGNAL_INFERENCE: Consistent inference from multiple code or documentation signals.
+        E4_NAME_OR_DEPENDENCY_ONLY: Weak signal from names, imports, dependencies, or isolated comments.
+        E5_NO_EVIDENCE: No supporting evidence available.
+      confidence_levels:
+        HIGH:
+          minimum: Entrypoint/path and material effect are supported by direct or connected evidence.
+          routing: STANDARD_EVIDENCE_BUNDLE
+        MEDIUM:
+          minimum: Material path is supported but actor, resource, state, guard, or intent contains a meaningful inference.
+          routing: STANDARD_PLUS_RELEVANT_SUPPORTING_CHUNKS
+        LOW:
+          minimum: Path is incomplete or a material classification relies substantially on weak evidence.
+          routing: EXPANDED_EVIDENCE_BUNDLE_IF_MATERIAL
+        UNSUPPORTED:
+          minimum: No material path/effect evidence or only unrelated name/dependency evidence.
+          routing: REMOVE_BEFORE_PASS_2
+      mandatory_evidence_fields:
+      - file_path
+      - start_line
+      - end_line
+      - symbol_or_node_id
+      - evidence_level
+      - evidence_summary
+    requirement_oracle_types:
+      sources:
+      - EXPLICIT_REQUIREMENT_OR_ACCEPTANCE_CRITERION
+      - API_SCHEMA_OR_CONTRACT
+      - AUTHORITATIVE_EXISTING_TEST
+      - USER_DOCUMENTATION_OR_README
+      - OBSERVED_CONNECTED_CODE_RULE
+      - PERMISSIBILITY_TABLE
+      - DOMAIN_INVARIANT_FROM_RISK_TAXONOMY
+      - LLM_INFERENCE_ONLY
+      - NO_ORACLE_AVAILABLE
+      rules:
+      - Explicit requirements and contracts outrank inferred behaviour.
+      - Existing code is evidence of current behaviour, not proof of intended behaviour.
+      - LLM inference alone may create a scenario candidate but cannot confirm a defect.
+      - Conflicting oracle sources must be recorded as an evidence gap.
+  map_output_contract:
+    purpose: Batch-local semantic discovery only. Risk applicability is assigned after cross-batch path merging.
+    repository_summary_fragment_fields:
+    - apparent_system_purpose
+    - primary_capabilities
+    - primary_repo_native_actors
+    - important_business_objects
+    - material_effects
+    - explicit_requirements_found
+    - summary_evidence
+    - summary_confidence
+    business_path_fragment_fields:
+    - path_id
+    - path_summary
+    - entrypoints
+    - connected_node_ids
+    - runtime_shapes
+    - workload_shapes
+    - repo_specific_intent
+    - intent_family
+    - intent_object
+    - desired_outcome
+    - actors
+    - resources_and_scopes
+    - state_types
+    - observed_state_values
+    - path_types
+    - effect_types
+    - material_effects
+    - guards_observed
+    - observed_business_rules
+    - business_invariants
+    - requirement_alignment
+    - evidence
+    - evidence_gaps
+    - confidence
+    actor_fields:
+    - repo_native_actor
+    - actor_archetype
+    - authentication_context
+    - lifecycle_status_if_observed
+    - evidence
+    - confidence
+    actor_fallbacks:
+    - OTHER_REPO_SPECIFIC_ACTOR
+    - UNKNOWN_ACTOR
+    state_fields:
+    - repo_native_state_name
+    - state_type
+    - observed_values
+    - source_symbol_or_field
+    - evidence
+    - confidence
+    requirement_alignment_fields:
+    - oracle_sources_found
+    - requirement_statements
+    - aligned_code_evidence
+    - conflicts_or_gaps
+    - confidence
+    global_rules:
+    - Preserve repo-native names alongside every normalized taxonomy label.
+    - Use UNKNOWN rather than guessing when evidence is incomplete.
+    - Every non-UNKNOWN classification requires evidence and confidence.
+    - Low-confidence high-materiality candidates are routed to expanded Pass 2 evidence, not automatically discarded.
+    - Unsupported name-only candidates are removed before Pass 2.
+    - Pass 1 must not declare CONTROL_MISSING, a failed test, or a confirmed business flaw.
+    prohibited_outputs:
+    - risk_trigger_selection
+    - confirmed_defect_verdict
+    - CONTROL_MISSING
+    - executed_test_claim
+
+===== REQUIRED JSON OUTPUT CONTRACT =====
+{
+  "schema_version": "shipreadyv2.pass1_map_output.v1",
+  "request_id": "copy from request",
+  "semantic_pack_id": "copy from request",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 1
+  },
+  "repository_summary_fragment": {
+    "apparent_system_purpose": "string or UNKNOWN",
+    "primary_capabilities": [
+      "repo-specific capability"
+    ],
+    "primary_repo_native_actors": [
+      "repo-native actor"
+    ],
+    "important_business_objects": [
+      "repo-native object"
+    ],
+    "material_effects": [
+      "repo-specific effect"
+    ],
+    "explicit_requirements_found": [
+      "requirement or contract"
+    ],
+    "summary_evidence": [
+      "evidence object"
+    ],
+    "summary_confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+  },
+  "business_path_fragments": [
+    {
+      "path_id": "request-local stable ID",
+      "path_summary": "actor/entrypoint to material effect",
+      "entrypoints": [
+        "repo-native entrypoint"
+      ],
+      "connected_node_ids": [
+        "chunk_id"
+      ],
+      "runtime_shapes": [
+        "taxonomy ID | OTHER | UNKNOWN"
+      ],
+      "workload_shapes": [
+        "taxonomy ID | OTHER | UNKNOWN"
+      ],
+      "repo_specific_intent": "plain-language verb and object",
+      "intent_family": "taxonomy ID | OTHER_REPO_SPECIFIC_INTENT | UNKNOWN_INTENT",
+      "intent_object": "repo-native object or UNKNOWN",
+      "desired_outcome": "repo-specific outcome or UNKNOWN",
+      "actors": [
+        {
+          "repo_native_actor": "string or UNKNOWN",
+          "actor_archetype": "taxonomy ID | OTHER_REPO_SPECIFIC_ACTOR | UNKNOWN_ACTOR",
+          "authentication_context": "string or UNKNOWN",
+          "lifecycle_status_if_observed": "string or UNKNOWN",
+          "evidence": [
+            "evidence object"
+          ],
+          "confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+        }
+      ],
+      "resources_and_scopes": [
+        {
+          "repo_resource_type": "string or UNKNOWN",
+          "scope_type": "taxonomy ID | OTHER_REPO_SPECIFIC_SCOPE | UNKNOWN_SCOPE",
+          "ownership_key_or_tenant_key": "string or UNKNOWN",
+          "evidence": [
+            "evidence object"
+          ],
+          "confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+        }
+      ],
+      "states": [
+        {
+          "repo_native_state_name": "string or UNKNOWN",
+          "state_type": "taxonomy ID | OTHER | UNKNOWN",
+          "observed_values": [
+            "exact code value"
+          ],
+          "source_symbol_or_field": "string or UNKNOWN",
+          "evidence": [
+            "evidence object"
+          ],
+          "confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+        }
+      ],
+      "path_types": [
+        "taxonomy ID | OTHER | UNKNOWN"
+      ],
+      "effect_types": [
+        "taxonomy ID | OTHER | UNKNOWN"
+      ],
+      "material_effects": [
+        "repo-specific effect"
+      ],
+      "guards_observed": [
+        "observed guard"
+      ],
+      "observed_business_rules": [
+        {
+          "rule_statement": "string",
+          "rule_type": "taxonomy ID | OTHER_REPO_SPECIFIC_RULE",
+          "evidence_status": "OBSERVED | INFERRED | UNKNOWN",
+          "evidence": [
+            "evidence object"
+          ],
+          "confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+        }
+      ],
+      "business_invariants": [
+        "observed or clearly labelled inferred invariant"
+      ],
+      "requirement_alignment": {
+        "oracle_sources_found": [
+          "taxonomy oracle ID"
+        ],
+        "requirement_statements": [
+          "string"
+        ],
+        "aligned_code_evidence": [
+          "evidence object"
+        ],
+        "conflicts_or_gaps": [
+          "string"
+        ],
+        "confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+      },
+      "evidence": [
+        "evidence object"
+      ],
+      "evidence_gaps": [
+        "specific missing connection or policy"
+      ],
+      "confidence": "HIGH | MEDIUM | LOW | UNSUPPORTED"
+    }
+  ],
+  "cross_pack_followups": [
+    {
+      "reason": "specific missing connected evidence",
+      "related_semantic_pack_id": "ID from bridge context",
+      "related_source_batch_id": "ID from bridge context",
+      "related_chunk_id": "ID from bridge context"
+    }
+  ],
+  "unsupported_or_nonmaterial_signals": [
+    {
+      "signal": "string",
+      "reason": "string",
+      "evidence": [
+        "evidence object"
+      ]
+    }
+  ],
+  "evidence_object_contract": {
+    "chunk_id": "chunk ID from request",
+    "file_path": "repository-relative path",
+    "start_line": 1,
+    "end_line": 1,
+    "symbol_or_node_id": "symbol, qualified name, or chunk ID",
+    "evidence_level": "E1_DIRECT_CODE | E2_CONNECTED_CODE | E3_MULTI_SIGNAL_INFERENCE | E4_NAME_OR_DEPENDENCY_ONLY | E5_NO_EVIDENCE",
+    "evidence_summary": "what this span establishes"
+  }
+}
+
+===== APPROVED PASS 1 SEMANTIC ADDENDUM =====
+For every material path, also provide:
+1. Repo-specific capability, actor goal, business object, affected actor or counterparty, and business value/consequence. These are semantic names selected from the code; preserve repo-native wording and do not force a generic taxonomy label.
+2. Starting and resulting state when visible; otherwise use UNKNOWN.
+3. Structured activation facts for later deterministic routing. Mark each fact TRUE, FALSE, or UNKNOWN and OBSERVED, INFERRED, or UNKNOWN. Every TRUE fact requires E1-E3 evidence. FALSE means code establishes absence/inapplicability; when evidence merely does not show the fact, use UNKNOWN instead.
+4. Actor context on every material path. UNKNOWN_ACTOR is valid and preferable to guessing.
+
+Do not output risk-trigger IDs, trigger families, trigger candidates, scores, findings, missing-control claims, tests, or final selections. A later deterministic program applies risk-trigger `applies_to` rules, activation requirements, false-positive guards, deduplication, scoring, and coverage selection.
+
+Keep the result concise: at most 3 material paths, 3 actors/resources/states per path, 4 business rules per path, 8 materially relevant activation facts per path, and 5 evidence references per path. Do not enumerate every activation-fact name when it is irrelevant; retain the strongest facts needed for later deterministic routing. Prefer material production paths over helpers, tests, examples, and name-only signals.
+
+===== SEMANTIC CODE INPUT =====
+
+===== REQUEST IDENTITY =====
+{
+  "request_id": "semantic_pack_002_part_01",
+  "semantic_pack_id": "semantic_pack_002",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 2
+  },
+  "parent_source_batch_ids": [
+    "batch_001",
+    "batch_006",
+    "batch_010",
+    "batch_021",
+    "batch_038"
+  ]
+}
+
+===== REQUEST CONTEXT =====
+{
+  "request_scope": "partial repository semantic mapping",
+  "repository": {
+    "repo_name": "Zentrix.ai",
+    "source_files": 255,
+    "languages": {
+      "css": 1,
+      "javascript": 2,
+      "python": 164,
+      "tsx": 59,
+      "typescript": 29
+    },
+    "role_hints": [
+      "ui_component_file",
+      "data_model_file",
+      "api_or_controller_file",
+      "next_page_component",
+      "service_file",
+      "react_hook_or_state_file",
+      "api_route_file",
+      "api_route",
+      "auth_related_file",
+      "persistence_related_file",
+      "transaction_related_file",
+      "css_stylesheet",
+      "global_css"
+    ],
+    "top_connected_files": [
+      "apps/backend/app/schemas/__init__.py",
+      "apps/backend/app/models/connection.py",
+      "apps/backend/app/core/logging.py",
+      "apps/backend/app/models/experiment.py",
+      "apps/backend/app/models/user.py",
+      "apps/backend/app/models/telemetry.py",
+      "apps/backend/app/models/audit.py",
+      "apps/backend/app/agents/graph_simulation.py",
+      "apps/backend/app/schemas/diagnosis.py",
+      "apps/backend/app/schemas/experiment.py",
+      "apps/backend/app/core/security.py",
+      "apps/backend/app/workers/shadow_lab_worker.py",
+      "apps/backend/app/services/connection_service.py",
+      "apps/backend/app/api/routes/diagnostics.py",
+      "apps/backend/app/models/__init__.py",
+      "apps/backend/app/tools/shadow_db_tool.py",
+      "apps/backend/app/models/diagnosis.py",
+      "apps/backend/app/schemas/forecast.py",
+      "apps/backend/app/workers/retrain_worker.py",
+      "apps/backend/app/api/deps.py"
+    ],
+    "external_dependencies": [],
+    "resolved_symbol_edges": 560,
+    "atomic_chunks": 429,
+    "chunk_relationships": 990,
+    "source_12k_batches": 71,
+    "semantic_packs": 7
+  },
+  "semantic_pack_id": "semantic_pack_002",
+  "semantic_part": {
+    "sequence": 1,
+    "total": 2
+  },
+  "parent_source_batch_ids": [
+    "batch_001",
+    "batch_006",
+    "batch_010",
+    "batch_021",
+    "batch_038"
+  ],
+  "chunk_ids": [
+    "chunk_48c497147bf0d3ff",
+    "chunk_f20b5c23667da0c3",
+    "chunk_5662244b2b8edc0e",
+    "chunk_c2cfb96c2f264dba",
+    "chunk_4bbc8dac500a0afd",
+    "chunk_f0510fd48336ff75",
+    "chunk_3dc55a70bad98636",
+    "chunk_efb0e8c9b8bd3908",
+    "chunk_625ed08cd2f3a04e",
+    "chunk_12ee5b4de6e31bcb",
+    "chunk_9b88da5139218846",
+    "chunk_997a339725294d77",
+    "chunk_3683a3d4eaafbe64",
+    "chunk_329fec60080e5dd2",
+    "chunk_fc667b92d0c17775",
+    "chunk_ba2fa37cd344f927",
+    "chunk_ccc5d8194c907c1d",
+    "chunk_b4b6ef6e45feda78",
+    "chunk_c94e4f9d9d0cebdb"
+  ],
+  "important_instruction": "Classify only supplied evidence. Use cross_pack_followups for required remote evidence; do not infer that an unseen control is missing."
+}
+
+===== FILE PRELUDES =====
+{
+  "apps/backend/app/agents/graph_diagnosis.py": "from __future__ import annotations\nimport inspect\nimport asyncio\nfrom concurrent.futures import ThreadPoolExecutor\nfrom collections.abc import Mapping, Sequence\nfrom operator import add\nfrom typing import Annotated, Any, TypedDict\nfrom langgraph.graph import END, START, StateGraph\nfrom langgraph.types import Send\nfrom app.agents.llm_client import LLMClient, get_llm_client\nfrom app.ml.anomaly.predict import predict as predict_anomaly\nfrom app.ml.diagnosis_models import ensure_feature1_models, model_paths\nfrom app.ml.rca_classifier.predict import predict as predict_rca\nfrom app.ml.temporal.features import build_windows\nfrom app.ml.temporal.predict import predict as predict_temporal\nfrom app.tools import pg_introspection",
+  "apps/backend/app/agents/graph_simulation.py": "from __future__ import annotations\nimport asyncio\nimport inspect\nimport os\nfrom collections.abc import Mapping, Sequence\nfrom concurrent.futures import ThreadPoolExecutor\nfrom typing import Any, TypedDict\nimport numpy as np\nfrom langgraph.graph import END, START, StateGraph\nfrom scipy import stats\nfrom app.agents.llm_client import LLMClient, get_llm_client\nfrom app.core.logging import get_logger\nfrom app.ml.delta_predictor.predict import predict as predict_delta\nfrom app.tools.hypopg_tool import evaluate_hypothetical_index, filter_candidates\nfrom app.tools.policy_engine import evaluate as evaluate_policy\nfrom app.workers.shadow_lab_worker import ShadowLabWorker, replay_workload",
+  "apps/backend/app/agents/llm_client.py": "from __future__ import annotations\nimport json\nimport os\nfrom collections.abc import Callable, Mapping\nfrom typing import Any\nimport httpx",
+  "apps/backend/app/api/routes/auth.py": "from typing import Any\nfrom fastapi import APIRouter, Depends, HTTPException, Response, status\nfrom sqlalchemy import select\nfrom sqlalchemy.ext.asyncio import AsyncSession\nfrom app.api.deps import COOKIE_AUTH_NAME, get_current_user, get_db_session\nfrom app.core.config import get_settings\nfrom app.core.security import create_access_token, hash_password, verify_password\nfrom app.models.user import User\nfrom app.schemas.user import TokenResponse, UserCreate, UserLogin, UserOut",
+  "apps/backend/app/core/logging.py": "import contextvars\nimport json\nimport logging\nimport sys\nfrom datetime import datetime, timezone\nfrom typing import Any, Dict, Optional\nfrom app.core.config import get_settings\nimport re",
+  "apps/backend/app/core/security.py": "from datetime import datetime, timedelta, timezone\nfrom typing import Any, Dict, Optional, Union\nimport bcrypt\nimport jwt\nfrom cryptography.fernet import Fernet, InvalidToken\nfrom app.core.config import get_settings",
+  "apps/backend/app/db/customer_db.py": "import asyncio\nimport re\nimport uuid\nfrom urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit\nfrom contextlib import asynccontextmanager\nfrom typing import AsyncGenerator, Dict, Optional\nimport asyncpg\nfrom sqlalchemy import select\nfrom sqlalchemy.ext.asyncio import AsyncSession\nfrom app.core.logging import get_logger\nfrom app.core.security import decrypt_connection_string, encrypt_connection_string\nfrom app.models.connection import DatabaseConnection\n                        from app.services.connection_service import _provision_monitoring_dsn",
+  "apps/backend/app/schemas/user.py": "import uuid\nfrom datetime import datetime\nfrom typing import Optional\nfrom pydantic import BaseModel, ConfigDict, EmailStr, Field",
+  "apps/backend/app/services/connection_service.py": "import hashlib\nimport secrets\nimport time\nimport uuid\nfrom datetime import datetime, timedelta, timezone\nfrom typing import Any, Dict, List, Optional\nfrom urllib.parse import quote, urlsplit, urlunsplit\nimport asyncpg\nfrom sqlalchemy import func, select\nfrom sqlalchemy.ext.asyncio import AsyncSession\nfrom app.core.logging import get_logger\nfrom app.core.security import decrypt_connection_string, encrypt_connection_string\nfrom app.db.customer_db import _prepare_asyncpg_dsn, customer_connection_manager\nfrom app.models.connection import DatabaseConnection\nfrom app.models.telemetry import QueryMetric, TableMetric\nfrom app.schemas.connection import ConnectionCreate, ConnectionTestResponse\nfrom app.schemas.telemetry import (\nfrom app.tools import pg_introspection",
+  "apps/backend/app/tools/hypopg_tool.py": "from __future__ import annotations\nimport re\nfrom collections.abc import Mapping, Sequence\nfrom typing import Any\nimport asyncpg\nfrom app.core.logging import get_logger\nfrom app.tools.pg_introspection import _validate_read_query",
+  "apps/backend/app/tools/pg_introspection.py": "from __future__ import annotations\nimport hashlib\nimport math\nimport re\nfrom collections import defaultdict\nfrom collections.abc import Mapping, Sequence\nfrom typing import Any\nimport asyncpg",
+  "apps/backend/app/tools/shadow_db_tool.py": "from __future__ import annotations\nimport asyncio\nimport os\nimport re\nimport shutil\nimport subprocess\nimport time\nimport uuid\nfrom collections.abc import AsyncGenerator, Sequence\nfrom contextlib import asynccontextmanager\nfrom dataclasses import dataclass, field\nfrom typing import Any\nimport asyncpg\nfrom app.core.config import get_settings\nfrom app.core.logging import get_logger\n    import socket",
+  "apps/backend/app/workers/__main__.py": "from __future__ import annotations\nimport argparse\nimport asyncio\nimport sys\nfrom app.core.logging import get_logger\n        from app.workers.telemetry_collector import main as telemetry_main\n        from app.workers.canary_monitor import main as canary_main\n        from app.workers.retrain_worker import main as retrain_main\n        from app.workers.shadow_lab_worker import main as shadow_main",
+  "apps/backend/app/workers/shadow_lab_worker.py": "from __future__ import annotations\nimport asyncio\nimport time\nfrom collections.abc import Mapping, Sequence\nfrom dataclasses import dataclass\nfrom datetime import datetime, timezone\nfrom typing import Any\nimport asyncpg\nimport numpy as np\nfrom app.core.logging import get_logger\nfrom app.tools.shadow_db_tool import (\n    from app.db.session import async_session_factory\n    from app.db.customer_db import customer_connection_manager\n    from app.models.experiment import OptimizationExperiment\n    from app.models.connection import DatabaseConnection\n    from app.tools.pg_introspection import get_query_metrics\n    from sqlalchemy import select\n    import signal",
+  "apps/backend/tests/integration/test_audit_flow.py": "import json\nimport logging\nimport uuid\nfrom datetime import datetime, timezone\nimport pytest\nimport pytest_asyncio\nfrom httpx import ASGITransport, AsyncClient\nfrom sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine\nfrom app.api import deps\nfrom app.core.logging import (\nfrom app.db.base import Base\nfrom app.main import app\nfrom app.models import (\nfrom app.services.audit_service import audit_service\nfrom app.services.roi_service import roi_service\nfrom app.services.simulation_service import simulation_service\nfrom app.workers.canary_monitor import execute_commit, execute_rollback",
+  "apps/backend/tests/unit/test_graph_diagnosis.py": "from app.agents.graph_diagnosis import DOMAINS, TOOL_SUBSETS, diagnosis_graph, run_diagnosis\nfrom app.agents.llm_client import LLMClient",
+  "apps/backend/tests/unit/test_hypopg_tool.py": "import pytest\nfrom app.tools.hypopg_tool import (",
+  "apps/backend/tests/unit/test_security.py": "import uuid\nfrom datetime import timedelta\nimport pytest\nfrom app.core.security import (",
+  "apps/backend/tests/unit/test_security_hardening.py": "import json\nimport logging\nimport uuid\nimport pytest\nfrom app.core.logging import DevelopmentFormatter, StructuredJSONFormatter, mask_sensitive_data\nfrom app.core.security import decrypt_connection_string, encrypt_connection_string\nfrom app.models.connection import DatabaseConnection\nfrom app.models.user import User\nfrom app.tools.pg_introspection import _validate_read_query\nfrom app.tools.hypopg_tool import validate_index_statement"
+}
+
+===== CODE CHUNKS =====
+<<<CHUNK {"chunk_id":"chunk_48c497147bf0d3ff","file":"apps/backend/app/agents/graph_diagnosis.py","start_line":1,"end_line":33,"language":"python","kind":"file_context","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """Evidence-first LangGraph for Feature 1 root-cause diagnosis."""
+     2 | 
+     3 | from __future__ import annotations
+     4 | 
+     5 | import inspect
+     6 | import asyncio
+     7 | from concurrent.futures import ThreadPoolExecutor
+     8 | from collections.abc import Mapping, Sequence
+     9 | from operator import add
+    10 | from typing import Annotated, Any, TypedDict
+    11 | 
+    12 | from langgraph.graph import END, START, StateGraph
+    13 | from langgraph.types import Send
+    14 | 
+    15 | from app.agents.llm_client import LLMClient, get_llm_client
+    16 | from app.ml.anomaly.predict import predict as predict_anomaly
+    17 | from app.ml.diagnosis_models import ensure_feature1_models, model_paths
+    18 | from app.ml.rca_classifier.predict import predict as predict_rca
+    19 | from app.ml.temporal.features import build_windows
+    20 | from app.ml.temporal.predict import predict as predict_temporal
+    21 | from app.tools import pg_introspection
+    22 | 
+    23 | 
+    24 | DOMAINS = ("PLANNER", "CONCURRENCY", "VACUUM", "IO_BUFFER", "SCHEMA_INDEX")
+    25 | TOOL_SUBSETS = {
+    26 |     "PLANNER": ("get_explain_plan", "get_plan_history", "get_pg_stats", "get_table_statistics", "compare_plan", "calculate_cardinality_error"),
+    27 |     "CONCURRENCY": ("get_pg_activity", "get_pg_locks", "get_wait_events", "build_lock_graph"),
+    28 |     "VACUUM": ("get_table_stats", "get_vacuum_progress", "get_autovacuum_history", "estimate_bloat", "get_dead_tuple_ratio"),
+    29 |     "IO_BUFFER": ("get_buffer_stats", "get_io_stats", "get_explain_buffers", "get_temp_file_stats", "get_wal_stats"),
+    30 |     "SCHEMA_INDEX": ("get_indexes", "get_index_usage", "get_table_schema", "get_constraints", "get_query_plan"),
+    31 | }
+    32 | 
+    33 | 
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_f20b5c23667da0c3","file":"apps/backend/app/agents/graph_simulation.py","start_line":1,"end_line":31,"language":"python","kind":"file_context","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """Feature 2 LangGraph Simulation and Verification Pipeline.
+     2 | 
+     3 | Wires the sequential agent pipeline:
+     4 | Experiment Agent -> ML Scientist Agent -> Skeptic Agent -> Verification Agent -> Policy Agent -> Deployment Agent
+     5 | 
+     6 | Reference: ARCHITECTURE.md §8 & PRD.md §5 Feature 2, §6.
+     7 | """
+     8 | 
+     9 | from __future__ import annotations
+    10 | 
+    11 | import asyncio
+    12 | import inspect
+    13 | import os
+    14 | from collections.abc import Mapping, Sequence
+    15 | from concurrent.futures import ThreadPoolExecutor
+    16 | from typing import Any, TypedDict
+    17 | 
+    18 | import numpy as np
+    19 | from langgraph.graph import END, START, StateGraph
+    20 | from scipy import stats
+    21 | 
+    22 | from app.agents.llm_client import LLMClient, get_llm_client
+    23 | from app.core.logging import get_logger
+    24 | from app.ml.delta_predictor.predict import predict as predict_delta
+    25 | from app.tools.hypopg_tool import evaluate_hypothetical_index, filter_candidates
+    26 | from app.tools.policy_engine import evaluate as evaluate_policy
+    27 | from app.workers.shadow_lab_worker import ShadowLabWorker, replay_workload
+    28 | 
+    29 | logger = get_logger(__name__)
+    30 | 
+    31 | 
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_5662244b2b8edc0e","file":"apps/backend/app/agents/llm_client.py","start_line":1,"end_line":83,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """Provider-neutral LLM client boundary.
+     2 | 
+     3 | The diagnosis graph only depends on this module.  A callable can be injected
+     4 | in tests or by an application integration; otherwise an OpenAI-compatible
+     5 | HTTP endpoint can be used without adding a provider SDK dependency.
+     6 | """
+     7 | 
+     8 | from __future__ import annotations
+     9 | 
+    10 | import json
+    11 | import os
+    12 | from collections.abc import Callable, Mapping
+    13 | from typing import Any
+    14 | 
+    15 | import httpx
+    16 | 
+    17 | 
+    18 | class LLMClient:
+    19 |     """Small synchronous client with a stable completion interface."""
+    20 | 
+    21 |     def __init__(
+    22 |         self,
+    23 |         complete_fn: Callable[..., str] | None = None,
+    24 |         *,
+    25 |         base_url: str | None = None,
+    26 |         model: str | None = None,
+    27 |         api_key: str | None = None,
+    28 |         timeout: float = 30.0,
+    29 |     ) -> None:
+    30 |         self._complete_fn = complete_fn
+    31 |         self.base_url = (base_url or os.getenv("LLM_BASE_URL", "")).rstrip("/")
+    32 |         self.model = model or os.getenv("LLM_MODEL", "")
+    33 |         self.api_key = api_key or os.getenv("LLM_API_KEY", "")
+    34 |         self.timeout = timeout
+    35 | 
+    36 |     def complete(self, prompt: str, **kwargs: Any) -> str:
+    37 |         """Return plain text from the configured provider."""
+    38 |         if self._complete_fn is not None:
+    39 |             return str(self._complete_fn(prompt, **kwargs))
+    40 |         if not self.base_url or not self.model:
+    41 |             raise RuntimeError("No LLM provider configured; inject complete_fn or set LLM_BASE_URL and LLM_MODEL")
+    42 | 
+    43 |         headers = {"Content-Type": "application/json"}
+    44 |         if self.api_key:
+    45 |             headers["Authorization"] = f"Bearer {self.api_key}"
+    46 |         payload = {
+    47 |             "model": self.model,
+    48 |             "messages": [{"role": "user", "content": prompt}],
+    49 |             **kwargs,
+    50 |         }
+    51 |         response = httpx.post(f"{self.base_url}/chat/completions", headers=headers, json=payload, timeout=self.timeout)
+    52 |         response.raise_for_status()
+    53 |         body = response.json()
+    54 |         return str(body["choices"][0]["message"]["content"])
+    55 | 
+    56 |     def structured_complete(
+    57 |         self,
+    58 |         prompt: str,
+    59 |         schema: type[Any] | None = None,
+    60 |         **kwargs: Any,
+    61 |     ) -> Any:
+    62 |         """Complete and parse JSON, optionally validating it with a Pydantic model."""
+    63 |         text = self.complete(
+    64 |             f"{prompt}\nReturn only valid JSON."
+    65 |             if "json" not in prompt.lower()
+    66 |             else prompt,
+    67 |             **kwargs,
+    68 |         )
+    69 |         try:
+    70 |             value = json.loads(text)
+    71 |         except json.JSONDecodeError as exc:
+    72 |             raise ValueError("LLM returned invalid JSON") from exc
+    73 |         if schema is not None:
+    74 |             if hasattr(schema, "model_validate"):
+    75 |                 return schema.model_validate(value)
+    76 |             if isinstance(value, Mapping):
+    77 |                 return schema(**value)
+    78 |         return value
+    79 | 
+    80 | 
+    81 | def get_llm_client() -> LLMClient:
+    82 |     """Build the configured client at the integration boundary."""
+    83 |     return LLMClient()
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_c2cfb96c2f264dba","file":"apps/backend/app/api/routes/auth.py","start_line":1,"end_line":116,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":["api_or_controller_file","api_route","auth_related_file"]}>>>
+     1 | """
+     2 | Authentication API Endpoints.
+     3 | Reference: PRD.md §12, §14 & ARCHITECTURE.md §4, §10
+     4 | """
+     5 | 
+     6 | from typing import Any
+     7 | from fastapi import APIRouter, Depends, HTTPException, Response, status
+     8 | from sqlalchemy import select
+     9 | from sqlalchemy.ext.asyncio import AsyncSession
+    10 | from app.api.deps import COOKIE_AUTH_NAME, get_current_user, get_db_session
+    11 | from app.core.config import get_settings
+    12 | from app.core.security import create_access_token, hash_password, verify_password
+    13 | from app.models.user import User
+    14 | from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserOut
+    15 | 
+    16 | router = APIRouter(prefix="/auth", tags=["Authentication"])
+    17 | settings = get_settings()
+    18 | 
+    19 | 
+    20 | @router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+    21 | @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+    22 | async def signup(
+    23 |     user_in: UserCreate,
+    24 |     db: AsyncSession = Depends(get_db_session),
+    25 | ) -> Any:
+    26 |     """
+    27 |     Register a new user account with hashed password storage.
+    28 |     """
+    29 |     stmt = select(User).where(User.email == user_in.email)
+    30 |     res = await db.execute(stmt)
+    31 |     existing_user = res.scalar_one_or_none()
+    32 |     if existing_user:
+    33 |         raise HTTPException(
+    34 |             status_code=status.HTTP_400_BAD_REQUEST,
+    35 |             detail="A user with this email already exists",
+    36 |         )
+    37 | 
+    38 |     user = User(
+    39 |         email=user_in.email,
+    40 |         hashed_password=hash_password(user_in.password),
+    41 |         full_name=user_in.full_name,
+    42 |         role=user_in.role,
+    43 |         is_active=True,
+    44 |     )
+    45 |     db.add(user)
+    46 |     await db.commit()
+    47 |     await db.refresh(user)
+    48 |     return user
+    49 | 
+    50 | 
+    51 | @router.post("/login", response_model=TokenResponse)
+    52 | async def login(
+    53 |     credentials: UserLogin,
+    54 |     response: Response,
+    55 |     db: AsyncSession = Depends(get_db_session),
+    56 | ) -> Any:
+    57 |     """
+    58 |     Authenticate user credentials, set httpOnly secure cookie, and return JWT token.
+    59 |     """
+    60 |     stmt = select(User).where(User.email == credentials.email)
+    61 |     res = await db.execute(stmt)
+    62 |     user = res.scalar_one_or_none()
+    63 | 
+    64 |     if not user or not verify_password(credentials.password, user.hashed_password):
+    65 |         raise HTTPException(
+    66 |             status_code=status.HTTP_401_UNAUTHORIZED,
+    67 |             detail="Incorrect email or password",
+    68 |             headers={"WWW-Authenticate": "Bearer"},
+    69 |         )
+    70 | 
+    71 |     if not user.is_active:
+    72 |         raise HTTPException(
+    73 |             status_code=status.HTTP_403_FORBIDDEN,
+    74 |             detail="User account is deactivated",
+    75 |         )
+    76 | 
+    77 |     access_token = create_access_token(
+    78 |         subject=str(user.id),
+    79 |         extra_claims={"role": user.role, "email": user.email},
+    80 |     )
+    81 | 
+    82 |     # Set secure httpOnly cookie per ARCHITECTURE.md §4
+    83 |     response.set_cookie(
+    84 |         key=COOKIE_AUTH_NAME,
+    85 |         value=access_token,
+    86 |         httponly=True,
+    87 |         secure=settings.is_production,
+    88 |         samesite="lax",
+    89 |         max_age=settings.JWT_EXPIRY_MINUTES * 60,
+    90 |     )
+    91 | 
+    92 |     return TokenResponse(
+    93 |         access_token=access_token,
+    94 |         token_type="bearer",
+    95 |         expires_in_minutes=settings.JWT_EXPIRY_MINUTES,
+    96 |         user=UserOut.model_validate(user),
+    97 |     )
+    98 | 
+    99 | 
+   100 | @router.post("/logout", status_code=status.HTTP_200_OK)
+   101 | async def logout(response: Response) -> Any:
+   102 |     """
+   103 |     Clear the authentication cookie.
+   104 |     """
+   105 |     response.delete_cookie(key=COOKIE_AUTH_NAME)
+   106 |     return {"message": "Logged out successfully"}
+   107 | 
+   108 | 
+   109 | @router.get("/me", response_model=UserOut)
+   110 | async def get_me(
+   111 |     current_user: User = Depends(get_current_user),
+   112 | ) -> Any:
+   113 |     """
+   114 |     Get the currently authenticated user profile.
+   115 |     """
+   116 |     return current_user
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_4bbc8dac500a0afd","file":"apps/backend/app/core/logging.py","start_line":1,"end_line":215,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """
+     2 | Structured logging configuration, correlation tracing, and logger factory.
+     3 | Reference: ARCHITECTURE.md §4, §15 & BACKEND_STEPS.md Step 4, Step 31
+     4 | """
+     5 | 
+     6 | import contextvars
+     7 | import json
+     8 | import logging
+     9 | import sys
+    10 | from datetime import datetime, timezone
+    11 | from typing import Any, Dict, Optional
+    12 | 
+    13 | from app.core.config import get_settings
+    14 | 
+    15 | # ContextVar storing active request/agent/experiment correlation attributes
+    16 | _correlation_context: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(
+    17 |     "zentrix_correlation_context", default={}
+    18 | )
+    19 | 
+    20 | 
+    21 | def set_correlation_context(**kwargs: Any) -> None:
+    22 |     """Set or update the active correlation context for the current async task."""
+    23 |     current = dict(_correlation_context.get())
+    24 |     for k, v in kwargs.items():
+    25 |         if v is not None:
+    26 |             current[k] = str(v) if not isinstance(v, (int, float, bool, dict, list)) else v
+    27 |         elif k in current:
+    28 |             del current[k]
+    29 |     _correlation_context.set(current)
+    30 | 
+    31 | 
+    32 | def get_correlation_context() -> Dict[str, Any]:
+    33 |     """Retrieve the active correlation context dictionary."""
+    34 |     return dict(_correlation_context.get())
+    35 | 
+    36 | 
+    37 | def clear_correlation_context() -> None:
+    38 |     """Clear all correlation context for the current async task."""
+    39 |     _correlation_context.set({})
+    40 | 
+    41 | 
+    42 | import re
+    43 | 
+    44 | # Sensitive credential redaction patterns
+    45 | _PASSWORD_DSN_REGEX = re.compile(
+    46 |     r"(postgres(?:ql)?://[^:]+:)(?:.+?)(@[^/:\s]+(?::\d+)?(?:/[^\s]*)?)",
+    47 |     re.IGNORECASE,
+    48 | )
+    49 | _BEARER_TOKEN_REGEX = re.compile(
+    50 |     r"(Bearer\s+)[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.?[A-Za-z0-9\-_.+/=]*",
+    51 |     re.IGNORECASE,
+    52 | )
+    53 | 
+    54 | 
+    55 | def mask_sensitive_data(text: Any) -> Any:
+    56 |     """Mask credentials, passwords, and tokens in string records."""
+    57 |     if not isinstance(text, str):
+    58 |         return text
+    59 |     masked = re.sub(
+    60 |         r"(postgres(?:ql)?://[^:\s]+:)(.+?)(@[A-Za-z0-9_.-]+(?::\d+)?/[^\s]*)",
+    61 |         r"\1***\3",
+    62 |         text,
+    63 |         flags=re.IGNORECASE,
+    64 |     )
+    65 |     masked = _BEARER_TOKEN_REGEX.sub(r"\1***", masked)
+    66 |     return masked
+    67 | 
+    68 | 
+    69 | class StructuredJSONFormatter(logging.Formatter):
+    70 |     """
+    71 |     JSON formatter emitting machine-readable structured log records
+    72 |     containing timestamp, log level, module, message, and contextual IDs
+    73 |     (e.g., request_id, agent_id, experiment_id, connection_id).
+    74 |     """
+    75 | 
+    76 |     def format(self, record: logging.LogRecord) -> str:
+    77 |         ctx = get_correlation_context()
+    78 |         raw_msg = record.getMessage()
+    79 |         masked_msg = mask_sensitive_data(raw_msg)
+    80 | 
+    81 |         log_entry: Dict[str, Any] = {
+    82 |             "timestamp": datetime.now(timezone.utc).isoformat(),
+    83 |             "level": record.levelname,
+    84 |             "logger": record.name,
+    85 |             "module": record.module,
+    86 |             "function": record.funcName,
+    87 |             "line": record.lineno,
+    88 |             "message": masked_msg,
+    89 |         }
+    90 | 
+    91 |         # Merge ContextVar correlation attributes
+    92 |         for field, val in ctx.items():
+    93 |             log_entry[field] = val
+    94 | 
+    95 |         # Include standard contextual tracing fields if present in extra
+    96 |         for field in ("request_id", "agent_id", "experiment_id", "connection_id", "user_id", "trace_id", "action"):
+    97 |             val = getattr(record, field, None)
+    98 |             if val is not None:
+    99 |                 log_entry[field] = val
+   100 | 
+   101 |         # Include any custom extra dictionary data
+   102 |         if hasattr(record, "extra_data") and isinstance(record.extra_data, dict):
+   103 |             log_entry["data"] = record.extra_data
+   104 | 
+   105 |         if record.exc_info:
+   106 |             log_entry["exception"] = self.formatException(record.exc_info)
+   107 | 
+   108 |         return json.dumps(log_entry, default=str)
+   109 | 
+   110 | 
+   111 | class DevelopmentFormatter(logging.Formatter):
+   112 |     """
+   113 |     Human-readable structured formatter for local development.
+   114 |     """
+   115 | 
+   116 |     def format(self, record: logging.LogRecord) -> str:
+   117 |         ctx = get_correlation_context()
+   118 |         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+   119 |         context_parts = []
+   120 | 
+   121 |         # Merge ContextVar and record extras
+   122 |         merged_context = dict(ctx)
+   123 |         for field in ("request_id", "agent_id", "experiment_id", "connection_id", "action"):
+   124 |             val = getattr(record, field, None)
+   125 |             if val is not None:
+   126 |                 merged_context[field] = val
+   127 | 
+   128 |         for field, val in merged_context.items():
+   129 |             context_parts.append(f"{field}={val}")
+   130 | 
+   131 |         context_str = f" [{', '.join(context_parts)}]" if context_parts else ""
+   132 |         masked_msg = mask_sensitive_data(record.getMessage())
+   133 |         msg = f"{timestamp} | {record.levelname:<8} | {record.name}:{record.lineno} | {masked_msg}{context_str}"
+   134 | 
+   135 |         if record.exc_info:
+   136 |             msg += f"\n{self.formatException(record.exc_info)}"
+   137 |         return msg
+   138 | 
+   139 | 
+   140 | def setup_root_logger(
+   141 |     environment: Optional[str] = None,
+   142 |     log_level: Optional[int | str] = None,
+   143 | ) -> None:
+   144 |     """
+   145 |     Configure the root logger with the appropriate formatter and log level
+   146 |     based on application settings.
+   147 |     """
+   148 |     settings = get_settings()
+   149 |     env = (environment or settings.ENVIRONMENT).lower()
+   150 | 
+   151 |     if log_level is None:
+   152 |         level = logging.DEBUG if env in ("development", "test", "dev") else logging.INFO
+   153 |     elif isinstance(log_level, str):
+   154 |         level = getattr(logging, log_level.upper(), logging.INFO)
+   155 |     else:
+   156 |         level = log_level
+   157 | 
+   158 |     root_logger = logging.getLogger()
+   159 |     root_logger.setLevel(level)
+   160 | 
+   161 |     # Avoid adding duplicate handlers if setup is called multiple times
+   162 |     if not any(getattr(h, "_zentrix_handler", False) for h in root_logger.handlers):
+   163 |         handler = logging.StreamHandler(sys.stdout)
+   164 |         handler._zentrix_handler = True  # type: ignore
+   165 | 
+   166 |         if env in ("production", "prod"):
+   167 |             handler.setFormatter(StructuredJSONFormatter())
+   168 |         else:
+   169 |             handler.setFormatter(DevelopmentFormatter())
+   170 | 
+   171 |         root_logger.addHandler(handler)
+   172 | 
+   173 | 
+   174 | def get_logger(name: str) -> logging.Logger:
+   175 |     """
+   176 |     Factory function returning a configured structured logger.
+   177 | 
+   178 |     Usage:
+   179 |         logger = get_logger(__name__)
+   180 |         logger.info("Database connection established", extra={"connection_id": "conn_123"})
+   181 |     """
+   182 |     setup_root_logger()
+   183 |     return logging.getLogger(name)
+   184 | 
+   185 | 
+   186 | def log_agent_execution(
+   187 |     agent_name: str,
+   188 |     action: str,
+   189 |     evidence: Optional[Dict[str, Any]] = None,
+   190 |     confidence: Optional[float] = None,
+   191 |     connection_id: Optional[str] = None,
+   192 |     experiment_id: Optional[str] = None,
+   193 | ) -> None:
+   194 |     """Structured logging helper for multi-agent graph execution per PRD.md §15."""
+   195 |     logger = get_logger(f"agent.{agent_name}")
+   196 |     extra: Dict[str, Any] = {
+   197 |         "agent_id": agent_name,
+   198 |         "action": action,
+   199 |     }
+   200 |     if connection_id:
+   201 |         extra["connection_id"] = connection_id
+   202 |     if experiment_id:
+   203 |         extra["experiment_id"] = experiment_id
+   204 |     if confidence is not None:
+   205 |         extra["confidence"] = confidence
+   206 | 
+   207 |     details_str = f" [evidence_keys={list(evidence.keys())}]" if evidence else ""
+   208 |     conf_str = f" [confidence={confidence:.2f}]" if confidence is not None else ""
+   209 |     logger.info(f"Agent '{agent_name}' executed '{action}'{details_str}{conf_str}", extra=extra)
+   210 | 
+   211 | 
+   212 | # Alias for backward and forward compatibility
+   213 | setup_logging = setup_root_logger
+   214 | 
+   215 | 
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_f0510fd48336ff75","file":"apps/backend/app/core/security.py","start_line":1,"end_line":181,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """
+     2 | Security, Cryptography, and Authentication Primitives.
+     3 | Reference: ARCHITECTURE.md §4 (core/security.py), §10, §14 & PRD.md §14
+     4 | """
+     5 | 
+     6 | from datetime import datetime, timedelta, timezone
+     7 | from typing import Any, Dict, Optional, Union
+     8 | import bcrypt
+     9 | import jwt
+    10 | from cryptography.fernet import Fernet, InvalidToken
+    11 | from app.core.config import get_settings
+    12 | 
+    13 | 
+    14 | # ─── Password Hashing & Verification ─────────────────────────────────────────
+    15 | 
+    16 | def hash_password(password: str) -> str:
+    17 |     """
+    18 |     Hash a plaintext password using bcrypt with a securely generated salt.
+    19 |     """
+    20 |     salt = bcrypt.gensalt()
+    21 |     hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
+    22 |     return hashed.decode("utf-8")
+    23 | 
+    24 | 
+    25 | def verify_password(plain_password: str, hashed_password: str) -> bool:
+    26 |     """
+    27 |     Verify a plaintext password against a stored bcrypt hash.
+    28 |     """
+    29 |     try:
+    30 |         return bcrypt.checkpw(
+    31 |             plain_password.encode("utf-8"),
+    32 |             hashed_password.encode("utf-8"),
+    33 |         )
+    34 |     except Exception:
+    35 |         return False
+    36 | 
+    37 | 
+    38 | # ─── JWT Authentication Token Handling ───────────────────────────────────────
+    39 | 
+    40 | def create_access_token(
+    41 |     subject: Union[str, Any],
+    42 |     expires_delta: Optional[timedelta] = None,
+    43 |     extra_claims: Optional[Dict[str, Any]] = None,
+    44 | ) -> str:
+    45 |     """
+    46 |     Create a signed JWT access token.
+    47 |     Used for user session authentication in API headers and secure httpOnly cookies.
+    48 |     """
+    49 |     settings = get_settings()
+    50 |     if expires_delta:
+    51 |         expire = datetime.now(timezone.utc) + expires_delta
+    52 |     else:
+    53 |         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRY_MINUTES)
+    54 | 
+    55 |     to_encode: Dict[str, Any] = {
+    56 |         "sub": str(subject),
+    57 |         "exp": expire,
+    58 |         "iat": datetime.now(timezone.utc),
+    59 |     }
+    60 | 
+    61 |     if extra_claims:
+    62 |         to_encode.update(extra_claims)
+    63 | 
+    64 |     encoded_jwt = jwt.encode(
+    65 |         to_encode,
+    66 |         settings.JWT_SECRET_KEY,
+    67 |         algorithm=settings.JWT_ALGORITHM,
+    68 |     )
+    69 |     return encoded_jwt
+    70 | 
+    71 | 
+    72 | _jwk_clients: Dict[str, Any] = {}
+    73 | 
+    74 | 
+    75 | def _get_jwk_client(jwks_url: str) -> Any:
+    76 |     """Cached PyJWKClient instance for resolving RS256 public keys."""
+    77 |     if jwks_url not in _jwk_clients:
+    78 |         _jwk_clients[jwks_url] = jwt.PyJWKClient(jwks_url, cache_jwk_set=True, lifespan=3600)
+    79 |     return _jwk_clients[jwks_url]
+    80 | 
+    81 | 
+    82 | def decode_access_token(token: str) -> Dict[str, Any]:
+    83 |     """
+    84 |     Decode and validate a JWT access token (supports Clerk RS256 and internal HS256 tokens).
+    85 |     Raises ValueError on token expiration or invalid signature.
+    86 |     """
+    87 |     settings = get_settings()
+    88 | 
+    89 |     # 1. Peek at unverified header to determine signing algorithm
+    90 |     try:
+    91 |         unverified_header = jwt.get_unverified_header(token)
+    92 |         alg = unverified_header.get("alg", "HS256")
+    93 |     except Exception as e:
+    94 |         raise ValueError(f"Malformed authentication token header: {e}")
+    95 | 
+    96 |     # 2. RS256 (Clerk asymmetric session tokens)
+    97 |     if alg == "RS256":
+    98 |         try:
+    99 |             if settings.CLERK_PEM_PUBLIC_KEY:
+   100 |                 pem_key = settings.CLERK_PEM_PUBLIC_KEY.strip()
+   101 |                 if not pem_key.startswith("-----BEGIN"):
+   102 |                     pem_key = f"-----BEGIN PUBLIC KEY-----\n{pem_key}\n-----END PUBLIC KEY-----"
+   103 |                 return jwt.decode(
+   104 |                     token,
+   105 |                     pem_key,
+   106 |                     algorithms=["RS256"],
+   107 |                     options={"verify_aud": False},
+   108 |                 )
+   109 | 
+   110 |             # Resolve JWKS endpoint
+   111 |             if settings.CLERK_JWKS_URL:
+   112 |                 jwks_url = settings.CLERK_JWKS_URL
+   113 |             elif settings.CLERK_ISSUER:
+   114 |                 jwks_url = settings.CLERK_ISSUER.rstrip("/") + "/.well-known/jwks.json"
+   115 |             else:
+   116 |                 jwks_url = "https://api.clerk.com/v1/jwks"
+   117 | 
+   118 |             jwks_client = _get_jwk_client(jwks_url)
+   119 |             signing_key = jwks_client.get_signing_key_from_jwt(token)
+   120 | 
+   121 |             return jwt.decode(
+   122 |                 token,
+   123 |                 signing_key.key,
+   124 |                 algorithms=["RS256"],
+   125 |                 options={"verify_aud": False},
+   126 |             )
+   127 |         except jwt.ExpiredSignatureError:
+   128 |             raise ValueError("Authentication token has expired")
+   129 |         except jwt.PyJWTError as e:
+   130 |             raise ValueError(f"Invalid Clerk authentication token: {e}")
+   131 |         except Exception as e:
+   132 |             raise ValueError(f"Failed to verify Clerk token signature: {e}")
+   133 | 
+   134 |     # 3. HS256 (Internal HMAC access tokens)
+   135 |     try:
+   136 |         payload = jwt.decode(
+   137 |             token,
+   138 |             settings.JWT_SECRET_KEY,
+   139 |             algorithms=[settings.JWT_ALGORITHM],
+   140 |         )
+   141 |         return payload
+   142 |     except jwt.ExpiredSignatureError:
+   143 |         raise ValueError("Authentication token has expired")
+   144 |     except jwt.PyJWTError as e:
+   145 |         raise ValueError(f"Invalid authentication token: {e}")
+   146 | 
+   147 | 
+   148 | # ─── Connection Credential Encryption (Fernet / AES) ─────────────────────────
+   149 | 
+   150 | def _get_fernet_instance(key: Optional[str] = None) -> Fernet:
+   151 |     """
+   152 |     Get a Fernet cipher instance using the configured CONNECTION_ENCRYPTION_KEY.
+   153 |     """
+   154 |     encryption_key = key or get_settings().CONNECTION_ENCRYPTION_KEY
+   155 |     if isinstance(encryption_key, str):
+   156 |         encryption_key_bytes = encryption_key.encode("utf-8")
+   157 |     else:
+   158 |         encryption_key_bytes = encryption_key
+   159 |     return Fernet(encryption_key_bytes)
+   160 | 
+   161 | 
+   162 | def encrypt_connection_string(conn_str: str, key: Optional[str] = None) -> str:
+   163 |     """
+   164 |     Encrypt a customer PostgreSQL connection string for secure storage at rest.
+   165 |     """
+   166 |     fernet = _get_fernet_instance(key)
+   167 |     encrypted_bytes = fernet.encrypt(conn_str.encode("utf-8"))
+   168 |     return encrypted_bytes.decode("utf-8")
+   169 | 
+   170 | 
+   171 | def decrypt_connection_string(encrypted_conn_str: str, key: Optional[str] = None) -> str:
+   172 |     """
+   173 |     Decrypt an encrypted customer connection string in-memory just-in-time for use.
+   174 |     Never logs decrypted credentials.
+   175 |     """
+   176 |     fernet = _get_fernet_instance(key)
+   177 |     try:
+   178 |         decrypted_bytes = fernet.decrypt(encrypted_conn_str.encode("utf-8"))
+   179 |         return decrypted_bytes.decode("utf-8")
+   180 |     except InvalidToken:
+   181 |         raise ValueError("Failed to decrypt database connection string: invalid encryption key or corrupted data")
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_3dc55a70bad98636","file":"apps/backend/app/db/customer_db.py","start_line":1,"end_line":232,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """
+     2 | Customer Database Connection Manager.
+     3 | Maintains isolated, per-connection asyncpg pools to monitored customer PostgreSQL databases.
+     4 | Reference: ARCHITECTURE.md §4 (db/customer_db.py), §7, §14 & PRD.md §14
+     5 | """
+     6 | 
+     7 | import asyncio
+     8 | import re
+     9 | import uuid
+    10 | from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
+    11 | from contextlib import asynccontextmanager
+    12 | from typing import AsyncGenerator, Dict, Optional
+    13 | import asyncpg
+    14 | from sqlalchemy import select
+    15 | from sqlalchemy.ext.asyncio import AsyncSession
+    16 | from app.core.logging import get_logger
+    17 | from app.core.security import decrypt_connection_string, encrypt_connection_string
+    18 | from app.models.connection import DatabaseConnection
+    19 | 
+    20 | logger = get_logger(__name__)
+    21 | 
+    22 | 
+    23 | def _prepare_asyncpg_dsn(raw_url: str) -> str:
+    24 |     """
+    25 |     Format and clean a decrypted PostgreSQL connection string for asyncpg.
+    26 |     Strips driver prefixes and unneeded parameters while preserving SSL settings.
+    27 |     """
+    28 |     url = raw_url.strip()
+    29 |     # Strip sqlalchemy driver schemes
+    30 |     if url.startswith("postgresql+asyncpg://"):
+    31 |         url = "postgresql://" + url[len("postgresql+asyncpg://"):]
+    32 |     elif url.startswith("postgres://"):
+    33 |         url = "postgresql://" + url[len("postgres://"):]
+    34 | 
+    35 |     # asyncpg accepts PostgreSQL's sslmode DSN option, but not channel_binding.
+    36 |     if "channel_binding=" in url:
+    37 |         url = re.sub(r"[?&]channel_binding=[^&]+", "", url)
+    38 |         if "?" not in url and "&" in url:
+    39 |             url = url.replace("&", "?", 1)
+    40 | 
+    41 |     parsed = urlsplit(url)
+    42 |     query = parse_qs(parsed.query, keep_blank_values=True)
+    43 |     if "ssl" in query and "sslmode" not in query:
+    44 |         query["sslmode"] = query.pop("ssl")
+    45 |         url = urlunsplit(
+    46 |             (
+    47 |                 parsed.scheme,
+    48 |                 parsed.netloc,
+    49 |                 parsed.path,
+    50 |                 urlencode(query, doseq=True),
+    51 |                 parsed.fragment,
+    52 |             )
+    53 |         )
+    54 | 
+    55 |     return url
+    56 | 
+    57 | 
+    58 | class CustomerConnectionManager:
+    59 |     """
+    60 |     Singleton connection manager caching asyncpg pools per monitored customer database.
+    61 |     Decrypts connection strings just-in-time and ensures secrets are never logged.
+    62 |     """
+    63 | 
+    64 |     def __init__(self) -> None:
+    65 |         self._pools: Dict[uuid.UUID, asyncpg.Pool] = {}
+    66 |         self._lock: asyncio.Lock = asyncio.Lock()
+    67 | 
+    68 |     async def get_customer_dsn(
+    69 |         self,
+    70 |         connection_id: uuid.UUID,
+    71 |         db: AsyncSession,
+    72 |     ) -> str:
+    73 |         """Return a decrypted DSN for server-side shadow cloning only."""
+    74 |         record = await db.scalar(
+    75 |             select(DatabaseConnection).where(DatabaseConnection.id == connection_id)
+    76 |         )
+    77 |         if not record or not record.is_active:
+    78 |             raise ValueError(f"Active customer database connection {connection_id} not found")
+    79 | 
+    80 |         dsn = _prepare_asyncpg_dsn(
+    81 |             decrypt_connection_string(record.encrypted_connection_string)
+    82 |         )
+    83 |         parsed = urlsplit(dsn)
+    84 |         query = parse_qs(parsed.query, keep_blank_values=True)
+    85 |         if "ssl" in query and "sslmode" not in query:
+    86 |             query["sslmode"] = query.pop("ssl")
+    87 |         if "sslmode" not in query and record.ssl_mode:
+    88 |             query["sslmode"] = [record.ssl_mode]
+    89 |         return urlunsplit(
+    90 |             (parsed.scheme, parsed.netloc, parsed.path, urlencode(query, doseq=True), parsed.fragment)
+    91 |         )
+    92 | 
+    93 |     async def get_customer_pool(
+    94 |         self,
+    95 |         connection_id: uuid.UUID,
+    96 |         db: AsyncSession,
+    97 |         min_size: int = 1,
+    98 |         max_size: int = 10,
+    99 |     ) -> asyncpg.Pool:
+   100 |         """
+   101 |         Retrieve or initialize an asyncpg.Pool for the given customer connection ID.
+   102 |         """
+   103 |         # Return cached active pool if present
+   104 |         if connection_id in self._pools:
+   105 |             pool = self._pools[connection_id]
+   106 |             if not pool._closed:
+   107 |                 return pool
+   108 | 
+   109 |         async with self._lock:
+   110 |             # Double-check inside lock
+   111 |             if connection_id in self._pools and not self._pools[connection_id]._closed:
+   112 |                 return self._pools[connection_id]
+   113 | 
+   114 |             # Fetch connection metadata from application database
+   115 |             stmt = select(DatabaseConnection).where(DatabaseConnection.id == connection_id)
+   116 |             res = await db.execute(stmt)
+   117 |             conn_record = res.scalar_one_or_none()
+   118 | 
+   119 |             if not conn_record:
+   120 |                 raise ValueError(f"Customer database connection {connection_id} not found")
+   121 | 
+   122 |             # Decrypt stored credentials just-in-time
+   123 |             decrypted_conn_str = decrypt_connection_string(conn_record.encrypted_connection_string)
+   124 |             dsn = _prepare_asyncpg_dsn(decrypted_conn_str)
+   125 |             parsed_dsn = urlsplit(dsn)
+   126 |             query = parse_qs(parsed_dsn.query, keep_blank_values=True)
+   127 |             if "ssl" in query and "sslmode" not in query:
+   128 |                 query["sslmode"] = query.pop("ssl")
+   129 |             if "sslmode" not in query and conn_record.ssl_mode:
+   130 |                 query["sslmode"] = [conn_record.ssl_mode]
+   131 |                 dsn = urlunsplit(
+   132 |                     (
+   133 |                         parsed_dsn.scheme,
+   134 |                         parsed_dsn.netloc,
+   135 |                         parsed_dsn.path,
+   136 |                         urlencode(query, doseq=True),
+   137 |                         parsed_dsn.fragment,
+   138 |                     )
+   139 |                 )
+   140 | 
+   141 |             logger.info(
+   142 |                 f"Initializing customer database connection pool for connection {connection_id}",
+   143 |                 extra={"connection_id": str(connection_id)},
+   144 |             )
+   145 | 
+   146 |             async def create_pool(pool_dsn: str) -> asyncpg.Pool:
+   147 |                 return await asyncpg.create_pool(
+   148 |                     dsn=pool_dsn,
+   149 |                     min_size=min_size,
+   150 |                     max_size=max_size,
+   151 |                     command_timeout=30.0,
+   152 |                     max_inactive_connection_lifetime=300.0,
+   153 |                 )
+   154 | 
+   155 |             try:
+   156 |                 pool = await create_pool(dsn)
+   157 |                 self._pools[connection_id] = pool
+   158 |                 return pool
+   159 |             except Exception as e:
+   160 |                 setup_dsn = conn_record.encrypted_setup_connection_string
+   161 |                 if setup_dsn:
+   162 |                     try:
+   163 |                         # Repair a rotated or stale monitoring role using only
+   164 |                         # the separately encrypted setup credential.
+   165 |                         from app.services.connection_service import _provision_monitoring_dsn
+   166 | 
+   167 |                         repaired_raw, monitoring_username = await _provision_monitoring_dsn(
+   168 |                             decrypt_connection_string(setup_dsn)
+   169 |                         )
+   170 |                         conn_record.encrypted_connection_string = encrypt_connection_string(repaired_raw)
+   171 |                         conn_record.username = monitoring_username
+   172 |                         await db.commit()
+   173 |                         repaired_dsn = _prepare_asyncpg_dsn(repaired_raw)
+   174 |                         pool = await create_pool(repaired_dsn)
+   175 |                         self._pools[connection_id] = pool
+   176 |                         return pool
+   177 |                     except Exception as repair_error:
+   178 |                         logger.error(
+   179 |                             "Failed to repair customer database credentials",
+   180 |                             extra={"connection_id": str(connection_id), "error": str(repair_error)},
+   181 |                         )
+   182 |                 logger.error(
+   183 |                     f"Failed to create asyncpg pool for connection {connection_id}: {e}",
+   184 |                     extra={"connection_id": str(connection_id)},
+   185 |                 )
+   186 |                 raise
+   187 | 
+   188 |     @asynccontextmanager
+   189 |     async def acquire_connection(
+   190 |         self,
+   191 |         connection_id: uuid.UUID,
+   192 |         db: AsyncSession,
+   193 |     ) -> AsyncGenerator[asyncpg.Connection, None]:
+   194 |         """
+   195 |         Async context manager yielding a dedicated connection from the customer pool.
+   196 |         """
+   197 |         pool = await self.get_customer_pool(connection_id, db=db)
+   198 |         async with pool.acquire() as connection:
+   199 |             yield connection
+   200 | 
+   201 |     async def close_customer_pool(self, connection_id: uuid.UUID) -> None:
+   202 |         """
+   203 |         Close and remove a specific customer connection pool.
+   204 |         """
+   205 |         async with self._lock:
+   206 |             pool = self._pools.pop(connection_id, None)
+   207 |             if pool and not pool._closed:
+   208 |                 await pool.close()
+   209 |                 logger.info(f"Closed connection pool for {connection_id}")
+   210 | 
+   211 |     async def close_all_pools(self) -> None:
+   212 |         """
+   213 |         Close all active customer connection pools (called during application shutdown).
+   214 |         """
+   215 |         async with self._lock:
+   216 |             for conn_id, pool in list(self._pools.items()):
+   217 |                 if not pool._closed:
+   218 |                     try:
+   219 |                         await pool.close()
+   220 |                     except Exception as e:
+   221 |                         logger.warning(f"Error closing customer pool {conn_id}: {e}")
+   222 |             self._pools.clear()
+   223 |             logger.info("All customer database connection pools closed successfully")
+   224 | 
+   225 | 
+   226 | # Global singleton instance
+   227 | customer_connection_manager = CustomerConnectionManager()
+   228 | 
+   229 | 
+   230 | async def get_customer_pool(connection_id: uuid.UUID, db: AsyncSession) -> asyncpg.Pool:
+   231 |     """Convenience accessor for customer connection manager pool."""
+   232 |     return await customer_connection_manager.get_customer_pool(connection_id, db=db)
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_efb0e8c9b8bd3908","file":"apps/backend/app/schemas/user.py","start_line":1,"end_line":57,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":["data_model_file"]}>>>
+     1 | """
+     2 | User and Authentication Pydantic Schemas.
+     3 | Reference: PRD.md §13, §24 & ARCHITECTURE.md §4
+     4 | """
+     5 | 
+     6 | import uuid
+     7 | from datetime import datetime
+     8 | from typing import Optional
+     9 | from pydantic import BaseModel, ConfigDict, EmailStr, Field
+    10 | 
+    11 | 
+    12 | class UserBase(BaseModel):
+    13 |     email: EmailStr = Field(..., description="User login email address")
+    14 |     full_name: Optional[str] = Field(None, description="User display name")
+    15 |     role: str = Field(default="dba", description="User role ('admin', 'dba', 'viewer')")
+    16 | 
+    17 | 
+    18 | class UserCreate(UserBase):
+    19 |     password: str = Field(..., min_length=8, description="Plaintext password for registration")
+    20 | 
+    21 | 
+    22 | class UserUpdate(BaseModel):
+    23 |     email: Optional[EmailStr] = None
+    24 |     full_name: Optional[str] = None
+    25 |     role: Optional[str] = None
+    26 |     password: Optional[str] = Field(None, min_length=8)
+    27 |     is_active: Optional[bool] = None
+    28 | 
+    29 | 
+    30 | class UserOut(UserBase):
+    31 |     model_config = ConfigDict(from_attributes=True)
+    32 | 
+    33 |     id: uuid.UUID
+    34 |     is_active: bool
+    35 |     is_superuser: bool
+    36 |     created_at: datetime
+    37 |     updated_at: datetime
+    38 | 
+    39 | 
+    40 | class UserLogin(BaseModel):
+    41 |     email: EmailStr = Field(..., description="Login email")
+    42 |     password: str = Field(..., description="Login password")
+    43 | 
+    44 | 
+    45 | class TokenResponse(BaseModel):
+    46 |     access_token: str = Field(..., description="JWT access token")
+    47 |     token_type: str = Field(default="bearer", description="Token type")
+    48 |     expires_in_minutes: int = Field(..., description="Expiration window in minutes")
+    49 |     user: UserOut = Field(..., description="Authenticated user profile")
+    50 | 
+    51 | 
+    52 | class TokenPayload(BaseModel):
+    53 |     sub: str
+    54 |     exp: datetime
+    55 |     iat: datetime
+    56 |     role: Optional[str] = None
+    57 |     email: Optional[str] = None
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_625ed08cd2f3a04e","file":"apps/backend/app/services/connection_service.py","start_line":1,"end_line":32,"language":"python","kind":"file_context","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":["service_file"]}>>>
+     1 | """
+     2 | Connection Onboarding & Permission Check Service.
+     3 | Handles database registration, extension verification (pg_stat_statements, hypopg), and telemetry summary.
+     4 | Reference: TECHSTACK.md User Connection Workflow, PRD.md §4 Core User Journey & ARCHITECTURE.md §4
+     5 | """
+     6 | 
+     7 | import hashlib
+     8 | import secrets
+     9 | import time
+    10 | import uuid
+    11 | from datetime import datetime, timedelta, timezone
+    12 | from typing import Any, Dict, List, Optional
+    13 | from urllib.parse import quote, urlsplit, urlunsplit
+    14 | import asyncpg
+    15 | from sqlalchemy import func, select
+    16 | from sqlalchemy.ext.asyncio import AsyncSession
+    17 | from app.core.logging import get_logger
+    18 | from app.core.security import decrypt_connection_string, encrypt_connection_string
+    19 | from app.db.customer_db import _prepare_asyncpg_dsn, customer_connection_manager
+    20 | from app.models.connection import DatabaseConnection
+    21 | from app.models.telemetry import QueryMetric, TableMetric
+    22 | from app.schemas.connection import ConnectionCreate, ConnectionTestResponse
+    23 | from app.schemas.telemetry import (
+    24 |     QueryMetricOut,
+    25 |     TableMetricOut,
+    26 |     TelemetrySummaryResponse,
+    27 | )
+    28 | from app.tools import pg_introspection
+    29 | 
+    30 | logger = get_logger(__name__)
+    31 | 
+    32 | 
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_12ee5b4de6e31bcb","file":"apps/backend/app/tools/hypopg_tool.py","start_line":1,"end_line":247,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """HypoPG hypothetical index evaluation tool for PostgreSQL.
+     2 | 
+     3 | Provides session-local hypothetical index creation, drops, and planner-cost
+     4 | evaluations using the PostgreSQL `hypopg` extension.
+     5 | 
+     6 | Results are explicitly labeled as PLANNER_COST_SIGNAL, per PRD.md §5 and
+     7 | TECHSTACK.md, to clearly distinguish planner estimates from verified runtime
+     8 | performance.
+     9 | """
+    10 | 
+    11 | from __future__ import annotations
+    12 | 
+    13 | import re
+    14 | from collections.abc import Mapping, Sequence
+    15 | from typing import Any
+    16 | 
+    17 | import asyncpg
+    18 | 
+    19 | from app.core.logging import get_logger
+    20 | from app.tools.pg_introspection import _validate_read_query
+    21 | 
+    22 | logger = get_logger(__name__)
+    23 | 
+    24 | _INDEX_STMT_REGEX = re.compile(
+    25 |     r"^\s*CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+NOT\s+EXISTS\s+)?"
+    26 |     r"(?:([A-Za-z_][A-Za-z0-9_$]*)\s+)?ON\s+([A-Za-z_][A-Za-z0-9_$.]*)\s*\((.+)\)\s*$",
+    27 |     re.IGNORECASE | re.DOTALL,
+    28 | )
+    29 | 
+    30 | 
+    31 | def validate_index_statement(statement: str) -> str:
+    32 |     """Validate that the candidate SQL is a valid CREATE INDEX statement."""
+    33 |     cleaned = statement.strip().rstrip(";")
+    34 |     if not _INDEX_STMT_REGEX.match(cleaned):
+    35 |         raise ValueError(f"Invalid CREATE INDEX statement: {statement!r}")
+    36 |     return cleaned
+    37 | 
+    38 | 
+    39 | async def check_hypopg_installed(connection: asyncpg.Connection) -> bool:
+    40 |     """Check if the hypopg extension is installed in the database."""
+    41 |     try:
+    42 |         row = await connection.fetchrow(
+    43 |             "SELECT 1 FROM pg_extension WHERE extname = 'hypopg'"
+    44 |         )
+    45 |         return row is not None
+    46 |     except Exception as exc:
+    47 |         logger.warning(f"Error checking hypopg extension: {exc}")
+    48 |         return False
+    49 | 
+    50 | 
+    51 | async def create_hypothetical_index(
+    52 |     connection: asyncpg.Connection,
+    53 |     index_statement: str,
+    54 | ) -> dict[str, Any]:
+    55 |     """Create a session-local hypothetical index via hypopg_create_index().
+    56 | 
+    57 |     The index exists only within the current database session and consumes
+    58 |     no storage on disk.
+    59 |     """
+    60 |     valid_stmt = validate_index_statement(index_statement)
+    61 |     try:
+    62 |         row = await connection.fetchrow("SELECT * FROM hypopg_create_index($1)", valid_stmt)
+    63 |         if not row:
+    64 |             raise RuntimeError(f"hypopg_create_index returned no rows for: {valid_stmt}")
+    65 |         indexrelid = row[0]
+    66 |         indexname = row[1] if len(row) > 1 else f"hypo_index_{indexrelid}"
+    67 |         return {
+    68 |             "indexrelid": indexrelid,
+    69 |             "indexname": indexname,
+    70 |             "statement": valid_stmt,
+    71 |             "is_hypothetical": True,
+    72 |             "status": "CREATED",
+    73 |         }
+    74 |     except Exception as exc:
+    75 |         logger.error(f"Failed to create hypothetical index: {exc}")
+    76 |         raise
+    77 | 
+    78 | 
+    79 | async def drop_hypothetical_index(
+    80 |     connection: asyncpg.Connection,
+    81 |     indexrelid: int,
+    82 | ) -> bool:
+    83 |     """Remove a specific hypothetical index by its OID."""
+    84 |     try:
+    85 |         row = await connection.fetchrow("SELECT hypopg_drop_index($1)", indexrelid)
+    86 |         return bool(row[0]) if row else False
+    87 |     except Exception as exc:
+    88 |         logger.warning(f"Failed to drop hypothetical index {indexrelid}: {exc}")
+    89 |         return False
+    90 | 
+    91 | 
+    92 | async def reset_hypothetical_indexes(connection: asyncpg.Connection) -> bool:
+    93 |     """Drop all hypothetical indexes in the current session."""
+    94 |     try:
+    95 |         await connection.execute("SELECT hypopg_reset()")
+    96 |         return True
+    97 |     except Exception as exc:
+    98 |         logger.warning(f"Failed to reset hypothetical indexes: {exc}")
+    99 |         return False
+   100 | 
+   101 | 
+   102 | async def list_hypothetical_indexes(
+   103 |     connection: asyncpg.Connection,
+   104 | ) -> list[dict[str, Any]]:
+   105 |     """List all active hypothetical indexes in the current session."""
+   106 |     try:
+   107 |         rows = await connection.fetch("SELECT * FROM hypopg_list_indexes()")
+   108 |         return [
+   109 |             {
+   110 |                 "indexrelid": row["indexrelid"],
+   111 |                 "indexname": row["indexname"],
+   112 |                 "nspname": row.get("nspname"),
+   113 |                 "relname": row.get("relname"),
+   114 |                 "amname": row.get("amname"),
+   115 |             }
+   116 |             for row in rows
+   117 |         ]
+   118 |     except Exception as exc:
+   119 |         logger.warning(f"Failed to list hypothetical indexes: {exc}")
+   120 |         return []
+   121 | 
+   122 | 
+   123 | def _extract_plan_cost_and_indexes(plan_payload: Any) -> tuple[float, list[str]]:
+   124 |     """Extract total estimated cost and index names used from EXPLAIN JSON."""
+   125 |     root = plan_payload
+   126 |     if isinstance(plan_payload, list) and plan_payload:
+   127 |         root = plan_payload[0].get("Plan", plan_payload[0]) if isinstance(plan_payload[0], dict) else plan_payload[0]
+   128 |     if isinstance(root, dict) and "Plan" in root:
+   129 |         root = root["Plan"]
+   130 |     if not isinstance(root, dict):
+   131 |         return 0.0, []
+   132 | 
+   133 |     total_cost = float(root.get("Total Cost") or root.get("total_cost") or 0.0)
+   134 |     used_indexes: list[str] = []
+   135 |     stack = [root]
+   136 |     while stack:
+   137 |         node = stack.pop()
+   138 |         index_name = node.get("Index Name") or node.get("index_name")
+   139 |         if index_name:
+   140 |             used_indexes.append(str(index_name))
+   141 |         stack.extend(node.get("Plans") or [])
+   142 |     return total_cost, used_indexes
+   143 | 
+   144 | 
+   145 | async def evaluate_hypothetical_index(
+   146 |     connection: asyncpg.Connection,
+   147 |     query: str,
+   148 |     index_statement: str,
+   149 |     *query_args: Any,
+   150 | ) -> dict[str, Any]:
+   151 |     """Compare baseline planner cost vs. cost with a hypothetical index.
+   152 | 
+   153 |     Cleans up the hypothetical index upon completion and attaches an explicit
+   154 |     disclaimer stating that planner cost is a theoretical estimate, not a
+   155 |     proven runtime latency reduction.
+   156 |     """
+   157 |     valid_query = _validate_read_query(query)
+   158 |     valid_index_stmt = validate_index_statement(index_statement)
+   159 | 
+   160 |     # 1. Baseline explain
+   161 |     baseline_records = await connection.fetch(
+   162 |         f"EXPLAIN (FORMAT JSON) {valid_query}", *query_args
+   163 |     )
+   164 |     baseline_plan = baseline_records[0][0] if baseline_records else {}
+   165 |     baseline_cost, baseline_indexes = _extract_plan_cost_and_indexes(baseline_plan)
+   166 | 
+   167 |     # 2. Create hypothetical index
+   168 |     hypo_info = await create_hypothetical_index(connection, valid_index_stmt)
+   169 |     index_relid = hypo_info["indexrelid"]
+   170 |     hypo_index_name = hypo_info["indexname"]
+   171 | 
+   172 |     try:
+   173 |         # 3. Candidate explain with hypothetical index active
+   174 |         candidate_records = await connection.fetch(
+   175 |             f"EXPLAIN (FORMAT JSON) {valid_query}", *query_args
+   176 |         )
+   177 |         candidate_plan = candidate_records[0][0] if candidate_records else {}
+   178 |         candidate_cost, candidate_indexes = _extract_plan_cost_and_indexes(candidate_plan)
+   179 |     finally:
+   180 |         # 4. Ensure cleanup
+   181 |         await drop_hypothetical_index(connection, index_relid)
+   182 | 
+   183 |     cost_delta = candidate_cost - baseline_cost
+   184 |     cost_reduction_ratio = (
+   185 |         (baseline_cost - candidate_cost) / max(baseline_cost, 1e-6)
+   186 |         if baseline_cost > 0
+   187 |         else 0.0
+   188 |     )
+   189 |     index_used = (
+   190 |         hypo_index_name in candidate_indexes
+   191 |         or any(str(index_relid) in idx for idx in candidate_indexes)
+   192 |         or (candidate_cost < baseline_cost)
+   193 |     )
+   194 | 
+   195 |     return {
+   196 |         "candidate_statement": valid_index_stmt,
+   197 |         "query": valid_query,
+   198 |         "baseline_cost": baseline_cost,
+   199 |         "candidate_cost": candidate_cost,
+   200 |         "cost_delta": cost_delta,
+   201 |         "cost_reduction_ratio": max(0.0, min(cost_reduction_ratio, 1.0)),
+   202 |         "index_used": index_used,
+   203 |         "is_improvement": bool(cost_reduction_ratio > 0 and index_used),
+   204 |         "baseline_indexes": baseline_indexes,
+   205 |         "candidate_indexes": candidate_indexes,
+   206 |         "signal_type": "PLANNER_COST_SIGNAL",
+   207 |         "is_verified_performance": False,
+   208 |         "disclaimer": (
+   209 |             "Planner cost estimates from HypoPG are theoretical signals only, "
+   210 |             "not verified runtime performance. Candidate must undergo shadow database "
+   211 |             "replay and paired statistical verification before deployment."
+   212 |         ),
+   213 |     }
+   214 | 
+   215 | 
+   216 | async def filter_candidates(
+   217 |     connection: asyncpg.Connection,
+   218 |     query: str,
+   219 |     candidate_statements: Sequence[str],
+   220 |     *,
+   221 |     top_k: int = 10,
+   222 |     min_cost_reduction: float = 0.05,
+   223 |     query_args: Sequence[Any] | None = None,
+   224 | ) -> list[dict[str, Any]]:
+   225 |     """Fast-filter multiple candidate index statements using HypoPG.
+   226 | 
+   227 |     Reduces large sets of candidate indexes down to the top K viable options
+   228 |     based on planner cost reduction.
+   229 |     """
+   230 |     args = query_args or ()
+   231 |     results: list[dict[str, Any]] = []
+   232 | 
+   233 |     for statement in candidate_statements:
+   234 |         try:
+   235 |             eval_res = await evaluate_hypothetical_index(
+   236 |                 connection, query, statement, *args
+   237 |             )
+   238 |             if eval_res["is_improvement"] and eval_res["cost_reduction_ratio"] >= min_cost_reduction:
+   239 |                 results.append(eval_res)
+   240 |         except Exception as exc:
+   241 |             logger.warning(
+   242 |                 f"Candidate evaluation failed for {statement!r}: {exc}"
+   243 |             )
+   244 | 
+   245 |     # Sort descending by cost reduction ratio
+   246 |     results.sort(key=lambda item: item["cost_reduction_ratio"], reverse=True)
+   247 |     return results[:top_k]
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_9b88da5139218846","file":"apps/backend/app/tools/pg_introspection.py","start_line":41,"end_line":56,"language":"python","kind":"function","entity":"_validate_read_query","qualified_name":"_validate_read_query","parent_entity_id":null,"role_hints":[]}>>>
+    41 | 
+    42 | 
+    43 | def _validate_read_query(query: str) -> str:
+    44 |     """Validate the only caller-supplied SQL accepted by this module.
+    45 | 
+    46 |     Introspection queries are otherwise fixed below.  EXPLAIN is executed in
+    47 |     a PostgreSQL read-only transaction as a second, database-enforced guard.
+    48 |     """
+    49 |     statement = query.strip()
+    50 |     if statement.endswith(";"):
+    51 |         statement = statement[:-1].rstrip()
+    52 |     if not statement or ";" in statement:
+    53 |         raise ValueError("Only one read-only SQL statement is allowed")
+    54 |     if not _READ_QUERY.match(statement) or _WRITE_KEYWORDS.search(statement):
+    55 |         raise ValueError("EXPLAIN is restricted to read-only SELECT/WITH queries")
+    56 |     return statement
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_997a339725294d77","file":"apps/backend/app/tools/shadow_db_tool.py","start_line":1,"end_line":44,"language":"python","kind":"file_context","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """Ephemeral Shadow Database management tool.
+     2 | 
+     3 | Clones monitored customer PostgreSQL databases into isolated ephemeral
+     4 | Docker containers using pg_dump/pg_restore or schema/data copies to enable
+     5 | safe, paired workload replay and statistical verification without risk to
+     6 | production.
+     7 | 
+     8 | Reference: ARCHITECTURE.md §4, §8 & PRD.md §5 Feature 2.
+     9 | """
+    10 | 
+    11 | from __future__ import annotations
+    12 | 
+    13 | import asyncio
+    14 | import os
+    15 | import re
+    16 | import shutil
+    17 | import subprocess
+    18 | import time
+    19 | import uuid
+    20 | from collections.abc import AsyncGenerator, Sequence
+    21 | from contextlib import asynccontextmanager
+    22 | from dataclasses import dataclass, field
+    23 | from typing import Any
+    24 | 
+    25 | import asyncpg
+    26 | 
+    27 | from app.core.config import get_settings
+    28 | from app.core.logging import get_logger
+    29 | 
+    30 | logger = get_logger(__name__)
+    31 | 
+    32 | _ALLOWED_SHADOW_SQL = (
+    33 |     re.compile(
+    34 |         r"^\s*CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?"
+    35 |         r"(?:IF\s+NOT\s+EXISTS\s+)?[A-Za-z_][A-Za-z0-9_$]*\s+ON\s+"
+    36 |         r"[A-Za-z_][A-Za-z0-9_$]*(?:\.[A-Za-z_][A-Za-z0-9_$]*)?\s*\("
+    37 |         r"[A-Za-z_][A-Za-z0-9_$]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_$]*)*\)\s*;?\s*$",
+    38 |         re.IGNORECASE,
+    39 |     ),
+    40 |     re.compile(r"^\s*ANALYZE(?:\s+[A-Za-z_][A-Za-z0-9_$]*(?:\.[A-Za-z_][A-Za-z0-9_$]*)?)?\s*;?\s*$", re.IGNORECASE),
+    41 |     re.compile(r"^\s*VACUUM\s+ANALYZE\s+[A-Za-z_][A-Za-z0-9_$]*(?:\.[A-Za-z_][A-Za-z0-9_$]*)?\s*;?\s*$", re.IGNORECASE),
+    42 | )
+    43 | 
+    44 | 
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_3683a3d4eaafbe64","file":"apps/backend/app/workers/__main__.py","start_line":1,"end_line":73,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """Unified CLI Dispatcher for Zentrix Background Workers.
+     2 | 
+     3 | Enables a single container image (worker.Dockerfile) to run any of the four
+     4 | independent worker processes via command-line argument:
+     5 | - telemetry: app.workers.telemetry_collector
+     6 | - canary: app.workers.canary_monitor
+     7 | - retrain: app.workers.retrain_worker
+     8 | - shadow: app.workers.shadow_lab_worker
+     9 | 
+    10 | Reference: ARCHITECTURE.md §4, §6 & PRD.md §13.
+    11 | """
+    12 | 
+    13 | from __future__ import annotations
+    14 | 
+    15 | import argparse
+    16 | import asyncio
+    17 | import sys
+    18 | 
+    19 | from app.core.logging import get_logger
+    20 | 
+    21 | logger = get_logger(__name__)
+    22 | 
+    23 | 
+    24 | def parse_args() -> argparse.Namespace:
+    25 |     parser = argparse.ArgumentParser(
+    26 |         description="Zentrix Background Worker Process Runner",
+    27 |         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    28 |     )
+    29 |     parser.add_argument(
+    30 |         "worker_type",
+    31 |         choices=["telemetry", "canary", "retrain", "shadow"],
+    32 |         help="Type of background worker process to run",
+    33 |     )
+    34 |     parser.add_argument(
+    35 |         "--interval",
+    36 |         type=int,
+    37 |         default=None,
+    38 |         help="Custom polling interval in seconds",
+    39 |     )
+    40 |     return parser.parse_args()
+    41 | 
+    42 | 
+    43 | async def run_selected_worker(worker_type: str, interval: int | None = None) -> None:
+    44 |     """Dispatch to selected worker main loop."""
+    45 |     logger.info(f"Launching Zentrix worker process: '{worker_type}'")
+    46 | 
+    47 |     if worker_type == "telemetry":
+    48 |         from app.workers.telemetry_collector import main as telemetry_main
+    49 |         await telemetry_main()
+    50 |     elif worker_type == "canary":
+    51 |         from app.workers.canary_monitor import main as canary_main
+    52 |         await canary_main()
+    53 |     elif worker_type == "retrain":
+    54 |         from app.workers.retrain_worker import main as retrain_main
+    55 |         await retrain_main()
+    56 |     elif worker_type == "shadow":
+    57 |         from app.workers.shadow_lab_worker import main as shadow_main
+    58 |         await shadow_main()
+    59 |     else:
+    60 |         logger.error(f"Unknown worker type: {worker_type}")
+    61 |         sys.exit(1)
+    62 | 
+    63 | 
+    64 | def main() -> None:
+    65 |     args = parse_args()
+    66 |     try:
+    67 |         asyncio.run(run_selected_worker(args.worker_type, args.interval))
+    68 |     except KeyboardInterrupt:
+    69 |         logger.info(f"Worker '{args.worker_type}' shutting down cleanly on SIGINT")
+    70 | 
+    71 | 
+    72 | if __name__ == "__main__":
+    73 |     main()
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_329fec60080e5dd2","file":"apps/backend/app/workers/shadow_lab_worker.py","start_line":1,"end_line":33,"language":"python","kind":"file_context","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """Async Shadow Laboratory worker for safe simulation experiments.
+     2 | 
+     3 | Orchestrates ephemeral shadow database provisioning, baseline workload replay,
+     4 | candidate optimization installation, candidate workload replay, and paired metric
+     5 | collection per ARCHITECTURE.md §4, §8 & PRD.md §5 Feature 2.
+     6 | """
+     7 | 
+     8 | from __future__ import annotations
+     9 | 
+    10 | import asyncio
+    11 | import time
+    12 | from collections.abc import Mapping, Sequence
+    13 | from dataclasses import dataclass
+    14 | from datetime import datetime, timezone
+    15 | from typing import Any
+    16 | 
+    17 | import asyncpg
+    18 | import numpy as np
+    19 | 
+    20 | from app.core.logging import get_logger
+    21 | from app.tools.shadow_db_tool import (
+    22 |     ShadowConfig,
+    23 |     ShadowDatabase,
+    24 |     install_candidate_optimization,
+    25 |     is_docker_available,
+    26 |     clone_customer_database,
+    27 |     provision_shadow_db,
+    28 |     teardown_shadow_db,
+    29 | )
+    30 | 
+    31 | logger = get_logger(__name__)
+    32 | 
+    33 | 
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_fc667b92d0c17775","file":"apps/backend/tests/integration/test_audit_flow.py","start_line":1,"end_line":228,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | import json
+     2 | import logging
+     3 | import uuid
+     4 | from datetime import datetime, timezone
+     5 | 
+     6 | import pytest
+     7 | import pytest_asyncio
+     8 | from httpx import ASGITransport, AsyncClient
+     9 | from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    10 | 
+    11 | from app.api import deps
+    12 | from app.core.logging import (
+    13 |     StructuredJSONFormatter,
+    14 |     clear_correlation_context,
+    15 |     get_correlation_context,
+    16 |     log_agent_execution,
+    17 |     set_correlation_context,
+    18 | )
+    19 | from app.db.base import Base
+    20 | from app.main import app
+    21 | from app.models import (
+    22 |     Approval,
+    23 |     AuditLog,
+    24 |     CanaryRun,
+    25 |     DatabaseConnection,
+    26 |     OptimizationExperiment,
+    27 |     RoiRecord,
+    28 |     User,
+    29 | )
+    30 | from app.services.audit_service import audit_service
+    31 | from app.services.roi_service import roi_service
+    32 | from app.services.simulation_service import simulation_service
+    33 | from app.workers.canary_monitor import execute_commit, execute_rollback
+    34 | 
+    35 | 
+    36 | @pytest_asyncio.fixture
+    37 | async def audit_test_db():
+    38 |     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    39 |     async with engine.begin() as connection:
+    40 |         await connection.run_sync(Base.metadata.create_all)
+    41 |     factory = async_sessionmaker(engine, expire_on_commit=False)
+    42 |     try:
+    43 |         yield factory
+    44 |     finally:
+    45 |         await engine.dispose()
+    46 | 
+    47 | 
+    48 | def test_logging_correlation_context_and_json_formatter():
+    49 |     clear_correlation_context()
+    50 |     set_correlation_context(
+    51 |         request_id="req-999",
+    52 |         agent_id="SupervisorAgent",
+    53 |         experiment_id="exp-111",
+    54 |         connection_id="conn-222",
+    55 |     )
+    56 | 
+    57 |     ctx = get_correlation_context()
+    58 |     assert ctx["request_id"] == "req-999"
+    59 |     assert ctx["agent_id"] == "SupervisorAgent"
+    60 | 
+    61 |     formatter = StructuredJSONFormatter()
+    62 |     record = logging.LogRecord(
+    63 |         name="zentrix.test",
+    64 |         level=logging.INFO,
+    65 |         pathname="test.py",
+    66 |         lineno=10,
+    67 |         msg="Test correlation logging",
+    68 |         args=(),
+    69 |         exc_info=None,
+    70 |     )
+    71 |     formatted = formatter.format(record)
+    72 |     parsed = json.loads(formatted)
+    73 | 
+    74 |     assert parsed["request_id"] == "req-999"
+    75 |     assert parsed["agent_id"] == "SupervisorAgent"
+    76 |     assert parsed["experiment_id"] == "exp-111"
+    77 |     assert parsed["connection_id"] == "conn-222"
+    78 |     assert parsed["message"] == "Test correlation logging"
+    79 | 
+    80 |     clear_correlation_context()
+    81 |     assert get_correlation_context() == {}
+    82 | 
+    83 | 
+    84 | @pytest.mark.asyncio
+    85 | async def test_full_lifecycle_audit_trail_completeness(audit_test_db):
+    86 |     user_id = uuid.uuid4()
+    87 |     conn_id = uuid.uuid4()
+    88 | 
+    89 |     async with audit_test_db() as db:
+    90 |         user = User(
+    91 |             id=user_id,
+    92 |             email="dba_audit@example.com",
+    93 |             hashed_password="pw",
+    94 |             role="dba",
+    95 |             is_active=True,
+    96 |         )
+    97 |         conn = DatabaseConnection(
+    98 |             id=conn_id,
+    99 |             user_id=user_id,
+   100 |             name="Audit Monitored DB",
+   101 |             encrypted_connection_string="enc",
+   102 |             host="localhost",
+   103 |             port=5432,
+   104 |             database_name="auditdb",
+   105 |             username="postgres",
+   106 |             is_active=True,
+   107 |         )
+   108 |         db.add_all([user, conn])
+   109 |         await db.commit()
+   110 | 
+   111 |         # 1. Step: Simulation Execution -> creates SIMULATION_EXECUTED audit
+   112 |         candidate_data = {
+   113 |             "strategy": "CREATE_INDEX",
+   114 |             "candidate_sql": "CREATE INDEX CONCURRENTLY idx_audit_test ON orders(created_at);",
+   115 |             "table_name": "orders",
+   116 |             "baseline_p95": 100.0,
+   117 |             "candidate_p95": 30.0,
+   118 |         }
+   119 |         exp = await simulation_service.run_simulation(conn_id, candidate_data, db)
+   120 |         assert exp.id is not None
+   121 | 
+   122 |         # 2. Step: Human Approval -> creates RECOMMENDATION_APPROVED audit
+   123 |         approval = await simulation_service.approve_recommendation(
+   124 |             exp.id, user, "Verified by senior DBA", db
+   125 |         )
+   126 |         assert approval.action == "APPROVE"
+   127 | 
+   128 |         # 3. Step: Canary Deployment -> creates CANARY_START audit
+   129 |         canary = await simulation_service.deploy_canary(exp.id, user.id, db)
+   130 |         assert canary.status == "RUNNING"
+   131 | 
+   132 |         # 4. Step: Canary Commit -> creates CANARY_COMMIT audit
+   133 |         await execute_commit(canary, exp, db)
+   134 | 
+   135 |         # 5. Step: ROI Calculation -> creates ROI_CALCULATED audit
+   136 |         roi_rec = await roi_service.calculate_and_save_experiment_roi(
+   137 |             exp.id, db, pricing_tier="aws_rds_standard", frequency_per_day=50_000.0
+   138 |         )
+   139 |         assert roi_rec.estimated_monthly_savings_usd > 0
+   140 | 
+   141 |         # Query full audit trail
+   142 |         logs_resp = await audit_service.list_audit_logs(db, connection_id=conn_id)
+   143 |         assert logs_resp.total >= 4
+   144 | 
+   145 |         actions = [item.action_type for item in logs_resp.items]
+   146 |         assert "SIMULATION_EXECUTED" in actions
+   147 |         assert "RECOMMENDATION_APPROVED" in actions
+   148 |         assert "CANARY_START" in actions
+   149 |         assert "CANARY_COMMIT" in actions
+   150 |         assert "ROI_CALCULATED" in actions
+   151 | 
+   152 | 
+   153 | @pytest.mark.asyncio
+   154 | async def test_audit_api_endpoints(audit_test_db):
+   155 |     user_id = uuid.uuid4()
+   156 |     conn_id = uuid.uuid4()
+   157 | 
+   158 |     async with audit_test_db() as db:
+   159 |         user = User(
+   160 |             id=user_id,
+   161 |             email="auditor@example.com",
+   162 |             hashed_password="pw",
+   163 |             role="admin",
+   164 |             is_active=True,
+   165 |         )
+   166 |         conn = DatabaseConnection(
+   167 |             id=conn_id,
+   168 |             user_id=user_id,
+   169 |             name="Audit API DB",
+   170 |             encrypted_connection_string="enc",
+   171 |             host="localhost",
+   172 |             port=5432,
+   173 |             database_name="auditapidb",
+   174 |             username="postgres",
+   175 |             is_active=True,
+   176 |         )
+   177 |         audit1 = AuditLog(
+   178 |             user_id=user_id,
+   179 |             connection_id=conn_id,
+   180 |             action_type="USER_LOGIN",
+   181 |             target_entity="user",
+   182 |             target_id=str(user_id),
+   183 |             details={"ip": "127.0.0.1"},
+   184 |             timestamp=datetime.now(timezone.utc),
+   185 |         )
+   186 |         audit2 = AuditLog(
+   187 |             user_id=user_id,
+   188 |             connection_id=conn_id,
+   189 |             action_type="CANARY_ROLLBACK",
+   190 |             target_entity="canary_run",
+   191 |             target_id="canary-1",
+   192 |             details={"reason": "p95 threshold breached"},
+   193 |             timestamp=datetime.now(timezone.utc),
+   194 |         )
+   195 |         db.add_all([user, conn, audit1, audit2])
+   196 |         await db.commit()
+   197 | 
+   198 |     async def override_db():
+   199 |         async with audit_test_db() as session:
+   200 |             yield session
+   201 | 
+   202 |     async def override_user():
+   203 |         return User(id=user_id, email="auditor@example.com", hashed_password="pw", role="admin", is_active=True)
+   204 | 
+   205 |     app.dependency_overrides[deps.get_db_session] = override_db
+   206 |     app.dependency_overrides[deps.get_current_user] = override_user
+   207 | 
+   208 |     try:
+   209 |         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+   210 |             # 1. GET /api/v1/audit/logs
+   211 |             res1 = await client.get("/api/v1/audit/logs")
+   212 |             assert res1.status_code == 200
+   213 |             data1 = res1.json()
+   214 |             assert data1["total"] >= 2
+   215 |             assert len(data1["items"]) >= 2
+   216 | 
+   217 |             # 2. GET /api/v1/connections/{id}/audit-logs
+   218 |             res2 = await client.get(f"/api/v1/connections/{conn_id}/audit-logs")
+   219 |             assert res2.status_code == 200
+   220 |             data2 = res2.json()
+   221 |             assert data2["total"] >= 2
+   222 | 
+   223 |             # 3. GET /api/v1/audit/canary-runs
+   224 |             res3 = await client.get(f"/api/v1/audit/canary-runs?connection_id={conn_id}")
+   225 |             assert res3.status_code == 200
+   226 |             assert isinstance(res3.json(), list)
+   227 |     finally:
+   228 |         app.dependency_overrides.clear()
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_ba2fa37cd344f927","file":"apps/backend/tests/unit/test_graph_diagnosis.py","start_line":1,"end_line":50,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | from app.agents.graph_diagnosis import DOMAINS, TOOL_SUBSETS, diagnosis_graph, run_diagnosis
+     2 | from app.agents.llm_client import LLMClient
+     3 | 
+     4 | 
+     5 | def _fixture():
+     6 |     return {
+     7 |         "timeline": [{"timestamp": "2026-08-21T10:00:00Z", "event": "bulk load"}],
+     8 |         "hypotheses": {
+     9 |             "PLANNER": {"cause": "STALE_STATISTICS", "confidence": 0.91, "evidence": [{"claim": "stats age 48h", "timestamp": "2026-08-21T10:01:00Z", "directness": 1.0}]},
+    10 |             "CONCURRENCY": {"cause": "LOCK_CONTENTION", "confidence": 0.42, "evidence": ["one short wait"]},
+    11 |             "VACUUM": {"cause": "VACUUM_LAG", "confidence": 0.35, "evidence": ["dead tuples rising"]},
+    12 |             "IO_BUFFER": {"cause": "BUFFER_PRESSURE", "confidence": 0.3, "evidence": ["read blocks rising"]},
+    13 |             "SCHEMA_INDEX": {"cause": "INDEX_UNUSED", "confidence": 0.2, "evidence": ["index scan ratio low"]},
+    14 |         },
+    15 |     }
+    16 | 
+    17 | 
+    18 | def test_graph_runs_all_specialists_and_scopes_tools():
+    19 |     result = diagnosis_graph.invoke({"evidence": _fixture()})
+    20 |     specialists = result["specialists"]
+    21 | 
+    22 |     assert {item["agent"] for item in specialists} == set(DOMAINS)
+    23 |     assert all(item["hypothesis"] and 0 <= item["confidence"] <= 1 for item in specialists)
+    24 |     assert {item["agent"]: tuple(item["tools"]) for item in specialists} == TOOL_SUBSETS
+    25 | 
+    26 | 
+    27 | def test_supervisor_report_has_prd_shape_and_picks_strongest_direct_evidence():
+    28 |     report = run_diagnosis(_fixture())
+    29 | 
+    30 |     assert report["primary_root_cause"] == "STALE_STATISTICS"
+    31 |     assert report["confidence"] == 0.91
+    32 |     assert report["evidence"]
+    33 |     assert report["timeline"]
+    34 |     assert report["validation_plan"]["counterfactual_required"] is True
+    35 |     assert report["hypotheses"]
+    36 |     assert report["recommended_action"]
+    37 | 
+    38 | 
+    39 | def test_unresolved_contradiction_is_unknown_and_preserves_hypotheses():
+    40 |     evidence = {"hypotheses": {domain: {"cause": cause, "confidence": 0.8, "evidence": [{"claim": cause, "directness": 0.5}]} for domain, cause in zip(DOMAINS[:2], ("PLAN_FLIP", "LOCK_CONTENTION"))}}
+    41 |     report = run_diagnosis(evidence)
+    42 | 
+    43 |     assert report["primary_root_cause"] == "UNKNOWN"
+    44 |     assert {item["cause"] for item in report["hypotheses"] if item["cause"] != "UNKNOWN"} == {"PLAN_FLIP", "LOCK_CONTENTION"}
+    45 | 
+    46 | 
+    47 | def test_llm_client_supports_injected_plain_and_structured_completion():
+    48 |     client = LLMClient(lambda prompt, **_: '{"answer": 42}')
+    49 |     assert client.complete("prompt") == '{"answer": 42}'
+    50 |     assert client.structured_complete("return JSON") == {"answer": 42}
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_ccc5d8194c907c1d","file":"apps/backend/tests/unit/test_hypopg_tool.py","start_line":1,"end_line":139,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | import pytest
+     2 | 
+     3 | from app.tools.hypopg_tool import (
+     4 |     _extract_plan_cost_and_indexes,
+     5 |     create_hypothetical_index,
+     6 |     drop_hypothetical_index,
+     7 |     evaluate_hypothetical_index,
+     8 |     filter_candidates,
+     9 |     list_hypothetical_indexes,
+    10 |     reset_hypothetical_indexes,
+    11 |     validate_index_statement,
+    12 | )
+    13 | 
+    14 | 
+    15 | class MockHypoConnection:
+    16 |     def __init__(self):
+    17 |         self.active_indexes = set()
+    18 |         self.created_indexes = []
+    19 |         self.dropped_indexes = []
+    20 |         self.executed_statements = []
+    21 |         self._next_id = 1000
+    22 | 
+    23 |     async def fetchrow(self, query, *args):
+    24 |         if "pg_extension" in query:
+    25 |             return (1,)
+    26 |         if "hypopg_create_index" in query:
+    27 |             stmt = args[0]
+    28 |             self._next_id += 1
+    29 |             idx_id = self._next_id
+    30 |             self.created_indexes.append(stmt)
+    31 |             self.active_indexes.add(idx_id)
+    32 |             return (idx_id, f"hypo_idx_{idx_id}")
+    33 |         if "hypopg_drop_index" in query:
+    34 |             idx_id = args[0]
+    35 |             self.dropped_indexes.append(idx_id)
+    36 |             self.active_indexes.discard(idx_id)
+    37 |             return (True,)
+    38 |         return None
+    39 | 
+    40 |     async def execute(self, query, *args):
+    41 |         self.executed_statements.append((query, args))
+    42 |         if "hypopg_reset" in query:
+    43 |             self.active_indexes.clear()
+    44 |         return "OK"
+    45 | 
+    46 |     async def fetch(self, query, *args):
+    47 |         if "hypopg_list_indexes" in query:
+    48 |             return [
+    49 |                 {"indexrelid": idx_id, "indexname": f"hypo_idx_{idx_id}", "nspname": "public", "relname": "orders", "amname": "btree"}
+    50 |                 for idx_id in self.active_indexes
+    51 |             ]
+    52 |         if "EXPLAIN (FORMAT JSON)" in query:
+    53 |             if self.active_indexes:
+    54 |                 # Candidate plan with active hypothetical index (lower cost)
+    55 |                 idx_id = next(iter(self.active_indexes))
+    56 |                 return [[{
+    57 |                     "Plan": {
+    58 |                         "Node Type": "Index Scan",
+    59 |                         "Index Name": f"hypo_idx_{idx_id}",
+    60 |                         "Total Cost": 15.5,
+    61 |                         "Plan Rows": 10,
+    62 |                     }
+    63 |                 }]]
+    64 |             else:
+    65 |                 # Baseline plan without index (higher cost)
+    66 |                 return [[{
+    67 |                     "Plan": {
+    68 |                         "Node Type": "Seq Scan",
+    69 |                         "Total Cost": 120.0,
+    70 |                         "Plan Rows": 1000,
+    71 |                     }
+    72 |                 }]]
+    73 |         return []
+    74 | 
+    75 | 
+    76 | 
+    77 | def test_validate_index_statement():
+    78 |     valid = validate_index_statement("CREATE INDEX idx_user ON users(email);")
+    79 |     assert valid == "CREATE INDEX idx_user ON users(email)"
+    80 | 
+    81 |     valid_concurrent = validate_index_statement("CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_users ON users(id, tenant_id)")
+    82 |     assert "UNIQUE INDEX CONCURRENTLY" in valid_concurrent
+    83 | 
+    84 |     with pytest.raises(ValueError, match="Invalid CREATE INDEX statement"):
+    85 |         validate_index_statement("SELECT * FROM users")
+    86 | 
+    87 | 
+    88 | def test_extract_plan_cost_and_indexes():
+    89 |     plan = [{
+    90 |         "Plan": {
+    91 |             "Total Cost": 45.2,
+    92 |             "Index Name": "idx_a",
+    93 |             "Plans": [{
+    94 |                 "Total Cost": 20.0,
+    95 |                 "Index Name": "idx_b",
+    96 |             }]
+    97 |         }
+    98 |     }]
+    99 |     cost, indexes = _extract_plan_cost_and_indexes(plan)
+   100 |     assert cost == 45.2
+   101 |     assert set(indexes) == {"idx_a", "idx_b"}
+   102 | 
+   103 | 
+   104 | @pytest.mark.asyncio
+   105 | async def test_hypopg_lifecycle_and_evaluation():
+   106 |     conn = MockHypoConnection()
+   107 |     res = await evaluate_hypothetical_index(
+   108 |         conn,
+   109 |         "SELECT * FROM orders WHERE user_id = 42",
+   110 |         "CREATE INDEX idx_orders_user_id ON orders(user_id)",
+   111 |     )
+   112 | 
+   113 |     assert res["signal_type"] == "PLANNER_COST_SIGNAL"
+   114 |     assert res["is_verified_performance"] is False
+   115 |     assert res["is_improvement"] is True
+   116 |     assert res["baseline_cost"] == 120.0
+   117 |     assert res["candidate_cost"] == 15.5
+   118 |     assert res["cost_delta"] == pytest.approx(-104.5)
+   119 |     assert res["cost_reduction_ratio"] > 0.85
+   120 |     assert len(conn.dropped_indexes) == 1
+   121 |     assert conn.dropped_indexes[0] == 1001
+   122 | 
+   123 | 
+   124 | @pytest.mark.asyncio
+   125 | async def test_filter_candidates_ranks_by_cost_reduction():
+   126 |     conn = MockHypoConnection()
+   127 |     candidates = [
+   128 |         "CREATE INDEX idx_1 ON orders(user_id)",
+   129 |         "CREATE INDEX idx_2 ON orders(created_at)",
+   130 |     ]
+   131 |     filtered = await filter_candidates(
+   132 |         conn,
+   133 |         "SELECT * FROM orders WHERE user_id = 42",
+   134 |         candidates,
+   135 |         top_k=5,
+   136 |     )
+   137 |     assert len(filtered) == 2
+   138 |     assert filtered[0]["is_improvement"] is True
+   139 |     assert filtered[0]["cost_reduction_ratio"] > 0
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_b4b6ef6e45feda78","file":"apps/backend/tests/unit/test_security.py","start_line":1,"end_line":101,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """
+     2 | Unit tests for security, cryptography, and authentication primitives.
+     3 | Step 8 verification: password hashing, JWT encode/decode, and Fernet encryption round-trips.
+     4 | """
+     5 | 
+     6 | import uuid
+     7 | from datetime import timedelta
+     8 | import pytest
+     9 | from app.core.security import (
+    10 |     hash_password,
+    11 |     verify_password,
+    12 |     create_access_token,
+    13 |     decode_access_token,
+    14 |     encrypt_connection_string,
+    15 |     decrypt_connection_string,
+    16 | )
+    17 | 
+    18 | 
+    19 | def test_password_hashing_and_verification_roundtrip():
+    20 |     """Verify password hashing produces valid bcrypt hash and verifies correctly."""
+    21 |     raw_password = "SuperSecretPassword123!@#"
+    22 |     hashed = hash_password(raw_password)
+    23 | 
+    24 |     assert hashed != raw_password
+    25 |     assert hashed.startswith("$2b$") or hashed.startswith("$2a$")
+    26 |     assert verify_password(raw_password, hashed) is True
+    27 |     assert verify_password("WrongPassword123", hashed) is False
+    28 | 
+    29 | 
+    30 | def test_password_salting_uniqueness():
+    31 |     """Verify separate hashes of identical passwords produce different salt/hash strings."""
+    32 |     raw_password = "ConsistentPassword123!"
+    33 |     hash1 = hash_password(raw_password)
+    34 |     hash2 = hash_password(raw_password)
+    35 | 
+    36 |     assert hash1 != hash2
+    37 |     assert verify_password(raw_password, hash1) is True
+    38 |     assert verify_password(raw_password, hash2) is True
+    39 | 
+    40 | 
+    41 | def test_jwt_create_and_decode_roundtrip():
+    42 |     """Verify JWT creation with subject and extra claims decodes cleanly."""
+    43 |     user_id = str(uuid.uuid4())
+    44 |     token = create_access_token(
+    45 |         subject=user_id,
+    46 |         extra_claims={"role": "dba", "email": "dba@zentrix.ai"},
+    47 |     )
+    48 |     assert isinstance(token, str)
+    49 | 
+    50 |     payload = decode_access_token(token)
+    51 |     assert payload["sub"] == user_id
+    52 |     assert payload["role"] == "dba"
+    53 |     assert payload["email"] == "dba@zentrix.ai"
+    54 |     assert "exp" in payload
+    55 |     assert "iat" in payload
+    56 | 
+    57 | 
+    58 | def test_jwt_expired_token_raises_error():
+    59 |     """Verify expired JWT tokens raise ValueError."""
+    60 |     user_id = "test-user-id"
+    61 |     # Token expired 10 minutes ago
+    62 |     expired_token = create_access_token(
+    63 |         subject=user_id,
+    64 |         expires_delta=timedelta(minutes=-10),
+    65 |     )
+    66 | 
+    67 |     with pytest.raises(ValueError, match="expired"):
+    68 |         decode_access_token(expired_token)
+    69 | 
+    70 | 
+    71 | def test_jwt_tampered_token_raises_error():
+    72 |     """Verify tampered JWT tokens raise ValueError."""
+    73 |     token = create_access_token(subject="valid-user")
+    74 |     tampered = token[:-5] + "XXXXX"
+    75 | 
+    76 |     with pytest.raises(ValueError, match="Invalid authentication token"):
+    77 |         decode_access_token(tampered)
+    78 | 
+    79 | 
+    80 | def test_fernet_connection_string_encryption_roundtrip():
+    81 |     """Verify customer connection string encryption and decryption."""
+    82 |     raw_connection_url = (
+    83 |         "postgresql://customer_admin:SuperSecretPass@db.us-east-2.rds.amazonaws.com:5432/prod_db?sslmode=require"
+    84 |     )
+    85 |     encrypted = encrypt_connection_string(raw_connection_url)
+    86 | 
+    87 |     assert encrypted != raw_connection_url
+    88 |     assert isinstance(encrypted, str)
+    89 | 
+    90 |     decrypted = decrypt_connection_string(encrypted)
+    91 |     assert decrypted == raw_connection_url
+    92 | 
+    93 | 
+    94 | def test_fernet_tampered_encrypted_data_raises_error():
+    95 |     """Verify corrupted encrypted connection strings fail decryption gracefully."""
+    96 |     raw_conn = "postgresql://user:pass@localhost:5432/test"
+    97 |     encrypted = encrypt_connection_string(raw_conn)
+    98 |     tampered = encrypted[:10] + "corrupted_payload" + encrypted[30:]
+    99 | 
+   100 |     with pytest.raises(ValueError, match="Failed to decrypt database connection string"):
+   101 |         decrypt_connection_string(tampered)
+<<<END_CHUNK>>>
+
+<<<CHUNK {"chunk_id":"chunk_c94e4f9d9d0cebdb","file":"apps/backend/tests/unit/test_security_hardening.py","start_line":1,"end_line":168,"language":"python","kind":"whole_file","entity":null,"qualified_name":null,"parent_entity_id":null,"role_hints":[]}>>>
+     1 | """
+     2 | Step 35: Security Review & Hardening Verification Suite.
+     3 | Reference: ARCHITECTURE.md §14 & PRD.md §14, §24
+     4 | """
+     5 | 
+     6 | import json
+     7 | import logging
+     8 | import uuid
+     9 | import pytest
+    10 | from app.core.logging import DevelopmentFormatter, StructuredJSONFormatter, mask_sensitive_data
+    11 | from app.core.security import decrypt_connection_string, encrypt_connection_string
+    12 | from app.models.connection import DatabaseConnection
+    13 | from app.models.user import User
+    14 | from app.tools.pg_introspection import _validate_read_query
+    15 | from app.tools.hypopg_tool import validate_index_statement
+    16 | 
+    17 | 
+    18 | def test_connection_strings_encrypted_at_rest():
+    19 |     """
+    20 |     Verify connection strings are encrypted using Fernet (AES-128 in CBC + HMAC)
+    21 |     and stored as ciphertext, never as plaintext in the database model.
+    22 |     """
+    23 |     raw_dsn = "postgresql://dbuser:SuperSecretPassword123!@db.neon.tech:5432/production_db?sslmode=require"
+    24 |     encrypted_cipher = encrypt_connection_string(raw_dsn)
+    25 | 
+    26 |     # 1. Verify ciphertext properties
+    27 |     assert encrypted_cipher != raw_dsn
+    28 |     assert "SuperSecretPassword123!" not in encrypted_cipher
+    29 |     assert "dbuser" not in encrypted_cipher
+    30 |     assert encrypted_cipher.startswith("gAAAAA")  # Fernet signature header
+    31 | 
+    32 |     # 2. Verify model storage is strictly ciphertext
+    33 |     conn = DatabaseConnection(
+    34 |         id=uuid.uuid4(),
+    35 |         user_id=uuid.uuid4(),
+    36 |         name="Encrypted DB Test",
+    37 |         encrypted_connection_string=encrypted_cipher,
+    38 |         host="db.neon.tech",
+    39 |         port=5432,
+    40 |         database_name="production_db",
+    41 |         username="dbuser",
+    42 |     )
+    43 |     assert conn.encrypted_connection_string == encrypted_cipher
+    44 |     assert "SuperSecretPassword123!" not in conn.encrypted_connection_string
+    45 | 
+    46 |     # 3. Verify just-in-time decryption roundtrip
+    47 |     decrypted = decrypt_connection_string(conn.encrypted_connection_string)
+    48 |     assert decrypted == raw_dsn
+    49 | 
+    50 | 
+    51 | def test_credentials_never_appear_in_logs():
+    52 |     """
+    53 |     Verify that log formatters automatically redact passwords, connection strings,
+    54 |     and JWT Bearer tokens from all formatted log messages.
+    55 |     """
+    56 |     raw_sensitive_message = (
+    57 |         "Connecting to target database postgresql://agent_user:P@ssw0rd999!@db.internal:5432/fin_db "
+    58 |         "with header Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0In0.sig"
+    59 |     )
+    60 | 
+    61 |     # 1. Verify helper function
+    62 |     masked = mask_sensitive_data(raw_sensitive_message)
+    63 |     assert "P@ssw0rd999!" not in masked
+    64 |     assert "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" not in masked
+    65 |     assert "postgresql://agent_user:***@db.internal:5432/fin_db" in masked
+    66 | 
+    67 |     # 2. Verify Structured JSON Formatter output
+    68 |     json_formatter = StructuredJSONFormatter()
+    69 |     record = logging.LogRecord(
+    70 |         name="zentrix.security",
+    71 |         level=logging.INFO,
+    72 |         pathname=__file__,
+    73 |         lineno=10,
+    74 |         msg=raw_sensitive_message,
+    75 |         args=(),
+    76 |         exc_info=None,
+    77 |     )
+    78 |     formatted_json = json_formatter.format(record)
+    79 |     parsed = json.loads(formatted_json)
+    80 |     assert "P@ssw0rd999!" not in parsed["message"]
+    81 |     assert "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" not in parsed["message"]
+    82 | 
+    83 |     # 3. Verify Development Formatter output
+    84 |     dev_formatter = DevelopmentFormatter()
+    85 |     formatted_dev = dev_formatter.format(record)
+    86 |     assert "P@ssw0rd999!" not in formatted_dev
+    87 |     assert "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" not in formatted_dev
+    88 | 
+    89 | 
+    90 | def test_monitored_database_read_only_least_privilege_enforcement():
+    91 |     """
+    92 |     Verify introspection and telemetry query validator strictly blocks any write, DDL,
+    93 |     or multi-statement SQL from ever reaching the customer database connection.
+    94 |     """
+    95 |     valid_queries = [
+    96 |         "SELECT * FROM users WHERE id = 1",
+    97 |         "WITH active_orders AS (SELECT id FROM orders) SELECT * FROM active_orders",
+    98 |         "SELECT count(*) FROM telemetry",
+    99 |     ]
+   100 |     for q in valid_queries:
+   101 |         assert _validate_read_query(q) == q
+   102 | 
+   103 |     forbidden_queries = [
+   104 |         "INSERT INTO users (id, name) VALUES (1, 'bad')",
+   105 |         "UPDATE users SET name = 'hacked'",
+   106 |         "DELETE FROM orders WHERE id = 5",
+   107 |         "DROP TABLE users CASCADE",
+   108 |         "CREATE TABLE backdoor (id int)",
+   109 |         "ALTER TABLE users ADD COLUMN compromised text",
+   110 |         "GRANT ALL PRIVILEGES ON DATABASE prod TO mallory",
+   111 |         "SELECT 1; DROP TABLE users;",
+   112 |         "SELECT 1; SELECT 2;",
+   113 |         "COPY users TO '/tmp/leak.csv'",
+   114 |     ]
+   115 |     for bad_q in forbidden_queries:
+   116 |         with pytest.raises(ValueError):
+   117 |             _validate_read_query(bad_q)
+   118 | 
+   119 | 
+   120 | def test_hypopg_and_candidate_sql_sanitization():
+   121 |     """
+   122 |     Verify candidate SQL statements submitted to HypoPG are validated against
+   123 |     strict index syntax rules before being passed to customer connections.
+   124 |     """
+   125 |     valid_ddl = "CREATE INDEX idx_users_email ON users(email)"
+   126 |     assert validate_index_statement(valid_ddl) == valid_ddl
+   127 | 
+   128 |     unsafe_ddl = [
+   129 |         "DROP TABLE users;",
+   130 |         "CREATE TABLE exploit (id int);",
+   131 |         "SELECT * FROM users;",
+   132 |         "CREATE INDEX idx_bad ON users(id); DELETE FROM users;",
+   133 |     ]
+   134 |     for unsafe in unsafe_ddl:
+   135 |         with pytest.raises(ValueError):
+   136 |             validate_index_statement(unsafe)
+   137 | 
+   138 | 
+   139 | def test_tenant_isolation_model_contract():
+   140 |     """
+   141 |     Verify data model row-level ownership contracts for user isolation.
+   142 |     """
+   143 |     user_a = uuid.uuid4()
+   144 |     user_b = uuid.uuid4()
+   145 | 
+   146 |     conn_a = DatabaseConnection(
+   147 |         id=uuid.uuid4(),
+   148 |         user_id=user_a,
+   149 |         name="Tenant A DB",
+   150 |         encrypted_connection_string="enc_a",
+   151 |         host="host_a",
+   152 |         port=5432,
+   153 |         database_name="tenant_a",
+   154 |         username="user_a",
+   155 |     )
+   156 |     conn_b = DatabaseConnection(
+   157 |         id=uuid.uuid4(),
+   158 |         user_id=user_b,
+   159 |         name="Tenant B DB",
+   160 |         encrypted_connection_string="enc_b",
+   161 |         host="host_b",
+   162 |         port=5432,
+   163 |         database_name="tenant_b",
+   164 |         username="user_b",
+   165 |     )
+   166 | 
+   167 |     assert conn_a.user_id != conn_b.user_id
+   168 |     assert conn_a.user_id == user_a
+<<<END_CHUNK>>>
+
+===== INTERNAL RELATIONSHIPS =====
+{"source_chunk":"chunk_12ee5b4de6e31bcb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_12ee5b4de6e31bcb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_12ee5b4de6e31bcb","target_chunk":"chunk_9b88da5139218846","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"_validate_read_query","uncertain":false}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_997a339725294d77","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_3683a3d4eaafbe64","target_chunk":"chunk_329fec60080e5dd2","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_3683a3d4eaafbe64","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_3683a3d4eaafbe64","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_625ed08cd2f3a04e","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"decrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"encrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_f0510fd48336ff75","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_48c497147bf0d3ff","target_chunk":"chunk_5662244b2b8edc0e","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"LLMClient","uncertain":false}
+{"source_chunk":"chunk_48c497147bf0d3ff","target_chunk":"chunk_5662244b2b8edc0e","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_llm_client","uncertain":false}
+{"source_chunk":"chunk_48c497147bf0d3ff","target_chunk":"chunk_5662244b2b8edc0e","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_3dc55a70bad98636","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"_prepare_asyncpg_dsn","uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_3dc55a70bad98636","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"decrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"encrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_f0510fd48336ff75","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_997a339725294d77","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_997a339725294d77","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"hash_password","uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"verify_password","uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"create_access_token","uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"decode_access_token","uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"encrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"decrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_b4b6ef6e45feda78","target_chunk":"chunk_f0510fd48336ff75","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_ba2fa37cd344f927","target_chunk":"chunk_48c497147bf0d3ff","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"DOMAINS","uncertain":false}
+{"source_chunk":"chunk_ba2fa37cd344f927","target_chunk":"chunk_48c497147bf0d3ff","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"TOOL_SUBSETS","uncertain":false}
+{"source_chunk":"chunk_ba2fa37cd344f927","target_chunk":"chunk_48c497147bf0d3ff","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_ba2fa37cd344f927","target_chunk":"chunk_5662244b2b8edc0e","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"LLMClient","uncertain":false}
+{"source_chunk":"chunk_ba2fa37cd344f927","target_chunk":"chunk_5662244b2b8edc0e","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_efb0e8c9b8bd3908","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"TokenResponse","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_efb0e8c9b8bd3908","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"UserCreate","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_efb0e8c9b8bd3908","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"UserLogin","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_efb0e8c9b8bd3908","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"UserOut","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"create_access_token","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"hash_password","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"verify_password","uncertain":false}
+{"source_chunk":"chunk_c2cfb96c2f264dba","target_chunk":"chunk_f0510fd48336ff75","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"validate_index_statement","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_module","weight":5.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"DevelopmentFormatter","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"StructuredJSONFormatter","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"mask_sensitive_data","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_9b88da5139218846","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"_validate_read_query","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"decrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"encrypt_connection_string","uncertain":false}
+{"source_chunk":"chunk_c94e4f9d9d0cebdb","target_chunk":"chunk_f0510fd48336ff75","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"_extract_plan_cost_and_indexes","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"create_hypothetical_index","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"drop_hypothetical_index","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"evaluate_hypothetical_index","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"filter_candidates","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"list_hypothetical_indexes","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"reset_hypothetical_indexes","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"validate_index_statement","uncertain":false}
+{"source_chunk":"chunk_ccc5d8194c907c1d","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"evaluate_hypothetical_index","uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"filter_candidates","uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_12ee5b4de6e31bcb","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_329fec60080e5dd2","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_5662244b2b8edc0e","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"LLMClient","uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_5662244b2b8edc0e","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_llm_client","uncertain":false}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_5662244b2b8edc0e","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_module","weight":5.0,"confidence":"medium","symbol":null,"uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"StructuredJSONFormatter","uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"clear_correlation_context","uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_correlation_context","uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"log_agent_execution","uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"set_correlation_context","uncertain":false}
+{"source_chunk":"chunk_fc667b92d0c17775","target_chunk":"chunk_4bbc8dac500a0afd","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false}
+
+===== RELATED PART RELATIONSHIPS =====
+{"source_chunk":"chunk_0c6f0535bb4dc24a","target_chunk":"chunk_3dc55a70bad98636","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"_prepare_asyncpg_dsn","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_0c6f0535bb4dc24a","target_chunk":"chunk_3dc55a70bad98636","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_1a3662fd9fd4cb56","target_chunk":"chunk_625ed08cd2f3a04e","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_1a3662fd9fd4cb56","target_chunk":"chunk_f0510fd48336ff75","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"create_access_token","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_1a3662fd9fd4cb56","target_chunk":"chunk_f0510fd48336ff75","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_2dbd587538333941","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"ShadowConfig","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_74e73d66dd57486c","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"teardown_shadow_db","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_9d15013630a9c422","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"ShadowDatabase","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_a1300f9b430ad24d","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"provision_shadow_db","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_a2f12d0732efaf74","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"is_docker_available","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_aa5deda1af2de725","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"install_candidate_optimization","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_329fec60080e5dd2","target_chunk":"chunk_aeb377aa7cc1714e","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"clone_customer_database","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_3683a3d4eaafbe64","target_chunk":"chunk_a691825be2b73498","relationship":"imports_symbol","weight":0.5,"confidence":"medium","symbol":"main","uncertain":true,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_3dc55a70bad98636","target_chunk":"chunk_00dcddfd4e515213","relationship":"imports_symbol","weight":0.5,"confidence":"medium","symbol":"_provision_monitoring_dsn","uncertain":true,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_625ed08cd2f3a04e","target_chunk":"chunk_7a7444d0fb11214e","relationship":"same_file","weight":3.0,"confidence":"high","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_649ebb3bb35721f1","target_chunk":"chunk_329fec60080e5dd2","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_649ebb3bb35721f1","target_chunk":"chunk_997a339725294d77","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_997a339725294d77","target_chunk":"chunk_19721f03e4eb9950","relationship":"same_file","weight":3.0,"confidence":"high","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_adce867ae5861d84","target_chunk":"chunk_329fec60080e5dd2","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_adce867ae5861d84","target_chunk":"chunk_3683a3d4eaafbe64","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"parse_args","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_adce867ae5861d84","target_chunk":"chunk_3683a3d4eaafbe64","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"run_selected_worker","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_adce867ae5861d84","target_chunk":"chunk_3683a3d4eaafbe64","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_d49ca8e6b7436775","target_chunk":"chunk_3dc55a70bad98636","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_01ae81e3bc5ec787","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"evaluate","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_01ae81e3bc5ec787","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_9c81a3c0df1c206f","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"ShadowLabWorker","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_f20b5c23667da0c3","target_chunk":"chunk_cb2761d96de1059f","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"replay_workload","uncertain":false,"related_part_sequence":2,"direction_from_this_part":"outgoing"}
+{"source_chunk":"chunk_fd2c66977af80041","target_chunk":"chunk_625ed08cd2f3a04e","relationship":"file_import","weight":2.0,"confidence":"medium","symbol":null,"uncertain":false,"related_part_sequence":2,"direction_from_this_part":"incoming"}
+
+===== CROSS-PACK BRIDGE CONTEXT =====
+{"related_semantic_pack_id":"semantic_pack_001","related_source_batch_id":"batch_008","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false,"local_chunk":"chunk_4bbc8dac500a0afd","external_chunk":"chunk_0db1cd0417e53d39","external_file":"apps/backend/app/main.py","external_line_range":{"start_line":1,"end_line":232},"external_excerpt":"     1 | \"\"\"Main FastAPI Application Entry Point for Zentrix.ai.\n     2 | \n     3 | Reference: ARCHITECTURE.md §4 (app/main.py), §10 & PRD.md §12\n     4 | \"\"\"\n     5 | \n     6 | import site\n     7 | import sys\n     8 | from pathlib import Path\n     9 | \n    10 | # ── Bootstrap Paths & Site Packages for Subprocesses / Windows Reloader ──────\n    11 | _backend_root = Path(__file__).resolve().parent.parent\n    12 | if str(_backend_root) not in sys.path:\n    13 |     sys.path.insert(0, str(_backend_root))\n    14 | \n    15 | _venv_site = _backend_root / \".venv\" / \"Lib\" / \"site-packages\"\n    16 | if _venv","estimated_tokens":200}
+{"related_semantic_pack_id":"semantic_pack_003","related_source_batch_id":"batch_050","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false,"local_chunk":"chunk_4bbc8dac500a0afd","external_chunk":"chunk_15a00f338ba6e732","external_file":"apps/backend/app/ml/forecasting/predict.py","external_line_range":{"start_line":1,"end_line":135},"external_excerpt":"     1 | \"\"\"Feature 3 L1 Workload Degradation Forecasting Inference.\n     2 | \n     3 | Generates multi-step degradation probability curves (degradation_probability(t))\n     4 | and conformal confidence intervals from input telemetry history.\n     5 | \n     6 | Reference: ARCHITECTURE.md §4, §8 & PRD.md §5 Feature 3 L1.\n     7 | \"\"\"\n     8 | \n     9 | from __future__ import annotations\n    10 | \n    11 | import os\n    12 | from collections.abc import Mapping, Sequence\n    13 | from datetime import datetime, timedelta, timezone\n    14 | from pathlib import Path\n    15 | from typing import Any\n    16 | \n    17 | import joblib\n    18 | import numpy as np\n    19 | \n    20 | from app.core.logging","estimated_tokens":200}
+{"related_semantic_pack_id":"semantic_pack_005","related_source_batch_id":"batch_016","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"get_logger","uncertain":false,"local_chunk":"chunk_4bbc8dac500a0afd","external_chunk":"chunk_24f6caa9224e4c4a","external_file":"apps/backend/app/services/audit_service.py","external_line_range":{"start_line":1,"end_line":120},"external_excerpt":"     1 | \"\"\"Audit Logging & Observability Service.\n     2 | \n     3 | Provides centralized helpers for recording immutable audit trail logs and\n     4 | querying system audit records per PRD.md §14, §15, §22.\n     5 | \"\"\"\n     6 | \n     7 | from __future__ import annotations\n     8 | \n     9 | import uuid\n    10 | from datetime import datetime, timezone\n    11 | from typing import Any, Dict, List, Optional\n    12 | from sqlalchemy import select, func\n    13 | from sqlalchemy.ext.asyncio import AsyncSession\n    14 | \n    15 | from app.core.logging import get_logger\n    16 | from app.models.audit import AuditLog, CanaryRun\n    17 | from app.schemas.audit import AuditLogListResponse, AuditLogOut\n    18 | \n    19 | logger =","estimated_tokens":200}
+{"related_semantic_pack_id":"semantic_pack_001","related_source_batch_id":"batch_005","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"UserBase","uncertain":false,"local_chunk":"chunk_efb0e8c9b8bd3908","external_chunk":"chunk_2b6f45e20c96d178","external_file":"apps/backend/app/schemas/__init__.py","external_line_range":{"start_line":1,"end_line":166},"external_excerpt":"     1 | \"\"\"\n     2 | Pydantic schemas module re-exporting all request and response schemas.\n     3 | Reference: PRD.md §13 & ARCHITECTURE.md §4\n     4 | \"\"\"\n     5 | \n     6 | from app.schemas.user import (\n     7 |     UserBase,\n     8 |     UserCreate,\n     9 |     UserUpdate,\n    10 |     UserOut,\n    11 |     UserLogin,\n    12 |     TokenResponse,\n    13 |     TokenPayload,\n    14 | )\n    15 | from app.schemas.connection import (\n    16 |     ConnectionBase,\n    17 |     ConnectionCreate,\n    18 |     ConnectionUpdate,\n    19 |     ConnectionOut,\n    20 |     ConnectionTestResponse,\n    21 | )\n    22 | from app.schemas.telemetry import (\n    23 |     Query","estimated_tokens":200}
+{"related_semantic_pack_id":"semantic_pack_001","related_source_batch_id":"batch_005","relationship":"imports_symbol","weight":5.0,"confidence":"high","symbol":"UserCreate","uncertain":false,"local_chunk":"chunk_efb0e8c9b8bd3908","external_chunk":"chunk_2b6f45e20c96d178","external_file":"apps/backend/app/schemas/__init__.py","external_line_range":{"start_line":1,"end_line":166},"external_excerpt":"     1 | \"\"\"\n     2 | Pydantic schemas module re-exporting all request and response schemas.\n     3 | Reference: PRD.md §13 & ARCHITECTURE.md §4\n     4 | \"\"\"\n     5 | \n     6 | from app.schemas.user import (\n     7 |     UserBase,\n     8 |     UserCreate,\n     9 |     UserUpdate,\n    10 |     UserOut,\n    11 |","estimated_tokens":100}

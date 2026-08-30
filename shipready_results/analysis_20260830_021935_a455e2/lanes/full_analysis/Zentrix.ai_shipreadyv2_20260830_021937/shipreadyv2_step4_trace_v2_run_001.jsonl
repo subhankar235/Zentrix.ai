@@ -1,0 +1,2 @@
+{"timestamp":"2026-08-29T20:54:23.020687+00:00","event":"decision_start","attempt":1,"input_tokens":62841,"model":"gpt-5.4"}
+{"timestamp":"2026-08-29T20:54:37.275692+00:00","event":"decision_complete","attempt":1,"published_flaws":0,"repair_count":0,"usage":{"input_tokens":64888,"input_tokens_details":{"cache_write_tokens":0,"cached_tokens":0},"output_tokens":1420,"output_tokens_details":{"reasoning_tokens":946},"total_tokens":66308}}

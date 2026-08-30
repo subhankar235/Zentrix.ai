@@ -1,0 +1,51 @@
+{
+  "run_id": "full_20260830_022000",
+  "completed_at": "2026-08-29T20:54:17.886143+00:00",
+  "completion_status": "PARTIAL",
+  "all_requests_terminal": true,
+  "partial_results_accepted": true,
+  "max_concurrent_requests": 2,
+  "max_attempts_per_request": 1,
+  "input_path": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_pass1_llm_inputs.jsonl",
+  "runner_version": "full-v3-parallel-partial-20260717",
+  "model": "gpt-5.4-mini",
+  "reasoning_effort": "low",
+  "total_prepared_requests": 11,
+  "reused_request_ids": [],
+  "reused_count": 0,
+  "selected_request_ids": [
+    "semantic_pack_001_part_01",
+    "semantic_pack_001_part_02",
+    "semantic_pack_002_part_01",
+    "semantic_pack_002_part_02",
+    "semantic_pack_003_part_01",
+    "semantic_pack_004_part_01",
+    "semantic_pack_005_part_01",
+    "semantic_pack_006_part_01",
+    "semantic_pack_006_part_02",
+    "semantic_pack_007_part_01",
+    "semantic_pack_007_part_02"
+  ],
+  "successful_request_ids": [
+    "semantic_pack_001_part_01",
+    "semantic_pack_001_part_02",
+    "semantic_pack_002_part_01",
+    "semantic_pack_002_part_02",
+    "semantic_pack_003_part_01",
+    "semantic_pack_004_part_01",
+    "semantic_pack_005_part_01",
+    "semantic_pack_006_part_01",
+    "semantic_pack_006_part_02",
+    "semantic_pack_007_part_01"
+  ],
+  "failed_request_ids": [
+    "semantic_pack_007_part_02"
+  ],
+  "successful_count": 10,
+  "failed_count": 1,
+  "results_path": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_pass1_full_results.jsonl",
+  "trace_path": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_pass1_full_trace.jsonl",
+  "errors_path": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_pass1_full_errors.jsonl",
+  "artifacts_directory": "C:\\Users\\subhankar nath\\Downloads\\Zentrix.ai\\shipready_results\\analysis_20260830_021935_a455e2\\lanes\\full_analysis\\Zentrix.ai_shipreadyv2_20260830_021937\\shipreadyv2_pass1_full_artifacts",
+  "risk_trigger_boundary": "No risk-trigger registry was injected and no trigger fields are permitted."
+}

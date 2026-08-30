@@ -1,0 +1,22 @@
+{
+  "status": "PASSED",
+  "warnings": [],
+  "deterministic_repair_count": 1,
+  "deterministic_repairs": [
+    {
+      "repair_type": "SEMANTIC_PART_IDENTITY",
+      "before": {
+        "sequence": 1,
+        "total": 1
+      },
+      "after": {
+        "sequence": 1,
+        "total": 2
+      }
+    }
+  ],
+  "evidence_reference_count": 66,
+  "path_count": 2,
+  "activation_fact_count": 10,
+  "risk_trigger_fields_present": false
+}
