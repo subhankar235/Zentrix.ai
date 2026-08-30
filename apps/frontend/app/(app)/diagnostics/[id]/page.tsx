@@ -147,7 +147,7 @@ export default function DiagnosisDetailPage() {
                 {d.modelResults.temporal?.status === 'unavailable'
                   ? 'No promoted real-data artifact is installed.'
                   : d.modelResults.temporal?.status === 'insufficient_history'
-                  ? `Needs ${d.modelResults.temporal.required_rows} telemetry rows.`
+                   ? `Needs ${d.modelResults.temporal.required_rows} telemetry rows; currently has ${d.modelResults.temporal.available_rows ?? 0}.`
                   : d.modelResults.temporal?.is_anomaly
                     ? 'LSTM detected temporal drift.'
                     : 'LSTM found no temporal anomaly.'}

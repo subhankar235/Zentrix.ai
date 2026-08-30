@@ -1,4 +1,5 @@
 import numpy as np
+import joblib
 
 from app.ml.anomaly.features import FEATURE_NAMES, build_feature_matrix
 from app.ml.anomaly.predict import predict as predict_anomaly
@@ -75,3 +76,18 @@ def test_rca_classifier_returns_probabilities_and_causal_ranks(tmp_path, monkeyp
     assert all(0 <= value <= 1 for value in result["probabilities"].values())
     assert result["ranked_causes"]
     assert rank_causes({"PLAN_FLIP": 0.9})[0]["rank"] == "PRIMARY"
+    assert "UNKNOWN" in result["probabilities"]
+
+
+def test_rca_training_does_not_treat_unknown_baseline_as_a_fault(tmp_path):
+    rows = [
+        {**row, "labels": ["UNKNOWN"] if index < 8 else ["PLAN_FLIP"]}
+        for index, row in enumerate(_telemetry_rows(16))
+    ]
+    artifact = tmp_path / "rca.joblib"
+
+    train_rca(rows, artifact)
+    loaded = predict_rca(rows[-1], artifact)
+
+    assert "UNKNOWN" in loaded["probabilities"]
+    assert "UNKNOWN" not in joblib.load(artifact)["causes"]

@@ -13,6 +13,10 @@ from lightgbm import LGBMClassifier
 from app.ml.rca_classifier.features import CAUSES, FEATURE_NAMES, build_feature_matrix, build_label_matrix
 
 
+# UNKNOWN is a prediction fallback, not a fault that should dominate training.
+TRAINING_CAUSES = tuple(cause for cause in CAUSES if cause != "UNKNOWN")
+
+
 class MultiLabelLightGBM:
     """One binary LightGBM model per cause, with constant-label fallbacks."""
 
@@ -58,18 +62,18 @@ def train(
     random_state: int = 42,
 ) -> dict[str, Any]:
     values = build_feature_matrix(rows)
-    labels = build_label_matrix(rows)
+    labels = build_label_matrix(rows)[:, : len(TRAINING_CAUSES)]
     if len(values) < 2:
         raise ValueError("At least two labeled telemetry rows are required")
     if not labels.any(axis=0).any():
         raise ValueError("Training rows must contain at least one recognized cause label")
     model = MultiLabelLightGBM(random_state).fit(values, labels)
-    artifact = {"model": model, "feature_names": FEATURE_NAMES, "causes": CAUSES}
+    artifact = {"model": model, "feature_names": FEATURE_NAMES, "causes": TRAINING_CAUSES}
     path = Path(artifact_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(artifact, path)
     _log_mlflow(path, len(values))
-    return {"artifact_path": str(path), "rows": len(values), "causes": list(CAUSES)}
+    return {"artifact_path": str(path), "rows": len(values), "causes": list(TRAINING_CAUSES)}
 
 
 def _log_mlflow(path: Path, row_count: int) -> None:

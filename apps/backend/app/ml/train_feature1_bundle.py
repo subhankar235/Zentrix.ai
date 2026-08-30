@@ -97,13 +97,13 @@ async def _snapshot(connection: asyncpg.Connection, table: str, query: str) -> d
     }
 
 
-async def collect_dataset(dsn: str, baseline_rows: int = 30) -> list[dict[str, Any]]:
+async def collect_dataset(dsn: str, baseline_rows: int = 60, fault_repetitions: int = 12) -> list[dict[str, Any]]:
     connection = await asyncpg.connect(dsn)
     try:
         rows: list[dict[str, Any]] = []
         await _prepare_table(connection, LAB_TABLE)
         baseline_query = f"SELECT * FROM {LAB_TABLE} WHERE customer_id = 42"
-        for _ in range(max(30, baseline_rows)):
+        for _ in range(max(60, baseline_rows)):
             rows.append({**await _snapshot(connection, LAB_TABLE, baseline_query), "labels": ["UNKNOWN"]})
 
         scenarios = [
@@ -122,7 +122,8 @@ async def collect_dataset(dsn: str, baseline_rows: int = 30) -> list[dict[str, A
             fault = scenario(fault_type.value, table=table)
             await apply_fault(connection, fault)
             query = f"SELECT * FROM {table} WHERE customer_id = 42"
-            rows.append({**await _snapshot(connection, table, query), "labels": list(fault.labels)})
+            for _ in range(max(2, fault_repetitions)):
+                rows.append({**await _snapshot(connection, table, query), "labels": list(fault.labels)})
         return rows
     finally:
         await connection.close()
@@ -140,7 +141,10 @@ def train_bundle(rows: list[dict[str, Any]], output_dir: Path) -> dict[str, Any]
     temporal_path = output_dir / "temporal_model.pt"
     train_anomaly(rows, anomaly_path, contamination=0.2)
     train_rca(rows, rca_path)
-    windows = build_windows(rows, window_size=30, stride=1)
+    # The autoencoder must learn normal temporal shape. Fault rows are kept
+    # for the classifier and point anomaly model, but not for this baseline.
+    baseline_rows = [row for row in rows if row.get("labels") == ["UNKNOWN"]]
+    windows = build_windows(baseline_rows, window_size=30, stride=1)
     train_temporal(windows, temporal_path, epochs=10)
     manifest = {
         "source": "fault_lab",
