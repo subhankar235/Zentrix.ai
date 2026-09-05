@@ -100,7 +100,11 @@ def _domain_signal(domain: str, evidence: Mapping[str, Any]) -> tuple[str, float
         value = metrics.get(key)
         if value is not None and float(value) > (0.0 if key in {"plan_flip", "missing_index"} else 0.5):
             confidence = min(0.95, 0.55 + abs(float(value)) / 10)
-            return cause, confidence, [_evidence({"metric": key, "value": value}, domain)]
+            return cause, confidence, [_evidence({
+                "metric": key,
+                "value": value,
+                "table_name": metrics.get("affected_table"),
+            }, domain)]
     return "UNKNOWN", 0.0, []
 
 

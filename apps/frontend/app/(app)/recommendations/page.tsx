@@ -141,7 +141,7 @@ export default function RecommendationsPage() {
                     <span className="text-sm font-medium">{rec.title}</span>
                   </div>
                   <p className="max-w-3xl text-sm text-muted-foreground text-pretty">{rec.rationale}</p>
-                  <p className="text-xs text-muted-foreground">
+                   <p className="text-xs text-muted-foreground">
                     Addresses{' '}
                     {rec.diagnosisId ? (
                       <Link
@@ -154,7 +154,20 @@ export default function RecommendationsPage() {
                       rec.diagnosisTitle || 'diagnosis'
                     )}{' '}
                     · predicted impact <span className="font-medium text-foreground">{rec.predictedImpact}</span>
+                   </p>
+                  {rec.evidence && rec.evidence.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Evidence: {rec.evidence.join(' ')}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Pipeline: {rec.requiresHypopg ? 'HypoPG filter → ' : ''}shadow replay → statistical verification → skeptic review → policy → approval
                   </p>
+                  {rec.candidateSql && (
+                    <pre className="overflow-x-auto rounded-md bg-muted px-3 py-2 text-xs text-foreground">
+                      {rec.candidateSql}
+                    </pre>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {rec.experimentId ? (

@@ -60,6 +60,14 @@ interface BackendRecommendation {
   risk: Recommendation['risk'];
   candidate_sql: string;
   experiment_id?: string | null;
+  rank?: number;
+  score?: number;
+  evidence?: string[];
+  prerequisites?: string[];
+  rollback_sql?: string | null;
+  execution_mode?: string;
+  requires_hypopg?: boolean;
+  ml_status?: string;
 }
 
 function text(value: unknown, fallback: string): string {
@@ -215,6 +223,14 @@ export const diagnosticsApi = {
       risk: item.risk,
       candidateSql: item.candidate_sql,
       experimentId: item.experiment_id || undefined,
+      rank: item.rank,
+      score: item.score,
+      evidence: item.evidence,
+      prerequisites: item.prerequisites,
+      rollbackSql: item.rollback_sql || undefined,
+      executionMode: item.execution_mode,
+      requiresHypopg: item.requires_hypopg,
+      mlStatus: item.ml_status,
     }));
   },
 };

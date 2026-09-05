@@ -3,7 +3,6 @@ import { CircleHelp, TrendingDown } from 'lucide-react'
 import type { RoiEntry } from '@/types/types'
 import { Card } from '@/components/ui/card'
 import { usd } from '@/lib/format'
-import { getConnectionName } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 
 export function RoiCard({
@@ -28,7 +27,7 @@ export function RoiCard({
             href={`/forecasts/${entry.connectionId}`}
             className="block w-fit text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
-            {getConnectionName(entry.connectionId)}
+            {entry.connectionId}
           </Link>
         ) : null}
 

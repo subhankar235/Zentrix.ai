@@ -74,6 +74,14 @@ export interface Recommendation {
   risk: 'Low' | 'Medium' | 'High'
   candidateSql?: string
   experimentId?: string
+  rank?: number
+  score?: number
+  evidence?: string[]
+  prerequisites?: string[]
+  rollbackSql?: string
+  executionMode?: string
+  requiresHypopg?: boolean
+  mlStatus?: string
 }
 
 export interface EvidenceNode {

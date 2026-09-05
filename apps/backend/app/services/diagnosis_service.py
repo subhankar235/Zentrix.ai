@@ -386,10 +386,25 @@ async def _load_live_evidence(
     if len(activity) > 50:
         numeric_metrics["connection_saturation"] = len(activity)
     if table_metrics:
+        table_for_analyze = max(
+            (row for row in table_metrics if row.get("analyze_age") is not None),
+            key=lambda row: float(row.get("analyze_age") or 0.0),
+            default=None,
+        )
+        table_for_vacuum = max(
+            (row for row in table_metrics if row.get("vacuum_age") is not None),
+            key=lambda row: float(row.get("vacuum_age") or 0.0),
+            default=None,
+        )
         numeric_metrics.update(
             {
                 "dead_tuple_ratio": max(float(row["dead_tuple_ratio"]) for row in table_metrics),
                 "seq_scan_ratio": max(float(row["seq_scan_ratio"]) for row in table_metrics),
+                "affected_table": (
+                    table_for_analyze.get("table_name") if table_for_analyze else
+                    table_for_vacuum.get("table_name") if table_for_vacuum else
+                    table_metrics[0].get("table_name")
+                ),
             }
         )
         analyze_ages = [row["analyze_age"] for row in table_metrics if row["analyze_age"] is not None]
