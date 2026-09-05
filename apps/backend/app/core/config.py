@@ -173,12 +173,21 @@ class Settings(BaseSettings):
         description="Observation duration for canary monitor worker (minutes)",
     )
     SHADOW_DB_IMAGE: str = Field(
-        default="postgres:16-alpine",
+        default="postgres:18-alpine",
         description="PostgreSQL image used for ephemeral customer database clones",
     )
     SHADOW_DB_HOST: str = Field(
         default="127.0.0.1",
         description="Host used by the backend to reach the Docker-published shadow port",
+    )
+    SHADOW_CLONE_MODE: str = Field(
+        default="full_clone",
+        description="Shadow clone mode: full_clone, schema_only, or sampled",
+    )
+    SHADOW_SAMPLE_LIMIT: int = Field(
+        default=10000,
+        ge=1,
+        description="Maximum rows copied per table in sampled shadow mode",
     )
 
     @property

@@ -346,6 +346,7 @@ async def recommendations_for_diagnosis(
             uncertainty_pct=uncertainty,
             risk=candidate["risk"],
             candidate_sql=candidate_sql,
+            table_name=table,
             experiment_id=experiment.id if experiment else None,
             rank=rank,
             score=candidate["score"],

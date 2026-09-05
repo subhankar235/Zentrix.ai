@@ -28,6 +28,7 @@ from app.models.experiment import ModelPrediction, OptimizationExperiment
 from app.schemas.experiment import ExperimentVerificationOut
 from app.db.customer_db import customer_connection_manager
 from app.tools.pg_introspection import get_query_metrics
+from app.tools.hypopg_tool import evaluate_hypothetical_index
 from app.workers.shadow_lab_worker import ReplayQuery, shadow_lab_worker
 
 logger = get_logger(__name__)
@@ -141,6 +142,30 @@ class SimulationService:
                 )
             candidate_data = {**candidate_data, "experiment_results": shadow_result}
 
+        # Index candidates must pass the session-local HypoPG planner gate
+        # before shadow verification can make them eligible for approval.
+        requires_hypopg = bool(candidate_data.get("requires_hypopg", strategy == "CREATE_INDEX"))
+        if requires_hypopg and candidate_data.get("hypopg_result") is None:
+            replay_workload = workload or await _load_replay_workload(connection_id, db, query_id)
+            hypopg_result: dict[str, Any]
+            try:
+                pool = await customer_connection_manager.get_customer_pool(connection_id, db)
+                async with pool.acquire() as customer:
+                    first_query = replay_workload[0].query
+                    hypopg_result = await evaluate_hypothetical_index(customer, first_query, sql)
+                candidate_data = {
+                    **candidate_data,
+                    "hypopg_result": hypopg_result,
+                    "hypopg_passed": bool(hypopg_result.get("is_improvement")),
+                }
+            except Exception as exc:
+                logger.warning("HypoPG gate unavailable for index candidate", extra={"error": str(exc)})
+                candidate_data = {
+                    **candidate_data,
+                    "hypopg_result": {"status": "UNAVAILABLE", "error": str(exc)},
+                    "hypopg_passed": False,
+                }
+
         # Invoke multi-agent simulation graph using measured shadow metrics.
         candidate_spec = {
             "name": candidate_data.get("name", f"opt_{uuid.uuid4().hex[:8]}"),
@@ -149,6 +174,7 @@ class SimulationService:
             "strategy": strategy,
             "query_id": query_id,
             "table_name": table_name,
+            "runtime_mode": "production",
             **candidate_data,
         }
 
@@ -195,6 +221,7 @@ class SimulationService:
             confidence_interval_low=float(verification.get("ci_lower", 0.0)),
             confidence_interval_high=float(verification.get("ci_upper", 0.0)),
             skeptic_findings={
+                "hypopg": candidate_data.get("hypopg_result"),
                 "skeptic_score": report.get("skeptic_risk_score", 0.0),
                 "risk_factors": report.get("risk_factors", []),
                 "passed_rules": report.get("passed_rules", []),

@@ -119,7 +119,7 @@ async def simulate_recommendation(
             recommendation.type,
             request.strategy,
         )
-        table_name = table_name or recommendation.title
+        table_name = table_name or recommendation.table_name
 
     candidate_data = {
         "candidate_sql": candidate_sql,

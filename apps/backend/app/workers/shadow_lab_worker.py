@@ -208,13 +208,20 @@ class ShadowLabWorker:
         shadow_instance: ShadowDatabase | None = None
         try:
             shadow_instance = await provision_shadow_db(config)
-            await clone_customer_database(source_dsn, shadow_instance.dsn)
+            shadow_config = config or ShadowConfig()
+            clone_result = await clone_customer_database(
+                source_dsn,
+                shadow_instance.dsn,
+                mode=shadow_config.mode,
+                sample_limit=shadow_config.sample_limit,
+            )
             conn = await shadow_instance.connect()
             try:
                 result = await self.run_simulation_experiment(
                     conn, candidate_sql, workload, iterations=iterations
                 )
                 result["container_id"] = shadow_instance.container_id
+                result["clone"] = clone_result
                 return result
             finally:
                 await conn.close()

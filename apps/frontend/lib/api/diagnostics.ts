@@ -59,6 +59,7 @@ interface BackendRecommendation {
   uncertainty_pct: number;
   risk: Recommendation['risk'];
   candidate_sql: string;
+  table_name?: string | null;
   experiment_id?: string | null;
   rank?: number;
   score?: number;
@@ -222,6 +223,7 @@ export const diagnosticsApi = {
       uncertaintyPct: item.uncertainty_pct,
       risk: item.risk,
       candidateSql: item.candidate_sql,
+      tableName: item.table_name || undefined,
       experimentId: item.experiment_id || undefined,
       rank: item.rank,
       score: item.score,

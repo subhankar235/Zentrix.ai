@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import os
+from pathlib import Path
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, TypedDict
@@ -20,11 +21,11 @@ from langgraph.graph import END, START, StateGraph
 from scipy import stats
 
 from app.agents.llm_client import LLMClient, get_llm_client
+from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.ml.delta_predictor.predict import predict as predict_delta
-from app.tools.hypopg_tool import evaluate_hypothetical_index, filter_candidates
 from app.tools.policy_engine import evaluate as evaluate_policy
-from app.workers.shadow_lab_worker import ShadowLabWorker, replay_workload
+from app.workers.shadow_lab_worker import ShadowLabWorker
 
 logger = get_logger(__name__)
 
@@ -95,7 +96,9 @@ def ml_scientist_node(state: SimulationState) -> dict[str, Any]:
     exp_res = state.get("experiment_results", {})
     feature_row = {**candidate, **exp_res}
 
-    model_path = os.getenv("DELTA_MODEL_PATH")
+    model_path = get_settings().DELTA_MODEL_PATH
+    if not os.path.isabs(model_path):
+        model_path = str(Path(__file__).resolve().parents[2] / model_path)
     prediction = None
     if model_path and os.path.exists(model_path):
         try:
@@ -103,7 +106,7 @@ def ml_scientist_node(state: SimulationState) -> dict[str, Any]:
         except Exception as exc:
             logger.warning(f"ML Delta Predictor inference failed: {exc}")
 
-    if prediction is None:
+    if prediction is None and candidate.get("runtime_mode") != "production":
         p95_imp = float(exp_res.get("p95_improvement_ratio", 0.25))
         prediction = {
             "deltas": {
@@ -117,6 +120,14 @@ def ml_scientist_node(state: SimulationState) -> dict[str, Any]:
             "outcome_label": "GOOD" if p95_imp > 0.10 else "NEUTRAL" if p95_imp >= 0 else "REGRESSION",
         }
 
+    if prediction is None:
+        prediction = {
+            "status": "unavailable",
+            "reason": "A promoted delta-predictor artifact is required for production experiments.",
+            "confidence": 0.0,
+            "outcome_label": "UNKNOWN",
+        }
+
     return {
         "ml_prediction": {
             "agent": "ML_SCIENTIST",
@@ -124,6 +135,7 @@ def ml_scientist_node(state: SimulationState) -> dict[str, Any]:
             "requires_more_samples": prediction.get("confidence", 1.0) < 0.50,
             "predicted_outcome": prediction.get("outcome_label", "GOOD"),
             "confidence": prediction.get("confidence", 0.85),
+            "available": prediction.get("status") != "unavailable",
         }
     }
 
@@ -266,6 +278,10 @@ def policy_node(state: SimulationState) -> dict[str, Any]:
         "write_latency_increase_ratio": exp_res["write_latency_increase_ratio"],
         "storage_increase_ratio": exp_res["storage_increase_ratio"],
         "skeptic_score": skeptic["skeptic_score"],
+        "requires_hypopg": bool(state.get("candidate", {}).get("requires_hypopg", False)),
+        "hypopg_passed": state.get("candidate", {}).get("hypopg_passed"),
+        "runtime_mode": state.get("candidate", {}).get("runtime_mode"),
+        "ml_prediction_available": state.get("ml_prediction", {}).get("available", False),
     }
 
     verdict = evaluate_policy(payload)

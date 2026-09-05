@@ -25,6 +25,7 @@ class PolicyConfig:
     max_storage_increase_ratio: float = 0.20  # <= 20% storage/index growth
     max_skeptic_score: float = 0.40  # Skeptic adversarial risk score < 0.40
     min_sample_size: int = 10  # Minimum paired workload observations
+    require_hypopg_for_indexes: bool = True
 
 
 def _number(mapping: Mapping[str, Any], *keys: str, default: float = 0.0) -> float:
@@ -49,6 +50,14 @@ def evaluate(
     cfg = config or PolicyConfig()
     passed_rules: list[str] = []
     violated_rules: list[str] = []
+
+    if cfg.require_hypopg_for_indexes and verification_result.get("requires_hypopg"):
+        if verification_result.get("hypopg_passed") is True:
+            passed_rules.append("hypopg_planner_filter")
+        else:
+            violated_rules.append("HypoPG planner filter did not pass for this index candidate")
+    if verification_result.get("runtime_mode") == "production" and verification_result.get("ml_prediction_available") is not True:
+        violated_rules.append("Promoted delta-predictor model is required for a production experiment")
 
     # 1. Sample Size / Statistical Power Check
     sample_size = int(_number(verification_result, "sample_size", "paired_samples", default=0))

@@ -73,6 +73,7 @@ export interface Recommendation {
   uncertaintyPct: number
   risk: 'Low' | 'Medium' | 'High'
   candidateSql?: string
+  tableName?: string
   experimentId?: string
   rank?: number
   score?: number

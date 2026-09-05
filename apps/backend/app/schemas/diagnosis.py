@@ -120,6 +120,7 @@ class RecommendationOut(BaseModel):
     uncertainty_pct: float
     risk: str
     candidate_sql: str
+    table_name: Optional[str] = None
     experiment_id: Optional[uuid.UUID] = None
     rank: int = Field(default=1, ge=1)
     score: float = Field(default=0.0, ge=0.0, le=100.0)
