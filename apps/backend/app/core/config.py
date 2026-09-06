@@ -173,7 +173,7 @@ class Settings(BaseSettings):
         description="Observation duration for canary monitor worker (minutes)",
     )
     SHADOW_DB_IMAGE: str = Field(
-        default="postgres:18-alpine",
+        default="pgvector/pgvector:pg18",
         description="PostgreSQL image used for ephemeral customer database clones",
     )
     SHADOW_DB_HOST: str = Field(

@@ -215,31 +215,52 @@ def verification_node(state: SimulationState) -> dict[str, Any]:
     exp_res = state.get("experiment_results", {})
     base_lats = exp_res.get("baseline_latencies", [])
     cand_lats = exp_res.get("candidate_latencies", [])
+    if not base_lats and isinstance(exp_res.get("baseline_metrics"), Mapping):
+        base_lats = exp_res["baseline_metrics"].get("latencies", [])
+    if not cand_lats and isinstance(exp_res.get("candidate_metrics"), Mapping):
+        cand_lats = exp_res["candidate_metrics"].get("latencies", [])
 
-    sample_size = int(exp_res.get("sample_size", len(base_lats) or 20))
+    paired: list[tuple[float, float]] = []
+    for baseline, candidate_latency in zip(base_lats, cand_lats):
+        try:
+            baseline_value = float(baseline)
+            candidate_value = float(candidate_latency)
+        except (TypeError, ValueError):
+            continue
+        if np.isfinite(baseline_value) and np.isfinite(candidate_value) and baseline_value > 0 and candidate_value > 0:
+            paired.append((baseline_value, candidate_value))
+    base_lats = [baseline for baseline, _ in paired]
+    cand_lats = [candidate_latency for _, candidate_latency in paired]
+
+    declared_sample_size = int(exp_res.get("sample_size", len(base_lats)))
+    sample_size = min(max(0, declared_sample_size), len(base_lats))
     p95_imp = float(exp_res.get("p95_improvement_ratio", 0.0))
     regr_rate = float(exp_res.get("regression_rate", 0.0))
 
-    if base_lats and cand_lats and len(base_lats) == len(cand_lats) and len(base_lats) >= 2:
+    if len(base_lats) >= 2:
         ci_lower, ci_upper = _bootstrap_confidence_interval(base_lats, cand_lats)
         try:
             _, p_value = stats.ttest_rel(cand_lats, base_lats)
             p_val = float(p_value)
         except Exception:
-            p_val = 0.01
+            p_val = 1.0
         deltas = np.array(cand_lats) - np.array(base_lats)
-        effect_size = float(np.mean(deltas) / max(np.std(deltas), 1e-6))
+        if not np.isfinite(p_val):
+            p_val = 0.0 if float(np.mean(deltas)) < 0 else 1.0
+        effect_size = float(np.mean(deltas) / max(float(np.std(deltas, ddof=1)), 1e-6))
+        ci_excludes_zero = ci_upper < 0.0
+        statistically_significant = p_val < 0.05 and ci_excludes_zero
+        verdict = "CONDITIONAL" if sample_size < 10 else (
+            "VERIFIED"
+            if statistically_significant and p95_imp >= 0.10 and regr_rate <= 0.05
+            else "REJECTED"
+        )
     else:
-        raise RuntimeError("Paired shadow replay samples are required for statistical verification")
-
-    ci_excludes_zero = ci_upper < 0.0 or bool(candidate.get("ci_excludes_zero", ci_upper < 0.0))
-    statistically_significant = p_val < 0.05 and ci_excludes_zero
-
-    if sample_size < 10:
-        verdict = "CONDITIONAL"
-    elif statistically_significant and p95_imp >= 0.10 and regr_rate <= 0.05:
-        verdict = "VERIFIED"
-    else:
+        ci_lower = ci_upper = 0.0
+        p_val = 1.0
+        effect_size = 0.0
+        ci_excludes_zero = False
+        statistically_significant = False
         verdict = "REJECTED"
 
     return {
@@ -255,6 +276,10 @@ def verification_node(state: SimulationState) -> dict[str, Any]:
             "effect_size": effect_size,
             "p95_improvement_ratio": p95_imp,
             "regression_rate": regr_rate,
+            "baseline_sample_count": len(base_lats),
+            "candidate_sample_count": len(cand_lats),
+            "insufficient_data": len(base_lats) < 2,
+            "replay_errors": exp_res.get("replay_errors", []),
         }
     }
 
@@ -268,16 +293,16 @@ def policy_node(state: SimulationState) -> dict[str, Any]:
     verif = state.get("verification_report", {})
 
     payload = {
-        "sample_size": verif["sample_size"],
-        "baseline_p95": exp_res["baseline_p95"],
-        "candidate_p95": exp_res["candidate_p95"],
+        "sample_size": verif.get("sample_size", 0),
+        "baseline_p95": exp_res.get("baseline_p95", 0.0),
+        "candidate_p95": exp_res.get("candidate_p95", 0.0),
         "p95_improvement_ratio": verif["p95_improvement_ratio"],
         "ci_excludes_zero": verif["ci_excludes_zero"],
         "ci_upper": verif["ci_upper"],
         "regression_rate": verif["regression_rate"],
-        "write_latency_increase_ratio": exp_res["write_latency_increase_ratio"],
-        "storage_increase_ratio": exp_res["storage_increase_ratio"],
-        "skeptic_score": skeptic["skeptic_score"],
+        "write_latency_increase_ratio": exp_res.get("write_latency_increase_ratio", 0.0),
+        "storage_increase_ratio": exp_res.get("storage_increase_ratio", 0.0),
+        "skeptic_score": skeptic.get("skeptic_score", 1.0),
         "requires_hypopg": bool(state.get("candidate", {}).get("requires_hypopg", False)),
         "hypopg_passed": state.get("candidate", {}).get("hypopg_passed"),
         "runtime_mode": state.get("candidate", {}).get("runtime_mode"),

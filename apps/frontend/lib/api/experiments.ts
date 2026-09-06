@@ -51,7 +51,7 @@ function toExperiment(data: BackendExperiment): Experiment {
       : data.status === 'APPROVED'
         ? 'IN_PROGRESS'
         : verdict === 'REJECTED'
-          ? 'ROLLBACK'
+          ? 'REJECTED'
           : 'AWAITING_APPROVAL';
   const currentStage = data.status === 'PENDING'
     ? 'HypoPG filter'

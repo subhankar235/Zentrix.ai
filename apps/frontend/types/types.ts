@@ -25,6 +25,7 @@ export type Verdict = 'VERIFIED' | 'CONDITIONAL' | 'REJECTED'
 export type DeploymentOutcome =
   | 'COMMIT'
   | 'ROLLBACK'
+  | 'REJECTED'
   | 'IN_PROGRESS'
   | 'AWAITING_APPROVAL'
 
@@ -270,6 +271,8 @@ export interface Forecast {
   calibration: CalibrationBucket[]
   mae: MaePoint[]
   bandit: BanditArm[]
+  confidence?: number
+  dataQuality?: string
 }
 
 export interface RoiEntry {

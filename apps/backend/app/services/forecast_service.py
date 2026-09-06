@@ -23,7 +23,7 @@ from app.core.logging import get_logger
 from app.models.connection import DatabaseConnection
 from app.models.experiment import BanditEvent
 from app.models.forecast import ForecastRecord, ModelDriftReport
-from app.models.telemetry import QueryMetric, TableMetric
+from app.models.telemetry import PlanMetric, QueryMetric, TableMetric
 from app.schemas.forecast import (
     DegradationCurvePoint,
     ForecastRecordOut,
@@ -51,34 +51,68 @@ class ForecastService:
         stmt = (
             select(QueryMetric)
             .where(QueryMetric.connection_id == connection_id)
-            .order_by(QueryMetric.timestamp.asc())
+            .order_by(QueryMetric.timestamp.desc())
             .limit(limit)
         )
         if query_id is not None:
             stmt = stmt.where(QueryMetric.queryid == query_id)
 
         res = await db.execute(stmt)
-        query_rows = list(res.scalars().all())
+        query_rows = list(reversed(res.scalars().all()))
 
-        return [
-            {
+        table_res = await db.execute(
+            select(TableMetric)
+            .where(TableMetric.connection_id == connection_id)
+            .order_by(TableMetric.timestamp.desc())
+            .limit(500)
+        )
+        table_rows = list(table_res.scalars().all())
+        latest_table = table_rows[0] if table_rows else None
+
+        plan_res = await db.execute(
+            select(PlanMetric)
+            .where(PlanMetric.connection_id == connection_id)
+            .order_by(PlanMetric.timestamp.desc())
+            .limit(500)
+        )
+        plans_by_query: dict[int, PlanMetric] = {}
+        for plan in plan_res.scalars().all():
+            if plan.query_id is not None:
+                plans_by_query.setdefault(int(plan.query_id), plan)
+
+        history: list[dict[str, Any]] = []
+        for q in query_rows:
+            table = latest_table
+            plan = plans_by_query.get(int(q.queryid)) if q.queryid is not None else None
+            estimated = float(plan.estimated_rows) if plan else 0.0
+            actual = float(plan.actual_rows) if plan else 0.0
+            history.append({
                 "timestamp": q.timestamp.isoformat(),
-                "mean_exec_time": q.mean_exec_time,
-                "max_exec_time": q.max_exec_time,
-                "p95_exec_time": q.max_exec_time * 0.9,
-                "calls": q.calls,
-                "rows": q.rows,
-                "shared_blks_read": q.shared_blks_read,
-                "shared_blks_hit": q.shared_blks_hit,
-                "temp_blks_read": q.temp_blks_read,
-                "temp_blks_written": q.temp_blks_written,
-                "cpu_seconds": q.total_exec_time / 1000.0,
-                "wal_bytes": q.wal_bytes,
-                "cardinality_error": 0.1,
-                "dead_tuple_ratio": 0.02,
-            }
-            for q in query_rows
-        ]
+                "mean_exec_time": float(q.mean_exec_time),
+                "max_exec_time": float(q.max_exec_time),
+                # QueryMetric has no native p95 column; max_exec_time is the
+                # observed upper-tail measure and is labeled as such in metadata.
+                "p95_exec_time": float(q.max_exec_time),
+                "calls": int(q.calls),
+                "rows": int(q.rows),
+                "shared_blks_read": int(q.shared_blks_read),
+                "shared_blks_hit": int(q.shared_blks_hit),
+                "temp_blks_read": int(q.temp_blks_read),
+                "temp_blks_written": int(q.temp_blks_written),
+                "cpu_seconds": float(q.total_exec_time) / 1000.0,
+                "wal_bytes": int(q.wal_bytes),
+                "cardinality_error": (actual - estimated) / max(estimated, 1.0) if plan and estimated > 0 else 0.0,
+                "dead_tuple_ratio": float(table.dead_tuple_ratio) if table else 0.0,
+                "table_size_bytes": int(table.table_size_bytes) if table else 0,
+                "index_size_bytes": int(table.index_size_bytes) if table else 0,
+                "idx_scan_ratio": (
+                    float(table.idx_scans) / max(float(table.idx_scans + table.seq_scans), 1.0)
+                    if table else 0.0
+                ),
+                "table_name": table.table_name if table else None,
+                "data_source": "persisted_live_postgresql_telemetry",
+            })
+        return history
 
     async def generate_forecast(
         self,
@@ -101,7 +135,7 @@ class ForecastService:
             connection_id=str(connection_id),
             telemetry_history=telemetry,
             query_id=query_id,
-            table_name="orders",
+            table_name=(telemetry[-1].get("table_name") if telemetry else None),
         )
 
         forecast_res = report.get("forecast_result", {})
@@ -156,6 +190,7 @@ class ForecastService:
 
         await db.commit()
         await db.refresh(forecast_rec)
+        performance = await self.get_model_performance(db)
 
         # Convert curve to Pydantic models
         curve_points: list[DegradationCurvePoint] = []
@@ -182,6 +217,18 @@ class ForecastService:
             is_flagged_for_action=is_flagged,
             curve=curve_points,
             suggested_strategies=suggested,
+            threshold_probability=float(forecast_res.get("threshold_probability", 0.40)),
+            threshold_day=forecast_res.get("threshold_day"),
+            headline=(
+                "Degradation risk threshold crossed"
+                if is_flagged else "Workload degradation risk remains below threshold"
+            ),
+            model_version=model_version,
+            data_quality=str(forecast_res.get("data_quality", "unknown")),
+            confidence=float(forecast_res.get("confidence", 0.0)),
+            calibration=performance.calibration,
+            mae=performance.mae,
+            bandit=performance.bandit,
         )
 
     async def get_model_performance(
@@ -196,24 +243,41 @@ class ForecastService:
         drift_reps = list(res.scalars().all())
 
         now = datetime.now(timezone.utc)
-        base_mae = error_summary.get("mae", 4.2)
-        base_rmse = error_summary.get("rmse", 6.1)
-        ece = error_summary.get("expected_calibration_error", 0.08)
-
+        ece = float(error_summary.get("expected_calibration_error", 0.0))
+        model_metrics = error_summary.get("models", {})
         mae_trend = [
-            {"timestamp": (now - timedelta(days=d)).isoformat(), "mae_latency_ms": max(0.5, base_mae + d * 0.2)}
-            for d in range(7, 0, -1)
+            {"version": version, "mae": float(metrics.get("mae", 0.0)), "count": int(metrics.get("count", 0))}
+            for version, metrics in model_metrics.items()
         ]
         rmse_trend = [
-            {"timestamp": (now - timedelta(days=d)).isoformat(), "rmse_latency_ms": max(1.0, base_rmse + d * 0.3)}
-            for d in range(7, 0, -1)
+            {"version": version, "rmse": float(metrics.get("rmse", 0.0)), "count": int(metrics.get("count", 0))}
+            for version, metrics in model_metrics.items()
         ]
+        calibration = [
+            {
+                "bucket": row["bucket"],
+                "predicted": float(row["predicted_confidence"]) * 100.0,
+                "actual": float(row["empirical_coverage"]) * 100.0,
+                "samples": int(row["sample_count"]),
+            }
+            for row in error_summary.get("calibration_report", [])
+        ]
+        bandit_res = await db.execute(select(BanditEvent).order_by(BanditEvent.created_at.desc()).limit(500))
+        bandit_rows = list(bandit_res.scalars().all())
+        bandit: list[dict[str, Any]] = []
+        for action in sorted({row.action for row in bandit_rows}):
+            action_rows = [row for row in bandit_rows if row.action == action]
+            rewards = [float(row.reward) for row in action_rows if row.reward is not None]
+            bandit.append({"strategy": action, "reward": sum(rewards) / len(rewards) if rewards else 0.0, "pulls": len(action_rows)})
 
         return ModelPerformanceResponse(
             mae_over_time=mae_trend,
             rmse_over_time=rmse_trend,
             calibration_score=max(0.0, min(1.0, 1.0 - ece)),
             drift_reports=[ModelDriftReportOut.model_validate(dr) for dr in drift_reps],
+            calibration=calibration,
+            mae=mae_trend,
+            bandit=bandit,
         )
 
     async def stream_forecast_execution(

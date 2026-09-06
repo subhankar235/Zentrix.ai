@@ -73,7 +73,12 @@ def strategy_selector_node(state: ForecastState) -> dict[str, Any]:
 
     telemetry = state.get("telemetry_history", [])
     latest = telemetry[-1] if telemetry else {}
-    table_name = state.get("table_name") or latest.get("table_name", "target_table")
+    table_name = state.get("table_name") or latest.get("table_name")
+    if not table_name:
+        return {
+            "strategy_decision": {"selected_action": "DO_NOTHING", "reason": "No target relation in telemetry"},
+            "candidate_spec": None,
+        }
 
     context = {
         "cardinality_error": float(latest.get("cardinality_error", 0.0)),

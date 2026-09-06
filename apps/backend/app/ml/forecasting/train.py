@@ -207,6 +207,16 @@ def train(
     logger.info(f"Built forecasting dataset with {len(X)} temporal rows and {len(feature_names)} features")
 
     model, q_conformal, metrics = walk_forward_train(X, y_reg, n_splits=4)
+    probability_model = None
+    if len(np.unique(y_prob)) >= 2:
+        probability_model = lgb.LGBMClassifier(
+            n_estimators=120,
+            learning_rate=0.05,
+            num_leaves=31,
+            random_state=42,
+            verbosity=-1,
+        )
+        probability_model.fit(X, y_prob)
 
     # Optional MLflow logging
     try:
@@ -223,6 +233,7 @@ def train(
 
     artifact = {
         "model": model,
+        "probability_model": probability_model,
         "q_conformal": q_conformal,
         "feature_names": feature_names,
         "version": version,

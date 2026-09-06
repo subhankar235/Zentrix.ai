@@ -48,7 +48,7 @@ services:
       - .env
     environment:
       SHADOW_DB_HOST: host.docker.internal
-      SHADOW_DB_IMAGE: postgres:18-alpine
+      SHADOW_DB_IMAGE: pgvector/pgvector:pg18
     depends_on:
       app-db:
         condition: service_healthy
@@ -98,7 +98,7 @@ services:
       - .env
     environment:
       SHADOW_DB_HOST: host.docker.internal
-      SHADOW_DB_IMAGE: postgres:18-alpine
+      SHADOW_DB_IMAGE: pgvector/pgvector:pg18
     depends_on:
       app-db:
         condition: service_healthy

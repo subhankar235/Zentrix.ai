@@ -103,7 +103,7 @@ def is_docker_available() -> bool:
             [docker_bin, "info"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            timeout=3.0,
+            timeout=10.0,
         )
         return res.returncode == 0
     except Exception:
@@ -232,7 +232,7 @@ async def _dump_and_restore(
     target_dsn: str,
     *,
     schema_only: bool = False,
-    image: str = "postgres:18-alpine",
+    image: str = "pgvector/pgvector:pg18",
 ) -> None:
     """Clone through a temporary custom-format archive with safe cleanup."""
     archive_path = tempfile.mktemp(prefix="zentrix-shadow-", suffix=".dump")

@@ -47,7 +47,7 @@ export default function ForecastPage() {
     );
   }
 
-  const risky = forecast.thresholdProbability >= 0.5;
+  const risky = forecast.thresholdProbability >= 0.4;
 
   return (
     <div className="space-y-6">
@@ -88,9 +88,18 @@ export default function ForecastPage() {
         {conn && <StatusBadge status={conn.health} dot />}
       </div>
 
+      {forecast.dataQuality === 'cold_start_heuristic' && (
+        <Card className="border-warning/40 bg-warning/5">
+          <CardContent className="pt-4 text-xs text-muted-foreground">
+            This forecast uses a cold-start heuristic because no promoted forecasting model is available yet.
+            Confidence is reduced; collect telemetry and complete model training before relying on automated action.
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader className="border-b [.border-b]:pb-3">
-          <CardTitle>Degradation probability over the next 14 days</CardTitle>
+            <CardTitle>Degradation probability over the next 7 days</CardTitle>
           <CardDescription>
             Shaded band shows the prediction interval. Dashed line marks the risk threshold.
           </CardDescription>

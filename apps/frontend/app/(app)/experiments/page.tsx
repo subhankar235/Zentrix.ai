@@ -18,6 +18,7 @@ const OUTCOMES: (DeploymentOutcome | 'All')[] = [
   'All',
   'COMMIT',
   'ROLLBACK',
+  'REJECTED',
   'AWAITING_APPROVAL',
   'IN_PROGRESS',
 ];
@@ -42,6 +43,7 @@ export default function ExperimentsPage() {
   const awaiting = all.filter((e) => e.outcome === 'AWAITING_APPROVAL').length;
   const committed = all.filter((e) => e.outcome === 'COMMIT').length;
   const rolledBack = all.filter((e) => e.outcome === 'ROLLBACK').length;
+  const rejected = all.filter((e) => e.outcome === 'REJECTED').length;
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -85,6 +87,7 @@ export default function ExperimentsPage() {
         <Stat label="Total experiments" value={all.length} />
         <Stat label="Awaiting approval" value={awaiting} tone="text-warning" />
         <Stat label="Committed" value={committed} tone="text-success" />
+        <Stat label="Rejected" value={rejected} tone="text-danger" />
         <Stat label="Rolled back" value={rolledBack} tone="text-danger" />
       </div>
 

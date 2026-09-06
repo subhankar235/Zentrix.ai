@@ -61,7 +61,7 @@ def evaluate(
 
     # 1. Sample Size / Statistical Power Check
     sample_size = int(_number(verification_result, "sample_size", "paired_samples", default=0))
-    is_underpowered = sample_size > 0 and sample_size < cfg.min_sample_size
+    is_underpowered = sample_size < cfg.min_sample_size
     if is_underpowered:
         violated_rules.append(
             f"Sample size ({sample_size}) is below minimum required ({cfg.min_sample_size})"

@@ -35,6 +35,7 @@ _ORDER_COLUMN = re.compile(
     r"([A-Za-z_][A-Za-z0-9_$]*)",
     re.IGNORECASE,
 )
+_UTILITY_ONLY_QUERY = re.compile(r"^\s*(?:select|with)\s+\$\d+(?:\s*;)?\s*$", re.IGNORECASE)
 
 # These are control-plane tables, not relations from a monitored customer DB.
 # They can appear in old seeded telemetry and must never become remediation
@@ -57,12 +58,33 @@ _CONTROL_PLANE_TABLES = {
 }
 _INTERNAL_QUERY_MARKERS = (
     "pg_catalog.",
+    "pg_replication_slots",
     "pg_stat_",
     "information_schema.",
     "pg_toast.",
     "pg_internal.",
+    "pg_settings",
+    "pg_database",
+    "pg_namespace",
+    "pg_class",
+    "pg_attribute",
+    "pg_roles",
+    "pg_stat_database",
+    "pg_stat_user_tables",
+    "current_setting(",
+    "version()",
+    "neon.",
     "neon_perf_counters",
+    "approximate_working_set_size_seconds",
+    "get_compute_",
 )
+
+
+def _is_internal_query(query_text: str | None) -> bool:
+    normalized = (query_text or "").lower()
+    return bool(_UTILITY_ONLY_QUERY.fullmatch(normalized)) or any(
+        marker in normalized for marker in _INTERNAL_QUERY_MARKERS
+    )
 
 
 def _quoted_identifier(value: str | None) -> str | None:
@@ -83,7 +105,7 @@ def _query_parts(query_text: str | None) -> tuple[str, list[str], list[str]] | N
         not query_text
         or "$" in query_text
         or ";" in query_text.rstrip(";")
-        or any(marker in query_text.lower() for marker in _INTERNAL_QUERY_MARKERS)
+        or _is_internal_query(query_text)
     ):
         return None
     table_match = _FROM_TABLE.search(query_text)
@@ -151,9 +173,10 @@ async def _top_query(connection_id: uuid.UUID, db: AsyncSession) -> QueryMetric 
             ],
         )
         .order_by(QueryMetric.total_exec_time.desc())
-        .limit(1)
+        .limit(100)
     )
-    return await db.scalar(statement)
+    rows = (await db.scalars(statement)).all()
+    return next((row for row in rows if not _is_internal_query(row.query_text)), None)
 
 
 async def _table_evidence(connection_id: uuid.UUID, db: AsyncSession, table: str | None) -> TableMetric | None:
@@ -165,7 +188,10 @@ async def _table_evidence(connection_id: uuid.UUID, db: AsyncSession, table: str
         .where(
             TableMetric.connection_id == connection_id,
             TableMetric.table_name == table,
-            TableMetric.capture_source == "live_postgresql",
+            or_(
+                TableMetric.capture_source == "live_postgresql",
+                TableMetric.capture_source.is_(None),
+            ),
         )
         .order_by(TableMetric.timestamp.desc())
         .limit(1)
@@ -185,7 +211,10 @@ async def _recover_affected_table(connection_id: uuid.UUID, db: AsyncSession) ->
             select(TableMetric)
             .where(
                 TableMetric.connection_id == connection_id,
-                TableMetric.capture_source == "live_postgresql",
+                or_(
+                    TableMetric.capture_source == "live_postgresql",
+                    TableMetric.capture_source.is_(None),
+                ),
             )
             .order_by(TableMetric.timestamp.desc())
             .limit(500)
@@ -256,12 +285,11 @@ async def recommendations_for_diagnosis(
             f" ({top_query.total_exec_time:.1f} ms total execution time)."
         )
     if table_row:
-        if table_row.last_analyze or table_row.last_autoanalyze:
-            evidence.append(
-                f"Live table telemetry for {table_row.table_name}: "
-                f"{table_row.live_tuples:,} live rows, {table_row.dead_tuples:,} dead rows, "
-                f"{table_row.dead_tuple_ratio:.1%} dead-tuple ratio."
-            )
+        evidence.append(
+            f"Live table telemetry for {table_row.table_name}: "
+            f"{table_row.live_tuples:,} live rows, {table_row.dead_tuples:,} dead rows, "
+            f"{table_row.dead_tuple_ratio:.1%} dead-tuple ratio."
+        )
     if not table and evidence_tables:
         table = evidence_tables[0]
     if not evidence:
@@ -323,7 +351,7 @@ async def recommendations_for_diagnosis(
         experiment = await db.scalar(
             select(OptimizationExperiment)
             .where(
-                OptimizationExperiment.diagnosis_id == diagnosis.id,
+                OptimizationExperiment.connection_id == diagnosis.connection_id,
                 OptimizationExperiment.candidate_sql == candidate_sql,
             )
             .order_by(OptimizationExperiment.created_at.desc())
@@ -381,7 +409,7 @@ async def recommendations_for_connection(
                 recommendation.connection_id,
                 recommendation.primary_root_cause,
                 recommendation.type,
-                recommendation.candidate_sql if recommendation.type == "INDEX" else recommendation.type,
+                recommendation.candidate_sql,
             )
             if key in seen_candidates:
                 continue
@@ -409,7 +437,7 @@ async def recommendations_for_user(
                 recommendation.connection_id,
                 recommendation.primary_root_cause,
                 recommendation.type,
-                recommendation.candidate_sql if recommendation.type == "INDEX" else recommendation.type,
+                recommendation.candidate_sql,
             )
             if key in seen_candidates:
                 continue

@@ -119,6 +119,23 @@ export default function ExperimentDetailPage() {
         </span>
       </div>
 
+      <Card className={exp.verdict === 'VERIFIED' ? 'border-success/40 bg-success/5' : 'border-warning/40 bg-warning/5'}>
+        <CardContent className="pt-4">
+          <p className="text-sm font-semibold">
+            {exp.verdict === 'VERIFIED' ? 'Verification passed' : exp.verdict === 'CONDITIONAL' ? 'Verification needs more evidence' : 'Verification blocked this change'}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {exp.verdict === 'VERIFIED'
+              ? 'The candidate improved the shadow workload and passed the deterministic safety checks. Production still requires explicit approval.'
+              : exp.verdict === 'CONDITIONAL'
+                ? 'The candidate may be promising, but the sample is too small for approval. Run more telemetry or replay samples.'
+                : exp.outcome === 'ROLLBACK'
+                  ? 'This change was deployed and then automatically rolled back after a canary safety threshold was breached.'
+                  : 'The candidate was not approved for production. Review the benchmark, confidence interval, regression rate, and failed policy rules below.'}
+          </p>
+        </CardContent>
+      </Card>
+
       <PipelineStepper currentStage={exp.currentStage} completed={completed} />
 
       {awaitingApproval && (

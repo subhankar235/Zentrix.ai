@@ -24,6 +24,27 @@ _WRITE_KEYWORDS = re.compile(
     r"\b(insert|update|delete|merge|alter|create|drop|truncate|grant|revoke|vacuum|analyze|refresh|call|do|copy)\b",
     re.IGNORECASE,
 )
+_UTILITY_ONLY_QUERY = re.compile(r"^\s*(?:select|with)\s+\$\d+(?:\s*;)?\s*$", re.IGNORECASE)
+_INTERNAL_QUERY_MARKERS = (
+    "pg_catalog.",
+    "pg_replication_slots",
+    "pg_stat_",
+    "information_schema.",
+    "pg_toast.",
+    "pg_internal.",
+    "pg_settings",
+    "pg_database",
+    "pg_namespace",
+    "pg_class",
+    "pg_attribute",
+    "pg_roles",
+    "current_setting(",
+    "version()",
+    "neon.",
+    "neon_perf_counters",
+    "approximate_working_set_size_seconds",
+    "get_compute_",
+)
 
 
 def _rows(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -38,6 +59,13 @@ def _identifier(value: str) -> str:
 
 def _query_hash(query: str) -> str:
     return hashlib.sha256(query.encode("utf-8")).hexdigest()[:32]
+
+
+def _is_internal_query(query: str | None) -> bool:
+    normalized = (query or "").lower()
+    return bool(_UTILITY_ONLY_QUERY.fullmatch(normalized)) or any(
+        marker in normalized for marker in _INTERNAL_QUERY_MARKERS
+    )
 
 
 def _validate_read_query(query: str) -> str:
@@ -120,7 +148,7 @@ async def get_explain_plan(connection: asyncpg.Connection, query: str, *args: An
 
 
 async def get_plan_history(connection: asyncpg.Connection, connection_id: Any, query_id: int, limit: int = 50) -> list[dict[str, Any]]:
-    return _rows(await connection.fetch("""
+    rows = _rows(await connection.fetch("""
         SELECT captured_at, query_id, plan_hash, node_types, estimated_rows,
                actual_rows, estimated_cost, actual_time, buffer_hits,
                buffer_reads, join_types, parallel_workers
@@ -128,6 +156,7 @@ async def get_plan_history(connection: asyncpg.Connection, connection_id: Any, q
         WHERE connection_id = $1 AND query_id = $2
         ORDER BY captured_at DESC LIMIT $3
     """, connection_id, query_id, limit))
+    return rows
 
 
 async def get_pg_stats(connection: asyncpg.Connection, schema: str | None = None, table: str | None = None) -> list[dict[str, Any]]:
@@ -147,7 +176,7 @@ async def get_pg_stats(connection: asyncpg.Connection, schema: str | None = None
 
 async def get_query_metrics(connection: asyncpg.Connection, limit: int = 500) -> list[dict[str, Any]]:
     """Return normalized query statistics from the current customer database."""
-    return _rows(await connection.fetch("""
+    rows = _rows(await connection.fetch("""
         SELECT d.oid AS db_id, s.userid, s.queryid, s.query,
                s.calls, s.total_exec_time, s.mean_exec_time,
                s.min_exec_time, s.max_exec_time, s.rows,
@@ -168,6 +197,7 @@ async def get_query_metrics(connection: asyncpg.Connection, limit: int = 500) ->
         ORDER BY s.total_exec_time DESC
         LIMIT $1
     """, max(1, min(limit, 5000))))
+    return [row for row in rows if not _is_internal_query(row.get("query"))]
 
 
 async def get_table_statistics(connection: asyncpg.Connection, schema: str | None = None, table: str | None = None) -> list[dict[str, Any]]:

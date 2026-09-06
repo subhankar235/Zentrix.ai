@@ -1,4 +1,37 @@
-from app.services.recommendation_service import _index_candidates, _query_parts, _quoted_identifier
+from app.services.recommendation_service import (
+    _index_candidates,
+    _is_internal_query,
+    _query_parts,
+    _quoted_identifier,
+)
+
+
+def test_internal_postgres_monitoring_queries_are_not_customer_evidence():
+    assert _query_parts(
+        "SELECT name, setting FROM pg_settings WHERE vartype = 'string'"
+    ) is None
+    assert _query_parts(
+        "SELECT pg_database.datname FROM pg_database WHERE pg_database.datallowconn = true"
+    ) is None
+    assert _query_parts(
+        "SELECT slot_name FROM pg_replication_slots WHERE slot_name LIKE 'backup%'"
+    ) is None
+
+
+def test_internal_postgres_queries_are_not_reported_as_customer_queries():
+    assert _is_internal_query(
+        "select $1 from pg_replication_slots where slot_name like $2"
+    )
+    assert _is_internal_query(
+        "select x as duration, COALESCE(neon.approximate_working_set_size_seconds(extract($1 from x::interval)::int), $2)"
+    )
+    assert _is_internal_query("SELECT $1")
+    assert _is_internal_query(
+        "SELECT bytes FROM (SELECT get_compute_primary_memory_bytes() AS bytes) t WHERE bytes IS NOT NULL"
+    )
+    assert not _is_internal_query(
+        "select id from drafts where status = 'open'"
+    )
 
 
 def test_query_parts_extracts_filter_and_order_columns_without_guessing_values():

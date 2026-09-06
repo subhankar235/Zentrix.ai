@@ -105,3 +105,25 @@ def test_simulation_graph_flags_underpowered_sample_size():
     assert report["statistical_verdict"] == "CONDITIONAL"
     assert report["policy_verdict"] == "CONDITIONAL"
     assert report["canary_eligible"] is False
+
+
+def test_simulation_graph_blocks_when_replay_has_no_successful_samples():
+    candidate = {
+        **_fixture_candidate(),
+        "experiment_results": {
+            "status": "COMPLETED",
+            "sample_size": 0,
+            "baseline_p95": 0.0,
+            "candidate_p95": 0.0,
+            "baseline_latencies": [],
+            "candidate_latencies": [],
+            "replay_errors": ["relation does not exist"],
+        },
+    }
+
+    report = run_simulation(candidate)
+
+    assert report["statistical_verdict"] == "REJECTED"
+    assert report["policy_verdict"] == "BLOCK"
+    assert report["canary_eligible"] is False
+    assert report["verification_report"]["insufficient_data"] is True

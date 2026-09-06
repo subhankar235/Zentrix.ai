@@ -82,11 +82,18 @@ def predict(
 
         # Base 24h delta prediction
         base_delta = float(model.predict(X)[0])
+        probability_model = artifact.get("probability_model")
+        base_probability = (
+            float(probability_model.predict_proba(X)[0, 1])
+            if probability_model is not None and hasattr(probability_model, "predict_proba")
+            else _sigmoid((base_delta - 0.15) * 5.0)
+        )
     else:
         # Heuristic statistical fallback for cold start before first model train
         p95_growth = float(features.get("growth_24h_p95", 0.0))
         dead_tuple_ratio = float(features.get("current_dead_tuple_ratio", 0.05))
         base_delta = p95_growth * 1.5 + dead_tuple_ratio * 0.5
+        base_probability = _sigmoid((base_delta - 0.15) * 5.0)
         q_conformal = 0.20
         version = "heuristic_v0"
 
@@ -109,6 +116,8 @@ def predict(
 
         # Map delta to probability of degradation (> 20% latency increase)
         point_prob = _sigmoid((projected_delta - 0.15) * 5.0)
+        if artifact is not None and "probability_model" in artifact and artifact.get("probability_model") is not None:
+            point_prob = float(np.clip(base_probability + (point_prob - base_probability) * (1.0 + 0.05 * time_factor), 0.0, 1.0))
         lower_prob = _sigmoid((lower_delta - 0.15) * 5.0)
         upper_prob = _sigmoid((upper_delta - 0.15) * 5.0)
 
@@ -116,6 +125,7 @@ def predict(
 
         curve.append({
             "timestamp": t_point.isoformat(),
+            "horizon_hours": h,
             "predicted_probability": float(point_prob),
             "confidence_lower": float(lower_prob),
             "confidence_upper": float(upper_prob),
@@ -123,6 +133,11 @@ def predict(
         })
 
     is_flagged = bool(max_prob >= action_threshold)
+    threshold_hour = next(
+        (point["horizon_hours"] for point in curve if point["predicted_probability"] >= action_threshold),
+        None,
+    )
+    confidence = float(max(0.0, min(1.0, 1.0 - q_conformal)))
 
     return {
         "degradation_probability": float(max_prob),
@@ -132,4 +147,8 @@ def predict(
         "probability_curve": curve,
         "model_version": version,
         "conformal_quantile": float(q_conformal),
+        "threshold_probability": float(action_threshold),
+        "threshold_day": float(threshold_hour / 24.0) if threshold_hour is not None else None,
+        "confidence": confidence,
+        "data_quality": "model" if artifact is not None else "cold_start_heuristic",
     }

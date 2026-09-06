@@ -16,6 +16,8 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.api.deps import get_current_user, get_db_session
 from app.models.user import User
+from app.models.connection import DatabaseConnection
+from sqlalchemy import select
 from app.schemas.forecast import (
     ForecastResponse,
     ModelPerformanceResponse,
@@ -26,6 +28,7 @@ router = APIRouter(tags=["Forecasting & Model Performance"])
 
 
 @router.get("/forecast/{connectionId}", response_model=ForecastResponse)
+@router.get("/forecasts/{connectionId}", response_model=ForecastResponse)
 @router.get("/connections/{connectionId}/forecasts", response_model=ForecastResponse)
 async def get_connection_forecast(
     connectionId: uuid.UUID,
@@ -35,6 +38,11 @@ async def get_connection_forecast(
 ) -> Any:
     """Get 7-day degradation risk forecast and probability curve for queries on a database connection."""
     try:
+        connection = await db.scalar(
+            select(DatabaseConnection).where(DatabaseConnection.id == connectionId)
+        )
+        if connection is None or (connection.user_id != current_user.id and not current_user.is_superuser):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Database connection not found")
         return await forecast_service.generate_forecast(
             connection_id=connectionId,
             query_id=query_id,
@@ -66,6 +74,11 @@ async def stream_forecast_progress(
 ) -> EventSourceResponse:
     """Server-Sent Events (SSE) streaming live forecast horizon computation."""
     async def sse_event_stream() -> AsyncGenerator[dict[str, Any], None]:
+        connection = await db.scalar(
+            select(DatabaseConnection).where(DatabaseConnection.id == id)
+        )
+        if connection is None or (connection.user_id != current_user.id and not current_user.is_superuser):
+            return
         async for event in forecast_service.stream_forecast_execution(connection_id=id, db=db):
             yield {
                 "event": event.get("event", "forecast_progress"),

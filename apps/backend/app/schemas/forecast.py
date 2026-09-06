@@ -47,6 +47,15 @@ class ForecastResponse(BaseModel):
     is_flagged_for_action: bool
     curve: List[DegradationCurvePoint] = Field(default_factory=list)
     suggested_strategies: List[str] = Field(default_factory=list)
+    threshold_probability: float = 0.40
+    threshold_day: float | None = None
+    headline: str = "Forecast available"
+    model_version: str = "unknown"
+    data_quality: str = "unknown"
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    calibration: List[Dict[str, Any]] = Field(default_factory=list)
+    mae: List[Dict[str, Any]] = Field(default_factory=list)
+    bandit: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class ModelDriftReportBase(BaseModel):
@@ -74,3 +83,6 @@ class ModelPerformanceResponse(BaseModel):
     rmse_over_time: List[Dict[str, Any]] = Field(default_factory=list)
     calibration_score: float = 0.0
     drift_reports: List[ModelDriftReportOut] = Field(default_factory=list)
+    calibration: List[Dict[str, Any]] = Field(default_factory=list)
+    mae: List[Dict[str, Any]] = Field(default_factory=list)
+    bandit: List[Dict[str, Any]] = Field(default_factory=list)

@@ -181,6 +181,8 @@ class ShadowLabWorker:
             "candidate_sql": candidate_sql,
             "install_duration_ms": install_res["duration_ms"],
             "sample_size": paired_count,
+            "baseline_latencies": base_lats[:paired_count],
+            "candidate_latencies": cand_lats[:paired_count],
             "baseline_p50": baseline_metrics["p50_ms"],
             "baseline_p95": base_p95,
             "baseline_p99": baseline_metrics["p99_ms"],
@@ -193,6 +195,9 @@ class ShadowLabWorker:
             "storage_increase_ratio": float(storage_increase),
             "baseline_metrics": baseline_metrics,
             "candidate_metrics": candidate_metrics,
+            "replay_errors": (
+                baseline_metrics.get("errors", []) + candidate_metrics.get("errors", [])
+            ),
         }
 
     async def run_ephemeral_experiment(

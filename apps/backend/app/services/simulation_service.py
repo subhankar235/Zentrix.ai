@@ -147,6 +147,7 @@ class SimulationService:
         requires_hypopg = bool(candidate_data.get("requires_hypopg", strategy == "CREATE_INDEX"))
         if requires_hypopg and candidate_data.get("hypopg_result") is None:
             replay_workload = workload or await _load_replay_workload(connection_id, db, query_id)
+            workload = replay_workload
             hypopg_result: dict[str, Any]
             try:
                 pool = await customer_connection_manager.get_customer_pool(connection_id, db)
