@@ -29,6 +29,12 @@ def test_internal_postgres_queries_are_not_reported_as_customer_queries():
     assert _is_internal_query(
         "SELECT bytes FROM (SELECT get_compute_primary_memory_bytes() AS bytes) t WHERE bytes IS NOT NULL"
     )
+    assert _is_internal_query(
+        "SELECT COUNT(*) FROM pg_ls_waldir() WHERE name ~ $1"
+    )
+    assert _is_internal_query(
+        "SELECT COALESCE(pg_wal_lsn_diff(pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn()), $1)"
+    )
     assert not _is_internal_query(
         "select id from drafts where status = 'open'"
     )

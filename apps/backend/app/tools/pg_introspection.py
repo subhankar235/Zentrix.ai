@@ -25,6 +25,7 @@ _WRITE_KEYWORDS = re.compile(
     re.IGNORECASE,
 )
 _UTILITY_ONLY_QUERY = re.compile(r"^\s*(?:select|with)\s+\$\d+(?:\s*;)?\s*$", re.IGNORECASE)
+_POSTGRES_INTERNAL_FUNCTION = re.compile(r"\bpg_[a-z0-9_]+\s*\(", re.IGNORECASE)
 _INTERNAL_QUERY_MARKERS = (
     "pg_catalog.",
     "pg_replication_slots",
@@ -44,6 +45,8 @@ _INTERNAL_QUERY_MARKERS = (
     "neon_perf_counters",
     "approximate_working_set_size_seconds",
     "get_compute_",
+    "pg_ls_waldir",
+    "pg_ls_dir",
 )
 
 
@@ -63,7 +66,9 @@ def _query_hash(query: str) -> str:
 
 def _is_internal_query(query: str | None) -> bool:
     normalized = (query or "").lower()
-    return bool(_UTILITY_ONLY_QUERY.fullmatch(normalized)) or any(
+    return bool(_UTILITY_ONLY_QUERY.fullmatch(normalized)) or bool(
+        _POSTGRES_INTERNAL_FUNCTION.search(normalized)
+    ) or any(
         marker in normalized for marker in _INTERNAL_QUERY_MARKERS
     )
 
