@@ -239,7 +239,24 @@ async def _dump_and_restore(
     try:
         local_clients = shutil.which("pg_dump") and shutil.which("pg_restore")
         dump_source = source_dsn if local_clients else _docker_client_dsn(source_dsn)
-        dump_args = ["pg_dump", "--format=custom", "--no-owner", "--no-acl", "--dbname", dump_source]
+        # Agent execution history is application audit data, not customer
+        # workload data, and may be protected by row-level policies. It is not
+        # required for replaying customer queries in the shadow database.
+        dump_args = [
+            "pg_dump",
+            "--format=custom",
+            "--no-owner",
+            "--no-acl",
+            # HypoPG is evaluated against the customer connection before the
+            # shadow run. The pgvector image does not necessarily ship with
+            # the extension, so do not restore its CREATE EXTENSION command.
+            "--exclude-extension=hypopg",
+            "--exclude-table-data=public.agent_logs",
+            "--exclude-table-data=public.conversation_context",
+            "--exclude-table-data=public.drafts",
+            "--dbname",
+            dump_source,
+        ]
         if schema_only:
             dump_args.insert(2, "--schema-only")
         if local_clients:

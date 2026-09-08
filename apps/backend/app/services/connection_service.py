@@ -102,9 +102,8 @@ async def _provision_monitoring_dsn(raw_conn_str: str, *, rotate_existing: bool 
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO {role_identifier}"
         )
         await owner.execute(f"REVOKE CREATE ON SCHEMA public FROM {role_identifier}")
-        # Clear setup statements while the owner/admin connection still has
-        # permission to reset the target's query-stat history.
-        await owner.fetchval("SELECT pg_stat_statements_reset()")
+        # Never reset the customer's global pg_stat_statements history during
+        # onboarding. Existing workload evidence belongs to the customer.
     finally:
         await owner.close()
 

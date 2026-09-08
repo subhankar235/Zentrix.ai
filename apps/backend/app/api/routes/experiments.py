@@ -15,6 +15,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_connection_user, get_db_session
+from app.core.exceptions import ShadowDBProvisioningError
+from app.core.logging import get_logger
 from app.db.customer_db import customer_connection_manager
 from app.models.approval import Approval
 from app.models.audit import CanaryRun
@@ -33,8 +35,10 @@ from app.schemas.experiment import (
 from app.services.simulation_service import simulation_service
 from app.services.recommendation_service import recommendations_for_diagnosis
 from app.workers.canary_monitor import monitor_canary_tick
+from app.tools.shadow_db_tool import ShadowProvisioningError
 
 router = APIRouter(tags=["Optimization Experiments & Verifications"])
+logger = get_logger(__name__)
 
 
 # ─── Experiments Audit Trail ──────────────────────────────────────────────────
@@ -141,7 +145,11 @@ async def simulate_recommendation(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except ShadowProvisioningError as exc:
+        logger.warning("Shadow database provisioning failed during recommendation simulation: %s", exc)
+        raise ShadowDBProvisioningError(str(exc)) from exc
     except RuntimeError as exc:
+        logger.error("Recommendation simulation failed: %s", exc)
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
 
