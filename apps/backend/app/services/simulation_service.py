@@ -30,6 +30,7 @@ from app.db.customer_db import customer_connection_manager
 from app.tools.pg_introspection import get_query_metrics
 from app.tools.hypopg_tool import evaluate_hypothetical_index
 from app.workers.shadow_lab_worker import ReplayQuery, shadow_lab_worker
+from app.workers.canary_monitor import collect_canary_metrics
 
 logger = get_logger(__name__)
 
@@ -175,7 +176,9 @@ class SimulationService:
             "strategy": strategy,
             "query_id": query_id,
             "table_name": table_name,
-            "runtime_mode": "production",
+            # Local development can validate measured shadow replay without a
+            # promoted ML artifact. Production keeps the model requirement.
+            "runtime_mode": "production" if get_settings().is_production else "development",
             **candidate_data,
         }
 
@@ -218,7 +221,11 @@ class SimulationService:
             candidate_io=float(candidate_metrics.get("io", 0.0)),
             predicted_latency_delta=cand_p95 - base_p95,
             actual_latency_delta=cand_p95 - base_p95,
-            statistical_significance=(stat_verdict == "VERIFIED"),
+            # Statistical significance is a property of the paired test, not
+            # of the final policy verdict. A candidate can be statistically
+            # significant and still be blocked for sample size, effect size,
+            # HypoPG, or another safety rule.
+            statistical_significance=bool(verification.get("statistically_significant", False)),
             confidence_interval_low=float(verification.get("ci_lower", 0.0)),
             confidence_interval_high=float(verification.get("ci_upper", 0.0)),
             skeptic_findings={
@@ -385,6 +392,11 @@ class SimulationService:
         exp = await self.get_experiment(experiment_id, db, user.id, owner_is_superuser)
         if not exp:
             raise LookupError(f"Experiment {experiment_id} not found")
+        if exp.policy_verdict not in {"VERIFIED", "APPROVE"}:
+            raise ValueError(
+                f"Cannot approve candidate with policy verdict '{exp.policy_verdict}'. "
+                "The experiment must pass the policy engine first."
+            )
 
         now = datetime.now(timezone.utc)
         approval = Approval(
@@ -496,13 +508,22 @@ class SimulationService:
         # 3. Whitelist Validation on SQL
         validate_canary_sql(exp.candidate_sql)
 
+        # Capture the real target baseline immediately before applying the
+        # change. Shadow metrics are not a safe substitute for live canary
+        # guardrails.
+        live_baseline = None
+        if customer_connection is not None:
+            live_baseline = await collect_canary_metrics(customer_connection)
+
         # 4. Execute on Customer Database via Guarded Path
         if customer_connection is not None:
             logger.info(f"Executing canary DDL on customer DB: {exp.candidate_sql}")
             await customer_connection.execute(exp.candidate_sql)
 
         now = datetime.now(timezone.utc)
-        window = observation_window_minutes or get_settings().CANARY_MONITOR_WINDOW_MINUTES
+        is_dev_fixture = bool((exp.skeptic_findings or {}).get("fixture")) and get_settings().is_development
+        window = observation_window_minutes or (1 if is_dev_fixture else get_settings().CANARY_MONITOR_WINDOW_MINUTES)
+        fixture_metrics = (exp.skeptic_findings or {}).get("fixture_metrics", {}) if is_dev_fixture else {}
 
         canary_run = CanaryRun(
             experiment_id=exp.id,
@@ -511,13 +532,12 @@ class SimulationService:
             canary_sql_applied=exp.candidate_sql,
             started_at=now,
             observation_window_minutes=window,
-            baseline_metrics={
+            baseline_metrics=live_baseline or {
                 "p95_ms": exp.baseline_p95,
                 "latency_ms": exp.baseline_latency,
             },
             canary_metrics={
-                "p95_ms": exp.candidate_p95,
-                "latency_ms": exp.candidate_latency,
+                **(live_baseline or fixture_metrics),
             },
         )
         db.add(canary_run)

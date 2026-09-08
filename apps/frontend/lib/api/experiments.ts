@@ -42,6 +42,11 @@ function toExperiment(data: BackendExperiment): Experiment {
   const findings = data.skeptic_findings || {};
   const verification = (findings.verification || {}) as Record<string, unknown>;
   const policy = (findings.policy || {}) as Record<string, unknown>;
+  const isFixture = findings.fixture === true;
+  const baselineLatency = data.baseline_latency || (isFixture ? 100 : 0);
+  const candidateLatency = data.candidate_latency || (isFixture ? 90 : 0);
+  const baselineP95 = data.baseline_p95 || (isFixture ? 120 : 0);
+  const candidateP95 = data.candidate_p95 || (isFixture ? 110 : 0);
   const riskFactors = (findings.risk_factors as string[] | undefined) || [];
   const verdict = (data.policy_verdict === 'APPROVE' ? 'VERIFIED' : data.policy_verdict) as Experiment['verdict'];
   const outcome: Experiment['outcome'] = data.status === 'ROLLED_BACK' || data.rollback
@@ -77,14 +82,14 @@ function toExperiment(data: BackendExperiment): Experiment {
     createdAtISO: data.created_at,
     currentStage,
     comparisons: [
-      { metric: 'Mean latency', unit: 'ms', baseline: data.baseline_latency, candidate: data.candidate_latency, betterWhenLower: true },
-      { metric: 'P95 latency', unit: 'ms', baseline: data.baseline_p95, candidate: data.candidate_p95, betterWhenLower: true },
+      { metric: 'Mean latency', unit: 'ms', baseline: baselineLatency, candidate: candidateLatency, betterWhenLower: true },
+      { metric: 'P95 latency', unit: 'ms', baseline: baselineP95, candidate: candidateP95, betterWhenLower: true },
       { metric: 'CPU', unit: '', baseline: data.baseline_cpu, candidate: data.candidate_cpu, betterWhenLower: true },
       { metric: 'IO', unit: '', baseline: data.baseline_io, candidate: data.candidate_io, betterWhenLower: true },
     ],
     regressionRatePct: Number(verification.regression_rate || 0) * 100,
-    ciLow: Number(data.confidence_interval_low || 0),
-    ciHigh: Number(data.confidence_interval_high || 0),
+    ciLow: Number(data.confidence_interval_low || (isFixture ? -1 : 0)),
+    ciHigh: Number(data.confidence_interval_high || (isFixture ? -0.1 : 0)),
     significance: data.statistical_significance ? 'SIGNIFICANT' : 'NOT_SIGNIFICANT',
     skepticFindings: riskFactors.map((concern) => ({
       concern,
@@ -100,6 +105,14 @@ function toExperiment(data: BackendExperiment): Experiment {
 }
 
 export const experimentsApi = {
+  seedDevCanary: async (connectionId: string): Promise<Experiment> => {
+    const data = await apiClient.post<BackendExperiment>('/experiments/dev/seed-canary', {
+      connection_id: connectionId,
+      candidate_sql: 'ANALYZE;',
+    });
+    return toExperiment(data);
+  },
+
   list: async (): Promise<Experiment[]> => {
     const data = await apiClient.get<BackendExperiment[]>('/experiments');
     return data.map(toExperiment);

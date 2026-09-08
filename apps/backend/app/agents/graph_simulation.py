@@ -236,6 +236,8 @@ def verification_node(state: SimulationState) -> dict[str, Any]:
     sample_size = min(max(0, declared_sample_size), len(base_lats))
     p95_imp = float(exp_res.get("p95_improvement_ratio", 0.0))
     regr_rate = float(exp_res.get("regression_rate", 0.0))
+    strategy = str(candidate.get("strategy", "")).upper()
+    required_p95_improvement = 0.0 if strategy in {"ANALYZE", "STATISTICS"} else 0.10
 
     if len(base_lats) >= 2:
         ci_lower, ci_upper = _bootstrap_confidence_interval(base_lats, cand_lats)
@@ -252,7 +254,7 @@ def verification_node(state: SimulationState) -> dict[str, Any]:
         statistically_significant = p_val < 0.05 and ci_excludes_zero
         verdict = "CONDITIONAL" if sample_size < 10 else (
             "VERIFIED"
-            if statistically_significant and p95_imp >= 0.10 and regr_rate <= 0.05
+            if statistically_significant and p95_imp >= required_p95_improvement and regr_rate <= 0.05
             else "REJECTED"
         )
     else:
@@ -293,6 +295,7 @@ def policy_node(state: SimulationState) -> dict[str, Any]:
     verif = state.get("verification_report", {})
 
     payload = {
+        "strategy": state.get("candidate", {}).get("strategy", ""),
         "sample_size": verif.get("sample_size", 0),
         "baseline_p95": exp_res.get("baseline_p95", 0.0),
         "candidate_p95": exp_res.get("candidate_p95", 0.0),

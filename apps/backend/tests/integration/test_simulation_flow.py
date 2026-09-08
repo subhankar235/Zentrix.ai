@@ -131,6 +131,45 @@ async def test_simulation_service_full_workflow(simulation_db):
 
 
 @pytest.mark.asyncio
+async def test_rejected_experiment_cannot_be_approved(simulation_db):
+    user_id = uuid.uuid4()
+    connection_id = uuid.uuid4()
+
+    async with simulation_db() as db:
+        user = User(
+            id=user_id,
+            email="blocked-approval@example.com",
+            hashed_password="pw",
+            role="dba",
+            is_active=True,
+        )
+        conn = DatabaseConnection(
+            id=connection_id,
+            user_id=user_id,
+            name="Blocked Approval DB",
+            encrypted_connection_string="enc",
+            host="localhost",
+            port=5432,
+            database_name="blocked_db",
+            username="postgres",
+            is_active=True,
+        )
+        exp = OptimizationExperiment(
+            connection_id=connection_id,
+            timestamp=datetime.now(timezone.utc),
+            strategy="ANALYZE",
+            candidate_sql="ANALYZE posts",
+            policy_verdict="REJECTED",
+            status="SIMULATED",
+        )
+        db.add_all([user, conn, exp])
+        await db.commit()
+
+        with pytest.raises(ValueError, match="must pass the policy engine"):
+            await simulation_service.approve_recommendation(exp.id, user, "test", db)
+
+
+@pytest.mark.asyncio
 async def test_canary_monitor_rollback_and_commit(simulation_db):
     user_id = uuid.uuid4()
     connection_id = uuid.uuid4()

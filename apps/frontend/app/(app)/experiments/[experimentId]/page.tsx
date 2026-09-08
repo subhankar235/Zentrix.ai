@@ -124,9 +124,11 @@ export default function ExperimentDetailPage() {
           <p className="text-sm font-semibold">
             {exp.verdict === 'VERIFIED' ? 'Verification passed' : exp.verdict === 'CONDITIONAL' ? 'Verification needs more evidence' : 'Verification blocked this change'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {exp.verdict === 'VERIFIED'
-              ? 'The candidate improved the shadow workload and passed the deterministic safety checks. Production still requires explicit approval.'
+           <p className="mt-1 text-xs text-muted-foreground">
+             {exp.verdict === 'VERIFIED'
+               ? exp.approvalState === 'APPROVED' || exp.outcome === 'IN_PROGRESS'
+                 ? 'Human approval was recorded. The canary is now being monitored before final commit.'
+                 : 'The candidate improved the shadow workload and passed the deterministic safety checks. Production still requires explicit approval.'
               : exp.verdict === 'CONDITIONAL'
                 ? 'The candidate may be promising, but the sample is too small for approval. Run more telemetry or replay samples.'
                 : exp.outcome === 'ROLLBACK'

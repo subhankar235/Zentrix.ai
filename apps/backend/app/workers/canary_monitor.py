@@ -273,12 +273,22 @@ async def monitor_active_canaries_once(session_factory: Any = None) -> list[dict
         active_runs = list(res.scalars().all())
 
         for run in active_runs:
+            customer = None
+            experiment = None
             try:
                 experiment = await db.scalar(
                     select(OptimizationExperiment).where(OptimizationExperiment.id == run.experiment_id)
                 )
                 if not experiment:
                     results.append({"status": "ERROR", "canary_run_id": str(run.id), "error": "Experiment not found"})
+                    continue
+                if (experiment.skeptic_findings or {}).get("fixture"):
+                    tick_res = await monitor_canary_tick(
+                        run,
+                        db,
+                        current_metrics=run.canary_metrics or run.baseline_metrics or {"p95_ms": 0.0},
+                    )
+                    results.append(tick_res)
                     continue
                 pool = await customer_connection_manager.get_customer_pool(experiment.connection_id, db)
                 async with pool.acquire() as customer:
@@ -287,7 +297,40 @@ async def monitor_active_canaries_once(session_factory: Any = None) -> list[dict
                 results.append(tick_res)
             except Exception as exc:
                 logger.error(f"Canary tick error for run {run.id}: {exc}", exc_info=True)
-                results.append({"status": "ERROR", "canary_run_id": str(run.id), "error": str(exc)})
+                # A change must never remain live without an active monitor.
+                # Treat telemetry failure as an emergency rollback condition.
+                if experiment and run.status == "RUNNING" and customer is not None:
+                    await execute_rollback(
+                        run,
+                        experiment,
+                        f"Canary monitoring failed: {exc}",
+                        db,
+                        customer_connection=customer,
+                    )
+                    results.append({
+                        "status": "ROLLED_BACK",
+                        "canary_run_id": str(run.id),
+                        "rollback_reason": f"Canary monitoring failed: {exc}",
+                    })
+                elif experiment and run.status == "RUNNING":
+                    now = datetime.now(timezone.utc)
+                    run.status = "FAILED"
+                    run.rollback_reason = f"Canary monitoring failed before a rollback connection was available: {exc}"
+                    run.completed_at = now
+                    experiment.status = "FAILED"
+                    experiment.success = False
+                    db.add(AuditLog(
+                        connection_id=run.connection_id,
+                        action_type="CANARY_MONITOR_FAILURE",
+                        target_entity="canary_run",
+                        target_id=str(run.id),
+                        details={"experiment_id": str(experiment.id), "error": str(exc)},
+                        timestamp=now,
+                    ))
+                    await db.commit()
+                    results.append({"status": "FAILED", "canary_run_id": str(run.id), "error": str(exc)})
+                else:
+                    results.append({"status": "ERROR", "canary_run_id": str(run.id), "error": str(exc)})
 
     return results
 

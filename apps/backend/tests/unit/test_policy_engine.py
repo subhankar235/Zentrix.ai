@@ -36,6 +36,18 @@ def test_policy_engine_blocks_when_p95_improvement_is_insufficient():
     assert any("p95 improvement" in rule for rule in res["violated_rules"])
 
 
+def test_policy_engine_allows_verified_analyze_without_ten_percent_latency_gain():
+    data = {
+        **_good_verification_result(),
+        "strategy": "ANALYZE",
+        "p95_improvement_ratio": 0.02,
+    }
+    res = evaluate(data)
+    assert res["verdict"] == "APPROVE"
+    assert res["canary_eligible"] is True
+    assert res["metrics_summary"]["required_p95_improvement_ratio"] == 0.0
+
+
 def test_policy_engine_blocks_when_regression_rate_is_too_high():
     data = {**_good_verification_result(), "regression_rate": 0.12}
     res = evaluate(data)

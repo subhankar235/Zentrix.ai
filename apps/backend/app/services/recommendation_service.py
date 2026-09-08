@@ -380,7 +380,14 @@ async def recommendations_for_diagnosis(
             risk=candidate["risk"],
             candidate_sql=candidate_sql,
             table_name=table,
-            experiment_id=experiment.id if experiment else None,
+            # A rejected simulation is history, not an active experiment. Do
+            # not hide the Simulate action after a failed policy evaluation;
+            # verified/approved/deployed runs remain linked and protected.
+            experiment_id=(
+                experiment.id
+                if experiment and experiment.policy_verdict in {"VERIFIED", "APPROVE"}
+                else None
+            ),
             rank=rank,
             score=candidate["score"],
             evidence=candidate["evidence"] or evidence,

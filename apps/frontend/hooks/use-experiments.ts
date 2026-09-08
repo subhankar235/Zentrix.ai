@@ -32,6 +32,17 @@ export function useSimulateMutation() {
   });
 }
 
+export function useSeedDevCanaryMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (connectionId: string) => experimentsApi.seedDevCanary(connectionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EXPERIMENTS_QUERY_KEY });
+    },
+  });
+}
+
 export function useApproveExperimentMutation() {
   const queryClient = useQueryClient();
 

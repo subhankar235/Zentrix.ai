@@ -169,3 +169,8 @@ class SimulationTriggerRequest(BaseModel):
     diagnosis_id: Optional[uuid.UUID] = None
     table_name: Optional[str] = None
     query_id: Optional[int] = None
+
+
+class DevCanaryFixtureRequest(BaseModel):
+    connection_id: uuid.UUID
+    candidate_sql: str = "ANALYZE;"

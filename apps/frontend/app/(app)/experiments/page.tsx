@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { StatusBadge } from '@/components/status-badge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/state-feedback';
 import { Button } from '@/components/ui/button';
-import { useExperimentsQuery } from '@/hooks/use-experiments';
+import { useExperimentsQuery, useSeedDevCanaryMutation } from '@/hooks/use-experiments';
 import { useConnectionsQuery } from '@/hooks/use-connections';
 import { absoluteTime, relativeTime } from '@/lib/format';
 import type { DeploymentOutcome, Verdict } from '@/types/types';
@@ -26,6 +26,7 @@ const OUTCOMES: (DeploymentOutcome | 'All')[] = [
 export default function ExperimentsPage() {
   const { data: all = [], isLoading, isError, refetch } = useExperimentsQuery();
   const { data: connectionsList = [] } = useConnectionsQuery();
+  const seedCanaryMutation = useSeedDevCanaryMutation();
 
   const [dbFilter, setDbFilter] = React.useState<string>('all');
   const [verdict, setVerdict] = React.useState<Verdict | 'All'>('All');
@@ -81,6 +82,19 @@ export default function ExperimentsPage() {
       <PageHeader
         title="Optimization history"
         description="Every experiment the system has ever run, including approvals, commits, and rollbacks. This is the trust ledger — no production-facing action happens outside of it."
+        actions={process.env.NODE_ENV !== 'production' ? (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={seedCanaryMutation.isPending || connectionsList.length === 0}
+            onClick={() => {
+              const connectionId = dbFilter === 'all' ? connectionsList[0]?.id : dbFilter;
+              if (connectionId) seedCanaryMutation.mutate(connectionId);
+            }}
+          >
+            {seedCanaryMutation.isPending ? 'Creating fixture...' : 'Seed canary test'}
+          </Button>
+        ) : undefined}
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

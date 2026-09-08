@@ -15,11 +15,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_connection_user, get_db_session
+from app.core.config import get_settings
 from app.core.exceptions import ShadowDBProvisioningError
 from app.core.logging import get_logger
 from app.db.customer_db import customer_connection_manager
 from app.models.approval import Approval
-from app.models.audit import CanaryRun
+from app.models.audit import AuditLog, CanaryRun
 from app.models.connection import DatabaseConnection
 from app.models.diagnosis import Diagnosis
 from app.models.experiment import OptimizationExperiment
@@ -30,9 +31,10 @@ from app.schemas.experiment import (
     CanaryRunOut,
     ExperimentVerificationOut,
     OptimizationExperimentOut,
+    DevCanaryFixtureRequest,
     SimulationTriggerRequest,
 )
-from app.services.simulation_service import simulation_service
+from app.services.simulation_service import simulation_service, validate_canary_sql
 from app.services.recommendation_service import recommendations_for_diagnosis
 from app.workers.canary_monitor import monitor_canary_tick
 from app.tools.shadow_db_tool import ShadowProvisioningError
@@ -60,6 +62,72 @@ async def list_experiments(
         owner_user_id=current_user.id,
         owner_is_superuser=current_user.is_superuser,
     )
+
+
+@router.post("/experiments/dev/seed-canary", response_model=OptimizationExperimentOut, status_code=status.HTTP_201_CREATED)
+async def seed_dev_canary_fixture(
+    request: DevCanaryFixtureRequest,
+    current_user: User = Depends(get_connection_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Any:
+    """Create a local-only verified fixture for exercising approval/canary UI."""
+    if not get_settings().is_development:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Development fixture not available")
+
+    conn_stmt = select(DatabaseConnection).where(
+        DatabaseConnection.id == request.connection_id,
+        DatabaseConnection.is_active.is_(True),
+    )
+    if not current_user.is_superuser:
+        conn_stmt = conn_stmt.where(DatabaseConnection.user_id == current_user.id)
+    connection = await db.scalar(conn_stmt)
+    if not connection:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Database connection not found")
+
+    validate_canary_sql(request.candidate_sql)
+    now = datetime.now(timezone.utc)
+    experiment = OptimizationExperiment(
+        connection_id=connection.id,
+        timestamp=now,
+        strategy="ANALYZE",
+        candidate_sql=request.candidate_sql,
+        baseline_latency=100.0,
+        baseline_p95=120.0,
+        candidate_latency=90.0,
+        candidate_p95=110.0,
+        statistical_significance=True,
+        confidence_interval_low=-1.0,
+        confidence_interval_high=-0.1,
+        skeptic_findings={
+            "fixture": True,
+            "note": "Development-only canary fixture",
+            "fixture_metrics": {
+                "p50_ms": 40.0,
+                "p95_ms": 110.0,
+                "p99_ms": 180.0,
+                "query_count": 5,
+                "error_rate": 0.0,
+                "lock_wait_count": 0,
+            },
+        },
+        policy_verdict="VERIFIED",
+        success=True,
+        risk="LOW",
+        status="SIMULATED",
+    )
+    db.add(experiment)
+    db.add(AuditLog(
+        user_id=current_user.id,
+        connection_id=connection.id,
+        action_type="DEV_CANARY_FIXTURE_CREATED",
+        target_entity="optimization_experiment",
+        target_id=str(experiment.id),
+        details={"candidate_sql": request.candidate_sql},
+        timestamp=now,
+    ))
+    await db.commit()
+    await db.refresh(experiment)
+    return experiment
 
 
 @router.get("/experiments/{id}", response_model=OptimizationExperimentOut)
@@ -248,6 +316,31 @@ async def deploy_canary_experiment(
         )
         if not exp:
             raise LookupError(f"Experiment {id} not found")
+        if exp.policy_verdict not in {"VERIFIED", "APPROVE"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot deploy candidate with policy verdict '{exp.policy_verdict}'. Must be VERIFIED.",
+            )
+        approval = await db.scalar(
+            select(Approval).where(
+                Approval.experiment_id == exp.id,
+                Approval.action == "APPROVE",
+            )
+        )
+        if not approval:
+            raise PermissionError(
+                f"Human approval required before production canary deployment. "
+                f"No 'APPROVE' record found for experiment {id}."
+            )
+        is_dev_fixture = bool((exp.skeptic_findings or {}).get("fixture"))
+        if is_dev_fixture and get_settings().is_development:
+            return await simulation_service.deploy_canary(
+                experiment_id=id,
+                user_id=current_user.id,
+                db=db,
+                customer_connection=None,
+                owner_is_superuser=current_user.is_superuser,
+            )
         pool = await customer_connection_manager.get_customer_pool(exp.connection_id, db)
         async with pool.acquire() as customer:
             return await simulation_service.deploy_canary(
@@ -315,7 +408,11 @@ async def stream_canary_metrics(
 
     async def event_generator() -> AsyncGenerator[dict, None]:
         while True:
-            current = await db.scalar(select(CanaryRun).where(CanaryRun.id == owned.id))
+            current = await db.scalar(
+                select(CanaryRun)
+                .where(CanaryRun.id == owned.id)
+                .execution_options(populate_existing=True)
+            )
             if not current:
                 return
             metrics = current.canary_metrics or {}
