@@ -26,6 +26,14 @@ logger = get_logger(__name__)
 def _load_model(model_path: str | os.PathLike[str] | None = None) -> dict[str, Any] | None:
     """Load serialized L1 forecasting artifact."""
     target_path = Path(model_path or os.getenv("FORECASTING_MODEL_PATH", "forecasting_model.joblib"))
+    if not target_path.is_absolute() and not target_path.exists():
+        backend_root = Path(__file__).resolve().parents[3]
+        candidates = [backend_root / target_path]
+        # The checked-in local artifact is used only as a development fallback;
+        # promoted deployments should point FORECASTING_MODEL_PATH at .artifacts.
+        if target_path.name == "forecasting_model.joblib":
+            candidates.append(backend_root / "forecasting_model.joblib")
+        target_path = next((candidate for candidate in candidates if candidate.exists()), target_path)
     if not target_path.exists():
         return None
     try:
@@ -69,6 +77,32 @@ def predict(
 
     window_start = now
     window_end = now + timedelta(hours=horizon_hours)
+
+    if len(telemetry_history) < 2:
+        curve = [
+            {
+                "timestamp": (window_start + timedelta(hours=h)).isoformat(),
+                "horizon_hours": h,
+                "predicted_probability": 0.0,
+                "confidence_lower": 0.0,
+                "confidence_upper": 1.0,
+                "projected_delta_ratio": 0.0,
+            }
+            for h in range(1, horizon_hours + 1, 6 if horizon_hours > 48 else 1)
+        ]
+        return {
+            "degradation_probability": 0.0,
+            "is_flagged_for_action": False,
+            "forecast_window_start": window_start.isoformat(),
+            "forecast_window_end": window_end.isoformat(),
+            "probability_curve": curve,
+            "model_version": "unavailable",
+            "conformal_quantile": None,
+            "threshold_probability": float(action_threshold),
+            "threshold_day": None,
+            "confidence": 0.0,
+            "data_quality": "insufficient_telemetry",
+        }
 
     features = extract_telemetry_features(telemetry_history, current_time=now)
     X = build_feature_matrix([features])

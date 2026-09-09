@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
-from app.api.deps import get_current_user, get_db_session
+from app.api.deps import get_connection_user, get_db_session
 from app.models.user import User
 from app.models.connection import DatabaseConnection
 from sqlalchemy import select
@@ -33,7 +33,7 @@ router = APIRouter(tags=["Forecasting & Model Performance"])
 async def get_connection_forecast(
     connectionId: uuid.UUID,
     query_id: int | None = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """Get 7-day degradation risk forecast and probability curve for queries on a database connection."""
@@ -50,13 +50,15 @@ async def get_connection_forecast(
         )
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 
 
 @router.get("/models/performance", response_model=ModelPerformanceResponse)
 async def get_models_performance(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """Retrieve model evaluation metrics: MAE over time, calibration score, and Evidently drift reports."""
@@ -69,7 +71,7 @@ async def get_models_performance(
 @router.get("/forecasts/{id}/stream")
 async def stream_forecast_progress(
     id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> EventSourceResponse:
     """Server-Sent Events (SSE) streaming live forecast horizon computation."""

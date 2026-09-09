@@ -105,6 +105,7 @@ def decode_access_token(token: str) -> Dict[str, Any]:
                     pem_key,
                     algorithms=["RS256"],
                     options={"verify_aud": False},
+                    leeway=60,
                 )
 
             # Resolve JWKS endpoint
@@ -123,6 +124,7 @@ def decode_access_token(token: str) -> Dict[str, Any]:
                 signing_key.key,
                 algorithms=["RS256"],
                 options={"verify_aud": False},
+                leeway=60,
             )
         except jwt.ExpiredSignatureError:
             raise ValueError("Authentication token has expired")

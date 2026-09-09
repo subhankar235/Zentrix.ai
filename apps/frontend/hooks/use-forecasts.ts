@@ -13,10 +13,10 @@ export function useForecastsQuery() {
 }
 
 export function useForecastDetailQuery(connectionId: string | null | undefined) {
-  const targetId = connectionId || 'prod-orders-db';
   return useQuery({
-    queryKey: ['forecasts', targetId],
-    queryFn: () => forecastsApi.getByConnectionId(targetId),
+    queryKey: ['forecasts', connectionId],
+    queryFn: () => forecastsApi.getByConnectionId(connectionId as string),
+    enabled: Boolean(connectionId),
   });
 }
 

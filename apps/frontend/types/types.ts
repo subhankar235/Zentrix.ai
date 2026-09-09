@@ -264,9 +264,11 @@ export interface BanditArm {
 export interface Forecast {
   connectionId: string
   headline: string
+  isFlaggedForAction: boolean
   thresholdDay: number
   thresholdProbability: number
   curve: ForecastPoint[]
+  suggestedStrategies: string[]
   suggestions: Recommendation[]
   calibration: CalibrationBucket[]
   mae: MaePoint[]

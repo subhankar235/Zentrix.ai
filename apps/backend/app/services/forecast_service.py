@@ -52,7 +52,7 @@ class ForecastService:
             select(QueryMetric)
             .where(QueryMetric.connection_id == connection_id)
             .order_by(QueryMetric.timestamp.desc())
-            .limit(limit)
+            .limit(limit if query_id is not None else min(limit * 100, 10000))
         )
         if query_id is not None:
             stmt = stmt.where(QueryMetric.queryid == query_id)
@@ -79,6 +79,33 @@ class ForecastService:
         for plan in plan_res.scalars().all():
             if plan.query_id is not None:
                 plans_by_query.setdefault(int(plan.query_id), plan)
+
+        # When no query_id is requested, collapse the per-query snapshots from
+        # each collector pass into one workload-level observation. Feeding
+        # unrelated query rows as a single time series would manufacture
+        # artificial jumps and make the forecast unreliable.
+        if query_id is None:
+            grouped: dict[datetime, list[QueryMetric]] = {}
+            for query in query_rows:
+                grouped.setdefault(query.timestamp, []).append(query)
+            query_rows = []
+            for timestamp, group in grouped.items():
+                calls = sum(int(item.calls) for item in group)
+                total_exec = sum(float(item.total_exec_time) for item in group)
+                aggregate = QueryMetric(
+                    timestamp=timestamp,
+                    mean_exec_time=total_exec / max(calls, 1),
+                    max_exec_time=max(float(item.max_exec_time) for item in group),
+                    calls=calls,
+                    rows=sum(int(item.rows) for item in group),
+                    shared_blks_read=sum(int(item.shared_blks_read) for item in group),
+                    shared_blks_hit=sum(int(item.shared_blks_hit) for item in group),
+                    temp_blks_read=sum(int(item.temp_blks_read) for item in group),
+                    temp_blks_written=sum(int(item.temp_blks_written) for item in group),
+                    total_exec_time=total_exec,
+                    wal_bytes=sum(int(item.wal_bytes) for item in group),
+                )
+                query_rows.append(aggregate)
 
         history: list[dict[str, Any]] = []
         for q in query_rows:

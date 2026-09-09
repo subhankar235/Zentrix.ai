@@ -121,6 +121,7 @@ async def test_forecast_api_routes(forecast_test_db):
 
     app.dependency_overrides[deps.get_db_session] = override_db
     app.dependency_overrides[deps.get_current_user] = override_user
+    app.dependency_overrides[deps.get_connection_user] = override_user
 
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

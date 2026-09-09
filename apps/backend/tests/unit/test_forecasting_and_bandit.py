@@ -82,6 +82,14 @@ def test_forecasting_cold_start_heuristic_fallback():
     assert len(pred_res["probability_curve"]) > 0
 
 
+def test_forecasting_reports_insufficient_telemetry_without_fabricating_risk():
+    pred_res = predict_forecasting([], horizon_hours=24)
+    assert pred_res["data_quality"] == "insufficient_telemetry"
+    assert pred_res["model_version"] == "unavailable"
+    assert pred_res["is_flagged_for_action"] is False
+    assert pred_res["confidence"] == 0.0
+
+
 def test_bandit_reward_computation():
     # 1. High improvement, low risk
     good_delta = {

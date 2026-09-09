@@ -33,8 +33,10 @@ export const forecastsApi = {
     return {
       connectionId: data.connection_id,
       headline: data.headline,
+      isFlaggedForAction: data.is_flagged_for_action,
       thresholdDay: data.threshold_day ?? data.curve.findIndex((point) => point.predicted_probability >= threshold) / 4,
       thresholdProbability: threshold,
+      suggestedStrategies: data.suggested_strategies,
       curve: data.curve.map((point, index) => ({
         day: point.horizon_hours != null
           ? point.horizon_hours / 24
@@ -53,6 +55,6 @@ export const forecastsApi = {
   },
 
   getModelPerformance: async (): Promise<ModelPerformanceResponse> => {
-    return apiClient.get<ModelPerformanceResponse>('/forecasts/models/performance');
+    return apiClient.get<ModelPerformanceResponse>('/models/performance');
   },
 };

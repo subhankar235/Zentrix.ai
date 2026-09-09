@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, TrendingDown, TrendingUp } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import {
@@ -19,11 +19,20 @@ import { useConnectionsQuery } from '@/hooks/use-connections';
 
 export default function ForecastPage() {
   const params = useParams<{ connectionId: string }>();
-  const { data: forecast, isLoading, isError, refetch } = useForecastDetailQuery(params.connectionId);
   const { data: perf } = useModelPerformanceQuery();
   const { data: connections = [] } = useConnectionsQuery();
+  const router = useRouter();
+  const connectionExists = connections.some((connection) => connection.id === params.connectionId);
+  const activeConnectionId = connectionExists ? params.connectionId : null;
+  const { data: forecast, isLoading, isError, error, refetch } = useForecastDetailQuery(activeConnectionId);
 
-  const conn = connections.find((c) => c.id === params.connectionId) || connections[0];
+  React.useEffect(() => {
+    if (!connectionExists && connections[0]) {
+      router.replace(`/forecasts/${connections[0].id}`);
+    }
+  }, [connectionExists, connections, router]);
+
+  const conn = connections.find((c) => c.id === activeConnectionId);
 
   if (isLoading) {
     return (
@@ -40,14 +49,16 @@ export default function ForecastPage() {
         <PageHeader title="Forecast unavailable" />
         <ErrorState
           title="Could not load forecast"
-          message="No active degradation forecast found for this database."
+          message={error instanceof Error
+            ? error.message
+            : 'The forecast API did not return a forecast for this database.'}
           onRetry={() => refetch()}
         />
       </div>
     );
   }
 
-  const risky = forecast.thresholdProbability >= 0.4;
+  const risky = forecast.isFlaggedForAction;
 
   return (
     <div className="space-y-6">
@@ -88,14 +99,24 @@ export default function ForecastPage() {
         {conn && <StatusBadge status={conn.health} dot />}
       </div>
 
-      {forecast.dataQuality === 'cold_start_heuristic' && (
+      {forecast.dataQuality !== 'model' && (
         <Card className="border-warning/40 bg-warning/5">
           <CardContent className="pt-4 text-xs text-muted-foreground">
-            This forecast uses a cold-start heuristic because no promoted forecasting model is available yet.
-            Confidence is reduced; collect telemetry and complete model training before relying on automated action.
+            {forecast.dataQuality === 'insufficient_telemetry'
+              ? 'There is not enough persisted telemetry to make a forecast yet. Continue collecting workload history.'
+              : 'This forecast uses a cold-start statistical fallback because no promoted forecasting model is available yet. Confidence is reduced; collect telemetry and complete model training before relying on automated action.'}
           </CardContent>
         </Card>
       )}
+
+      {forecast.suggestedStrategies.length > 0 && forecast.suggestedStrategies[0] !== 'MONITOR' ? (
+        <Card className="border-info/30 bg-info/5">
+          <CardContent className="pt-4 text-sm">
+            <span className="font-medium">Suggested next step:</span>{' '}
+            {forecast.suggestedStrategies.join(', ')}. These strategies are recommendations only and must pass the simulation, policy, and approval workflow.
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader className="border-b [.border-b]:pb-3">

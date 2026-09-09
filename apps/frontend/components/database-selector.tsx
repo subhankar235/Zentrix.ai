@@ -17,7 +17,11 @@ export function DatabaseSelector() {
   const selected = connections.find((c) => c.id === selectedId) ?? connections[0]
 
   React.useEffect(() => {
-    if (!selectedId && connections[0]) {
+    const selectedConnectionExists = selectedId
+      ? connections.some((connection) => connection.id === selectedId)
+      : false
+
+    if ((!selectedId || !selectedConnectionExists) && connections[0]) {
       setSelectedId(connections[0].id)
       setAppSelectedId(connections[0].id)
     }
