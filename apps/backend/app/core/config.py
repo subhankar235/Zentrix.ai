@@ -172,6 +172,11 @@ class Settings(BaseSettings):
         default=15,
         description="Observation duration for canary monitor worker (minutes)",
     )
+    ROI_DEFAULT_FREQUENCY_PER_DAY: float = Field(
+        default=100000.0,
+        ge=0,
+        description="Configured workload executions per day used by deterministic ROI calculations",
+    )
     SHADOW_DB_IMAGE: str = Field(
         default="pgvector/pgvector:pg18",
         description="PostgreSQL image used for ephemeral customer database clones",

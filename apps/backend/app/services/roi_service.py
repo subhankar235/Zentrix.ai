@@ -17,6 +17,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.experiment import OptimizationExperiment
 from app.models.roi import RoiRecord
@@ -171,7 +172,7 @@ class RoiService:
         experiment_id: uuid.UUID,
         db: AsyncSession,
         pricing_tier: str = "standard",
-        frequency_per_day: float = 100_000.0,
+        frequency_per_day: float | None = None,
         custom_pricing: Mapping[str, float] | None = None,
     ) -> RoiRecord:
         """Calculate and persist deterministic ROI from a measured optimization experiment."""
@@ -180,6 +181,19 @@ class RoiService:
         )
         if not exp:
             raise LookupError(f"Optimization experiment {experiment_id} not found")
+
+        if (
+            exp.policy_verdict not in {"VERIFIED", "APPROVE"}
+            or not exp.success
+            or exp.status not in {"DEPLOYED", "COMMITTED"}
+        ):
+            raise ValueError("ROI is only available for a successful, verified committed optimization")
+
+        configured_frequency = (
+            get_settings().ROI_DEFAULT_FREQUENCY_PER_DAY
+            if frequency_per_day is None
+            else frequency_per_day
+        )
 
         # Measured deltas from experiment record
         base_cpu = float(exp.baseline_cpu)
@@ -192,7 +206,7 @@ class RoiService:
             candidate_cpu_seconds=cand_cpu,
             baseline_io_reads=base_io,
             candidate_io_reads=cand_io,
-            frequency_per_day=frequency_per_day,
+            frequency_per_day=configured_frequency,
             pricing_tier=pricing_tier,
             index_storage_mb=10.0 if "INDEX" in exp.strategy else 0.0,
             custom_pricing=custom_pricing,
@@ -210,7 +224,7 @@ class RoiService:
             existing.storage_savings_usd = calc["storage_savings_usd"]
             existing.io_savings_usd = calc["io_savings_usd"]
             existing.assumed_pricing_tier = calc["assumed_pricing_tier"]
-            existing.frequency_per_day = frequency_per_day
+            existing.frequency_per_day = configured_frequency
             existing.calculation_details = calc["calculation_details"]
             roi_record = existing
         else:
@@ -222,7 +236,7 @@ class RoiService:
                 storage_savings_usd=calc["storage_savings_usd"],
                 io_savings_usd=calc["io_savings_usd"],
                 assumed_pricing_tier=calc["assumed_pricing_tier"],
-                frequency_per_day=frequency_per_day,
+                frequency_per_day=configured_frequency,
                 calculation_details=calc["calculation_details"],
             )
             db.add(roi_record)

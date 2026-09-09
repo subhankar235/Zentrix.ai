@@ -22,6 +22,7 @@ from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.audit import AuditLog, CanaryRun
 from app.models.experiment import OptimizationExperiment
+from app.services.roi_service import roi_service
 from app.db.customer_db import customer_connection_manager
 from app.tools import pg_introspection
 
@@ -201,6 +202,10 @@ async def execute_commit(
         timestamp=now,
     )
     db.add(audit_entry)
+    await roi_service.calculate_and_save_experiment_roi(
+        experiment_id=experiment.id,
+        db=db,
+    )
     await db.commit()
 
 

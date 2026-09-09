@@ -36,6 +36,7 @@ from app.schemas.experiment import (
 )
 from app.services.simulation_service import simulation_service, validate_canary_sql
 from app.services.recommendation_service import recommendations_for_diagnosis
+from app.services.roi_service import roi_service
 from app.workers.canary_monitor import monitor_canary_tick
 from app.tools.shadow_db_tool import ShadowProvisioningError
 
@@ -70,7 +71,7 @@ async def seed_dev_canary_fixture(
     current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
-    """Create a local-only verified fixture for exercising approval/canary UI."""
+    """Create a local-only committed canary fixture with a deterministic ROI record."""
     if not get_settings().is_development:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Development fixture not available")
 
@@ -95,6 +96,10 @@ async def seed_dev_canary_fixture(
         baseline_p95=120.0,
         candidate_latency=90.0,
         candidate_p95=110.0,
+        baseline_cpu=0.60,
+        candidate_cpu=0.20,
+        baseline_io=3000.0,
+        candidate_io=500.0,
         statistical_significance=True,
         confidence_interval_low=-1.0,
         confidence_interval_high=-0.1,
@@ -113,9 +118,23 @@ async def seed_dev_canary_fixture(
         policy_verdict="VERIFIED",
         success=True,
         risk="LOW",
-        status="SIMULATED",
+        status="DEPLOYED",
     )
     db.add(experiment)
+    await db.flush()
+
+    canary_run = CanaryRun(
+        experiment_id=experiment.id,
+        connection_id=connection.id,
+        status="COMMITTED",
+        canary_sql_applied=request.candidate_sql,
+        started_at=now,
+        completed_at=now,
+        observation_window_minutes=1,
+        baseline_metrics={"p95_ms": 120.0, "p50_ms": 70.0, "error_rate": 0.0},
+        canary_metrics={"p95_ms": 110.0, "p50_ms": 60.0, "error_rate": 0.0},
+    )
+    db.add(canary_run)
     db.add(AuditLog(
         user_id=current_user.id,
         connection_id=connection.id,
@@ -125,6 +144,10 @@ async def seed_dev_canary_fixture(
         details={"candidate_sql": request.candidate_sql},
         timestamp=now,
     ))
+    await roi_service.calculate_and_save_experiment_roi(
+        experiment_id=experiment.id,
+        db=db,
+    )
     await db.commit()
     await db.refresh(experiment)
     return experiment

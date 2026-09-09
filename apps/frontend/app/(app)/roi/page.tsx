@@ -6,18 +6,18 @@ import { PageHeader } from '@/components/page-header';
 import { RoiCard } from '@/components/roi/roi-card';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/state-feedback';
-import { useRoiQuery, useRoiSummaryQuery } from '@/hooks/use-roi';
+import { useRoiQuery } from '@/hooks/use-roi';
 import { useConnectionsQuery } from '@/hooks/use-connections';
 import { usd } from '@/lib/format';
 
 export default function RoiPage() {
-  const { data: entries = [], isLoading, isError, refetch } = useRoiQuery();
-  const { data: summary } = useRoiSummaryQuery();
   const { data: connections = [] } = useConnectionsQuery();
+  const connectionIds = connections.map((connection) => connection.id);
+  const { data: entries = [], isLoading, isError, refetch } = useRoiQuery(connectionIds);
 
   const configured = entries.filter((e) => e.monthlySavingsUsd != null);
   const unconfigured = entries.length - configured.length;
-  const total = summary?.totalMonthlySavingsUsd ?? configured.reduce((sum, e) => sum + (e.monthlySavingsUsd ?? 0), 0);
+  const total = configured.reduce((sum, e) => sum + (e.monthlySavingsUsd ?? 0), 0);
 
   if (isLoading) {
     return (

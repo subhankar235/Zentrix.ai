@@ -11,7 +11,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db_session
+from app.api.deps import get_connection_user, get_db_session
 from app.models.user import User
 from app.schemas.roi import RoiRecordOut, RoiSummaryResponse
 from app.services.roi_service import roi_service
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/roi", tags=["ROI & Cost-to-Dollar Calculation"])
 @router.get("/{connectionId}", response_model=RoiSummaryResponse)
 async def get_connection_roi_summary(
     connectionId: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """Get aggregate dollar savings and optimization breakdowns for a monitored connection."""
@@ -35,7 +35,7 @@ async def get_connection_roi_summary(
 @router.get("/experiments/{experimentId}", response_model=RoiRecordOut)
 async def get_experiment_roi(
     experimentId: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """Get specific ROI calculation details for an optimization experiment."""
@@ -49,8 +49,8 @@ async def get_experiment_roi(
 async def calculate_and_save_experiment_roi(
     experimentId: uuid.UUID,
     pricing_tier: str = Query(default="standard", description="Pricing tier: aws_rds_standard, neon_serverless, gcp_cloud_sql, standard"),
-    frequency_per_day: float = Query(default=100_000.0, description="Estimated daily query executions"),
-    current_user: User = Depends(get_current_user),
+    frequency_per_day: float | None = Query(default=None, description="Measured/configured daily query executions"),
+    current_user: User = Depends(get_connection_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> Any:
     """Trigger deterministic ROI translation from measured experiment deltas and persist record."""

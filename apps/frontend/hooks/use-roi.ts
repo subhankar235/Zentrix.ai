@@ -3,16 +3,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { roiApi } from '../lib/api/roi';
 
-export function useRoiQuery(connectionId?: string | null) {
+export function useRoiQuery(connectionIds: string[] = []) {
   return useQuery({
-    queryKey: connectionId ? ['roi', { connectionId }] : ['roi'],
-    queryFn: () => roiApi.list(connectionId),
+    queryKey: ['roi', { connectionIds }],
+    queryFn: () => roiApi.list(connectionIds),
+    enabled: connectionIds.length > 0,
   });
 }
 
-export function useRoiSummaryQuery() {
+export function useRoiSummaryQuery(connectionId?: string) {
   return useQuery({
-    queryKey: ['roi', 'summary'],
-    queryFn: () => roiApi.getSummary(),
+    queryKey: ['roi', 'summary', connectionId],
+    queryFn: () => roiApi.getSummary(connectionId as string),
+    enabled: Boolean(connectionId),
   });
 }
