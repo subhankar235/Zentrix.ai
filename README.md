@@ -725,6 +725,38 @@ Predict database degradation before it becomes a production incident.
 
 ---
 
+## Forecasting Workflow
+
+Forecasting is a planning signal, not an instruction to modify production. The system combines recent telemetry with historical workload behavior to estimate how database health is likely to change:
+
+```text
+Telemetry history
+      +
+Current workload
+      +
+Database and index growth
+      ↓
+Feature extraction
+      ↓
+Degradation probability forecast
+      ↓
+Confidence interval and risk threshold
+      ↓
+Simulation / recommendation decision
+```
+
+The forecast answers questions such as:
+
+* Is the current workload trajectory likely to cross a degradation threshold?
+* When is that threshold most likely to be crossed?
+* Which signal is driving the predicted risk?
+* How certain is the prediction?
+* Should the system continue monitoring or request a safe simulation?
+
+The forecasting agent may request a simulation when risk exceeds policy thresholds. It does not bypass diagnosis, sandbox verification, approval, canary monitoring, or rollback controls.
+
+---
+
 ## Time-Series Signals
 
 Potential features include:
@@ -764,6 +796,49 @@ The ML layer can detect unusual behavior using techniques such as:
 The goal is not to use deep learning everywhere.
 
 A simpler model should be preferred when it provides better reliability and explainability.
+
+---
+
+## Forecast Output
+
+The primary output is a probability curve rather than a single point estimate:
+
+```text
+forecast(t) = P(performance_degradation at time t)
+```
+
+Each forecast should include:
+
+```json
+{
+  "risk_curve": "probability by forecast horizon",
+  "prediction_interval": "calibrated lower and upper bounds",
+  "threshold_time": "earliest likely threshold crossing",
+  "drivers": ["latency growth", "cache pressure", "table growth"],
+  "recommended_action": "MONITOR or request simulation",
+  "model_version": "version used to generate the forecast"
+}
+```
+
+The dashboard presents the probability curve over the forecast horizon, the risk threshold, and the uncertainty band. A wide interval indicates that more telemetry is needed; it must not be presented as false precision.
+
+---
+
+## Risk Assessment
+
+Forecast risk should be evaluated against both probability and operational impact. For example:
+
+```text
+Current p95 latency: 420ms
+Projected p95 latency in 5 days: 1.3s
+Probability of threshold breach: 0.61
+Confidence interval: 0.48 - 0.74
+
+Decision:
+request simulation for an index or workload optimization candidate.
+```
+
+Low-confidence or cold-start forecasts should remain advisory and continue collecting telemetry. A forecast alone must never authorize a production change.
 
 ---
 

@@ -762,7 +762,7 @@ Implement the feedback loop and model promotion workflow, per `ARCHITECTURE.md` 
 - `apps/backend/app/workers/retrain_worker.py`
 
 **Implementation**
-Scheduled worker: reads new labeled `optimization_experiments` records (from Feature 2 outcomes), computes prediction error (MAE/RMSE) per model version, updates calibration tracking (predicted-confidence vs. actual-coverage across ≥5 buckets per `PRD.md` §21), runs drift detection (Evidently, per `evidently.config.yaml`), retrains L1/L2/RCA-classifier models when volume/drift/schedule triggers fire, evaluates new versions against the currently-promoted version in MLflow, and promotes only if measurably better (per `PRD.md` §22 acceptance criteria).
+Scheduled worker: reads new labeled `optimization_experiments` records (from Feature 2 outcomes), computes prediction error (MAE/RMSE) per model version, updates calibration tracking (predicted-confidence vs. actual-coverage across ≥5 buckets per `PRD.md` §21), runs drift detection (Evidently, per `evidently.config.yaml`), and retrains from `live_postgresql` telemetry snapshots when volume/drift/schedule triggers fire. Candidate artifacts are logged and registered in MLflow, evaluated against the current `champion` alias, and deployed locally only after measurable improvement and successful alias promotion. Insufficient real telemetry skips training; synthetic telemetry is never used by the worker.
 
 **Dependencies**
 Step 25 (models to retrain), Step 21b/16b (labeled experiment sources), Step 3 (`evidently.config.yaml` referenced via `infra/monitoring/`).

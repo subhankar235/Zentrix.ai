@@ -6,8 +6,6 @@ services:
       POSTGRES_DB: zentrix_db
       POSTGRES_USER: zentrix
       POSTGRES_PASSWORD: zentrix_dev_password
-    ports:
-      - "5432:5432"
     volumes:
       - app-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -44,9 +42,13 @@ services:
       - "8000:8000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - model-artifacts:/workspace/apps/backend/.artifacts
+      - mlflow-artifacts:/mlflow/artifacts:ro
     env_file:
       - .env
     environment:
+      APP_DATABASE_URL: postgresql+asyncpg://zentrix:zentrix_dev_password@app-db:5432/zentrix_db
+      MLFLOW_TRACKING_URI: http://mlflow:5000
       SHADOW_DB_HOST: host.docker.internal
       SHADOW_DB_IMAGE: pgvector/pgvector:pg18
     depends_on:
@@ -61,6 +63,8 @@ services:
     command: ["python", "-m", "app.workers.telemetry_collector"]
     env_file:
       - .env
+    environment:
+      APP_DATABASE_URL: postgresql+asyncpg://zentrix:zentrix_dev_password@app-db:5432/zentrix_db
     depends_on:
       app-db:
         condition: service_healthy
@@ -72,6 +76,12 @@ services:
     command: ["python", "-m", "app.workers.retrain_worker"]
     env_file:
       - .env
+    environment:
+      APP_DATABASE_URL: postgresql+asyncpg://zentrix:zentrix_dev_password@app-db:5432/zentrix_db
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - model-artifacts:/workspace/apps/backend/.artifacts
+      - mlflow-artifacts:/mlflow/artifacts:ro
     depends_on:
       app-db:
         condition: service_healthy
@@ -83,6 +93,8 @@ services:
     command: ["python", "-m", "app.workers.canary_monitor"]
     env_file:
       - .env
+    environment:
+      APP_DATABASE_URL: postgresql+asyncpg://zentrix:zentrix_dev_password@app-db:5432/zentrix_db
     depends_on:
       app-db:
         condition: service_healthy
@@ -97,6 +109,7 @@ services:
     env_file:
       - .env
     environment:
+      APP_DATABASE_URL: postgresql+asyncpg://zentrix:zentrix_dev_password@app-db:5432/zentrix_db
       SHADOW_DB_HOST: host.docker.internal
       SHADOW_DB_IMAGE: pgvector/pgvector:pg18
     depends_on:
@@ -105,7 +118,9 @@ services:
 
   # ─── MLflow Tracking Server ──────────────────────────────────────────────
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.10.0
+    build:
+      context: .
+      dockerfile: infra/docker/mlflow.Dockerfile
     command:
       [
         "mlflow",
@@ -115,14 +130,17 @@ services:
         "--port",
         "5000",
         "--backend-store-uri",
-        "sqlite:////mlflow/artifacts/mlflow.db",
+        "postgresql://zentrix:zentrix_dev_password@app-db:5432/zentrix_db",
         "--default-artifact-root",
         "/mlflow/artifacts",
       ]
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     env_file:
       - infra/monitoring/mlflow.env
+    depends_on:
+      app-db:
+        condition: service_healthy
     volumes:
       - mlflow-artifacts:/mlflow/artifacts
 
@@ -145,3 +163,4 @@ volumes:
   app-db-data:
   fault-lab-data:
   mlflow-artifacts:
+  model-artifacts:

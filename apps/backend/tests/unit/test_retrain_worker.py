@@ -216,6 +216,7 @@ async def test_run_retrain_cycle(retrain_db, monkeypatch, tmp_path):
         assert cycle_report["status"] == "COMPLETED"
         assert cycle_report["retrain_triggered"] is True
         assert "l1_forecasting" in cycle_report["models_trained"]
+        assert cycle_report["models_trained"]["l1_forecasting"]["status"] == "INSUFFICIENT_REAL_DATA"
 
         # Confirm AuditLog created
         audit = await db.scalar(select(AuditLog).where(AuditLog.action_type == "MODEL_RETRAIN_CYCLE"))

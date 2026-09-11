@@ -421,7 +421,7 @@ MLflow (tracking server container) + Shadow DB containers (ephemeral)
 ```
 
 **Environment configuration:** each service reads its variables from the root `.env` (via `docker-compose.yml`'s `env_file`), never hardcoded.
-**Networking:** all containers share a single Docker Compose network; only `frontend` and `backend` publish ports to the host/Internet; the application database, MLflow, and shadow DBs are internal-only.
+**Networking:** all containers share a single Docker Compose network; `frontend` and `backend` publish application ports, while MLflow is bound only to loopback (`127.0.0.1:5000`) for local operator access. The application database and shadow DBs remain internal-only.
 **Secrets:** the JWT signing key and the customer-connection encryption key are supplied as environment variables (see §11), never committed; connection strings for customer databases are encrypted before being stored in the application database.
 **Scaling:** out of scope for the hackathon build — a single instance of each service is assumed; the worker image is designed so any individual worker can be scaled independently later by running more containers from the same image with a different entrypoint argument.
 **Monitoring:** MLflow covers model-level monitoring; Evidently covers data/prediction drift. No separate infra-level monitoring stack (Prometheus/Grafana) is included — marked `TBD` if needed post-hackathon.
@@ -441,7 +441,7 @@ This is the system's own database, hosted on Neon (or any Postgres). It stores:
 * `experiments` — Feature 2 optimization experiments (baseline/candidate metrics, statistical results, skeptic findings, verdicts).
 * `forecasts` / `bandit_events` / `model_predictions` — Feature 3 forecasting and closed-loop learning records.
 * `roi_records` — Feature 4 dollar-savings calculations.
-* MLflow's own backing tables (tracking metadata) also live in this same Postgres instance, in a separate schema.
+* MLflow's own backing tables (tracking metadata) also live in this same Postgres instance; model binaries live in the dedicated MLflow artifact volume. Candidate models receive a `champion` alias only after the retrain worker's metric gate passes.
 
 ### Customer/Connected Database (PostgreSQL, any provider incl. Neon)
 

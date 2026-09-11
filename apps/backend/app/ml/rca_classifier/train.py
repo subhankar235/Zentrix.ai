@@ -78,11 +78,14 @@ def train(
 
 def _log_mlflow(path: Path, row_count: int) -> None:
     try:
-        import mlflow
+        from app.ml.mlflow_registry import log_training_run
 
-        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-        with mlflow.start_run(run_name="rca-lightgbm-multilabel"):
-            mlflow.log_param("rows", row_count)
-            mlflow.log_artifact(str(path), artifact_path="model")
+        log_training_run(
+            run_name="rca-lightgbm-multilabel",
+            artifact_path=path,
+            experiment_name="zentrix_feature1_rca",
+            model_name="zentrix-feature1-rca",
+            params={"rows": row_count},
+        )
     except Exception:
         return

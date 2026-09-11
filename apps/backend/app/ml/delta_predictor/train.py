@@ -93,21 +93,24 @@ def train(
     path = Path(artifact_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(artifact, path)
-    _log_mlflow(path, len(rows), split, validation_metrics)
-    return {"artifact_path": str(path), "rows": len(rows), "feature_names": list(FEATURE_NAMES), "targets": list(TARGET_NAMES), "validation_metrics": validation_metrics}
+    mlflow_result = _log_mlflow(path, len(rows), split, validation_metrics)
+    return {"artifact_path": str(path), "rows": len(rows), "feature_names": list(FEATURE_NAMES), "targets": list(TARGET_NAMES), "validation_metrics": validation_metrics, "mlflow": mlflow_result}
 
 
-def _log_mlflow(path: Path, row_count: int, split: int, metrics: Mapping[str, Mapping[str, float]]) -> None:
+def _log_mlflow(path: Path, row_count: int, split: int, metrics: Mapping[str, Mapping[str, float]]) -> dict[str, Any]:
     try:
-        import mlflow
+        from app.ml.mlflow_registry import log_training_run
 
-        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-        with mlflow.start_run(run_name="delta-predictor-lightgbm"):
-            mlflow.log_params({"rows": row_count, "temporal_train_rows": split, "targets": len(TARGET_NAMES)})
-            mlflow.log_metrics({f"{target}_{name}": value for target, values in metrics.items() for name, value in values.items()})
-            mlflow.log_artifact(str(path), artifact_path="model")
-    except Exception:
-        return
+        return log_training_run(
+            run_name="delta-predictor-lightgbm",
+            artifact_path=path,
+            experiment_name="zentrix_feature2_delta_predictor",
+            model_name="zentrix-feature2-delta-predictor",
+            params={"rows": row_count, "temporal_train_rows": split, "targets": len(TARGET_NAMES)},
+            metrics={f"{target}_{name}": value for target, values in metrics.items() for name, value in values.items()},
+        )
+    except Exception as exc:
+        return {"tracking_error": str(exc)}
 
 
 if __name__ == "__main__":

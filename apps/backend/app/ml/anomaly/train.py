@@ -48,12 +48,15 @@ def train(
 
 def _log_mlflow(path: Path, row_count: int, contamination: float) -> None:
     try:
-        import mlflow
+        from app.ml.mlflow_registry import log_training_run
 
-        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-        with mlflow.start_run(run_name="anomaly-isolation-forest"):
-            mlflow.log_params({"rows": row_count, "contamination": contamination})
-            mlflow.log_artifact(str(path), artifact_path="model")
+        log_training_run(
+            run_name="anomaly-isolation-forest",
+            artifact_path=path,
+            experiment_name="zentrix_feature1_anomaly",
+            model_name="zentrix-feature1-anomaly",
+            params={"rows": row_count, "contamination": contamination},
+        )
     except Exception:
         # Local training must remain usable when the optional tracking server is down.
         return

@@ -22,13 +22,75 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.logging import get_logger
+from app.core.config import get_settings
 from app.ml.bandit.policy import ContextualThompsonSamplingBandit, RolloutPhase
 from app.ml.forecasting.train import train as train_l1_forecasting
+from app.ml.delta_predictor.train import train as train_l2_delta
 from app.models.audit import AuditLog
 from app.models.experiment import BanditEvent, ModelPrediction, OptimizationExperiment
 from app.models.forecast import ModelDriftReport
+from app.models.telemetry import QueryMetric, TableMetric
+from app.ml.mlflow_registry import champion_metric, promote_registered_model
 
 logger = get_logger(__name__)
+
+
+async def load_live_forecasting_telemetry(
+    db: AsyncSession,
+    *,
+    limit: int = 10000,
+) -> list[dict[str, Any]]:
+    """Build chronological workload snapshots from collected live telemetry."""
+    query_result = await db.execute(
+        select(QueryMetric)
+        .where(QueryMetric.capture_source == "live_postgresql")
+        .order_by(QueryMetric.timestamp.asc())
+        .limit(limit)
+    )
+    query_rows = list(query_result.scalars().all())
+    if not query_rows:
+        return []
+
+    table_result = await db.execute(
+        select(TableMetric)
+        .where(TableMetric.capture_source == "live_postgresql")
+        .order_by(TableMetric.timestamp.desc())
+        .limit(1)
+    )
+    table = table_result.scalar_one_or_none()
+    grouped: dict[Any, list[QueryMetric]] = {}
+    for row in query_rows:
+        grouped.setdefault(row.timestamp, []).append(row)
+
+    records: list[dict[str, Any]] = []
+    for timestamp, rows in sorted(grouped.items()):
+        total_calls = sum(int(row.calls) for row in rows)
+        total_exec = sum(float(row.total_exec_time) for row in rows)
+        shared_read = sum(int(row.shared_blks_read) for row in rows)
+        shared_hit = sum(int(row.shared_blks_hit) for row in rows)
+        records.append({
+            "timestamp": timestamp.isoformat(),
+            "mean_exec_time": total_exec / max(total_calls, 1),
+            "max_exec_time": max(float(row.max_exec_time) for row in rows),
+            "p95_exec_time": max(float(row.max_exec_time) for row in rows),
+            "calls": total_calls,
+            "rows": sum(int(row.rows) for row in rows),
+            "shared_blks_read": shared_read,
+            "shared_blks_hit": shared_hit,
+            "temp_blks_read": sum(int(row.temp_blks_read) for row in rows),
+            "temp_blks_written": sum(int(row.temp_blks_written) for row in rows),
+            "cpu_seconds": total_exec / 1000.0,
+            "wal_bytes": sum(int(row.wal_bytes) for row in rows),
+            "dead_tuple_ratio": float(table.dead_tuple_ratio) if table else 0.0,
+            "table_size_bytes": int(table.table_size_bytes) if table else 0,
+            "index_size_bytes": int(table.index_size_bytes) if table else 0,
+            "idx_scan_ratio": (
+                float(table.idx_scans) / max(float(table.idx_scans + table.seq_scans), 1.0)
+                if table else 0.0
+            ),
+            "data_source": "live_postgresql",
+        })
+    return records
 
 CALIBRATION_BUCKETS = [
     (0.0, 0.20),
@@ -287,18 +349,117 @@ async def run_retrain_cycle(
 
         # Retrain L1 forecasting
         new_version_tag = f"l1_{now.strftime('%Y%m%d_%H%M%S')}"
-        l1_result = train_l1_forecasting(version=new_version_tag)
-        cand_mae = l1_result["metrics"]["mae"]
+        telemetry = await load_live_forecasting_telemetry(db)
+        settings = get_settings()
+        if len(telemetry) < 72:
+            models_trained["l1_forecasting"] = {
+                "version": new_version_tag,
+                "status": "INSUFFICIENT_REAL_DATA",
+                "rows": len(telemetry),
+                "required_rows": 72,
+                "is_promoted": False,
+                "reason": "At least 72 live PostgreSQL telemetry snapshots are required; synthetic training is disabled",
+            }
+        else:
+            candidate_path = Path(settings.FORECASTING_MODEL_PATH).parent / "candidates" / new_version_tag / "forecasting_model.joblib"
+            l1_result = train_l1_forecasting(telemetry_records=telemetry, output_path=candidate_path, version=new_version_tag)
+            cand_mae = l1_result["metrics"]["mae"]
+            current_mlflow_mae = champion_metric("zentrix-l1-forecasting", "mae")
+            curr_mae = current_mlflow_mae if current_mlflow_mae is not None else error_summary.get("mae", 0.0)
+            is_promoted, promo_reason = evaluate_model_promotion(curr_mae, cand_mae)
+            mlflow_info = l1_result.get("mlflow", {})
+            promoted_artifact: dict[str, Any] = {}
+            if is_promoted and mlflow_info.get("registered_version"):
+                try:
+                    promoted_artifact = promote_registered_model(
+                        model_name="zentrix-l1-forecasting",
+                        destination=Path(settings.FORECASTING_MODEL_PATH),
+                        version=str(mlflow_info["registered_version"]),
+                    )
+                except Exception as exc:
+                    is_promoted = False
+                    promo_reason = f"Candidate passed metric gate but deployment failed: {exc}"
+            elif is_promoted:
+                is_promoted = False
+                promo_reason = "Candidate was not promoted because MLflow registration was unavailable"
 
-        curr_mae = error_summary.get("mae", 0.0)
-        is_promoted, promo_reason = evaluate_model_promotion(curr_mae, cand_mae)
+            models_trained["l1_forecasting"] = {
+                "version": new_version_tag,
+                "candidate_mae": cand_mae,
+                "current_mae": curr_mae,
+                "is_promoted": is_promoted,
+                "reason": promo_reason,
+                "rows": len(telemetry),
+                "mlflow": mlflow_info,
+                "promoted_artifact": promoted_artifact,
+            }
 
-        models_trained["l1_forecasting"] = {
-            "version": new_version_tag,
-            "candidate_mae": cand_mae,
-            "is_promoted": is_promoted,
-            "reason": promo_reason,
-        }
+            # Retrain the Feature 2 outcome model from labeled experiment rows.
+            experiments_result = await db.execute(
+                select(OptimizationExperiment)
+                .where(OptimizationExperiment.actual_latency_delta.is_not(None))
+                .order_by(OptimizationExperiment.timestamp.asc())
+                .limit(5000)
+            )
+            experiments = list(experiments_result.scalars().all())
+            if len(experiments) >= 8:
+                delta_rows = [
+                    {
+                        "strategy": experiment.strategy,
+                        "candidate_sql": experiment.candidate_sql,
+                        "baseline_latency": experiment.baseline_latency,
+                        "baseline_p95": experiment.baseline_p95,
+                        "baseline_cpu": experiment.baseline_cpu,
+                        "baseline_io": experiment.baseline_io,
+                        "candidate_latency": experiment.candidate_latency,
+                        "candidate_p95": experiment.candidate_p95,
+                        "candidate_cpu": experiment.candidate_cpu,
+                        "candidate_io": experiment.candidate_io,
+                        "delta_latency": experiment.candidate_latency - experiment.baseline_latency,
+                        "delta_p95": experiment.candidate_p95 - experiment.baseline_p95,
+                        "delta_cpu": experiment.candidate_cpu - experiment.baseline_cpu,
+                        "delta_io": experiment.candidate_io - experiment.baseline_io,
+                    }
+                    for experiment in experiments
+                ]
+                delta_version = f"l2_{now.strftime('%Y%m%d_%H%M%S')}"
+                delta_path = Path(settings.DELTA_MODEL_PATH).parent / "candidates" / delta_version / "delta_predictor.joblib"
+                delta_result = train_l2_delta(delta_rows, delta_path)
+                delta_mae = delta_result["validation_metrics"]["delta_latency"]["mae"]
+                current_delta_mae = champion_metric("zentrix-feature2-delta-predictor", "delta_latency_mae") or 0.0
+                delta_promoted, delta_reason = evaluate_model_promotion(current_delta_mae, delta_mae)
+                delta_mlflow = delta_result.get("mlflow", {})
+                delta_artifact: dict[str, Any] = {}
+                if delta_promoted and delta_mlflow.get("registered_version"):
+                    try:
+                        delta_artifact = promote_registered_model(
+                            model_name="zentrix-feature2-delta-predictor",
+                            destination=Path(settings.DELTA_MODEL_PATH),
+                            version=str(delta_mlflow["registered_version"]),
+                        )
+                    except Exception as exc:
+                        delta_promoted = False
+                        delta_reason = f"Candidate passed metric gate but deployment failed: {exc}"
+                elif delta_promoted:
+                    delta_promoted = False
+                    delta_reason = "Candidate was not promoted because MLflow registration was unavailable"
+                models_trained["l2_delta_predictor"] = {
+                    "version": delta_version,
+                    "candidate_mae": delta_mae,
+                    "current_mae": current_delta_mae,
+                    "is_promoted": delta_promoted,
+                    "reason": delta_reason,
+                    "rows": len(delta_rows),
+                    "mlflow": delta_mlflow,
+                    "promoted_artifact": delta_artifact,
+                }
+            else:
+                models_trained["l2_delta_predictor"] = {
+                    "status": "INSUFFICIENT_REAL_DATA",
+                    "rows": len(experiments),
+                    "required_rows": 8,
+                    "is_promoted": False,
+                }
 
         # Evaluate L3 bandit offline policy
         bandit_eval = await evaluate_bandit_promotion(db)

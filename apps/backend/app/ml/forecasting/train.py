@@ -200,8 +200,7 @@ def train(
 ) -> dict[str, Any]:
     """Train the L1 workload degradation forecasting model and serialize artifact."""
     if telemetry_records is None:
-        logger.info("Generating synthetic historical telemetry series for initial L1 model training")
-        telemetry_records = generate_synthetic_telemetry_series(n_days=45)
+        raise ValueError("Real telemetry_records are required; synthetic data is only available explicitly for development experiments")
 
     X, y_reg, y_prob, feature_names = build_forecasting_dataset(telemetry_records)
     logger.info(f"Built forecasting dataset with {len(X)} temporal rows and {len(feature_names)} features")
@@ -218,19 +217,6 @@ def train(
         )
         probability_model.fit(X, y_prob)
 
-    # Optional MLflow logging
-    try:
-        import mlflow
-        if os.getenv("MLFLOW_TRACKING_URI"):
-            mlflow.set_experiment("zentrix_feature3_forecasting")
-            with mlflow.start_run(run_name=f"l1_forecasting_{version}"):
-                for k, v in metrics.items():
-                    mlflow.log_metric(k, v)
-                mlflow.log_param("model_version", version)
-                mlflow.log_param("n_features", len(feature_names))
-    except Exception as exc:
-        logger.debug(f"MLflow logging omitted: {exc}")
-
     artifact = {
         "model": model,
         "probability_model": probability_model,
@@ -244,6 +230,21 @@ def train(
     save_path = Path(output_path or os.getenv("FORECASTING_MODEL_PATH", "forecasting_model.joblib"))
     save_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(artifact, save_path)
+    mlflow_result: dict[str, Any] = {}
+    try:
+        from app.ml.mlflow_registry import log_training_run
+
+        mlflow_result = log_training_run(
+            run_name=f"l1_forecasting_{version}",
+            artifact_path=save_path,
+            experiment_name="zentrix_feature3_forecasting",
+            model_name="zentrix-l1-forecasting",
+            params={"model_version": version, "n_features": len(feature_names), "trained_samples": len(X)},
+            metrics=metrics,
+        )
+    except Exception as exc:
+        logger.warning(f"MLflow tracking failed for forecasting candidate: {exc}")
+        mlflow_result = {"tracking_error": str(exc)}
     logger.info(f"Serialized L1 forecasting artifact to {save_path}")
 
     return {
@@ -251,6 +252,7 @@ def train(
         "model_version": version,
         "metrics": metrics,
         "artifact_path": str(save_path),
+        "mlflow": mlflow_result,
     }
 
 

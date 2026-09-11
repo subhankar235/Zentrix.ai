@@ -88,12 +88,15 @@ def train_from_rows(
 
 def _log_mlflow(path: Path, window_count: int, epochs: int, threshold: float) -> None:
     try:
-        import mlflow
+        from app.ml.mlflow_registry import log_training_run
 
-        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-        with mlflow.start_run(run_name="temporal-lstm-autoencoder"):
-            mlflow.log_params({"windows": window_count, "epochs": epochs})
-            mlflow.log_metric("reconstruction_threshold", threshold)
-            mlflow.log_artifact(str(path), artifact_path="model")
+        log_training_run(
+            run_name="temporal-lstm-autoencoder",
+            artifact_path=path,
+            experiment_name="zentrix_feature1_temporal",
+            model_name="zentrix-feature1-temporal",
+            params={"windows": window_count, "epochs": epochs},
+            metrics={"reconstruction_threshold": threshold},
+        )
     except Exception:
         return
